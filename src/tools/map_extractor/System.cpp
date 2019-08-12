@@ -32,12 +32,9 @@
 
 #include "dbcfile.h"
 #include "mpq_libmpq04.h"
-#include "StringFormat.h"
 
 #include "adt.h"
 #include "wdt.h"
-
-#include <G3D/Plane.h>
 #include <fcntl.h>
 
 #if defined( __GNUC__ )
@@ -64,10 +61,11 @@ typedef struct
 } map_id;
 
 map_id *map_ids;
+uint16 *areas;
 uint16 *LiqType;
-#define MAX_PATH_LENGTH 128
-char output_path[MAX_PATH_LENGTH] = ".";
-char input_path[MAX_PATH_LENGTH] = ".";
+char output_path[128] = ".";
+char input_path[128] = ".";
+uint32 maxAreaId = 0;
 
 // **************************************************
 // Extractor options
@@ -258,6 +256,30 @@ uint32 ReadMapDBC()
     return map_count;
 }
 
+void ReadAreaTableDBC()
+{
+    printf("Read AreaTable.dbc file...");
+    DBCFile dbc("DBFilesClient\\AreaTable.dbc");
+
+    if(!dbc.open())
+    {
+        printf("Fatal error: Invalid AreaTable.dbc file format!\n");
+        exit(1);
+    }
+
+    size_t area_count = dbc.getRecordCount();
+    size_t maxid = dbc.getMaxId();
+    areas = new uint16[maxid + 1];
+    memset(areas, 0xff, (maxid + 1) * sizeof(uint16));
+
+    for(uint32 x = 0; x < area_count; ++x)
+        areas[dbc.getRecord(x).getUInt(0)] = dbc.getRecord(x).getUInt(3);
+
+    maxAreaId = dbc.getMaxId();
+
+    printf("Done! (%u areas loaded)\n", (uint32)area_count);
+}
+
 void ReadLiquidTypeTableDBC()
 {
     printf("Read LiquidType.dbc file...");
@@ -285,7 +307,7 @@ void ReadLiquidTypeTableDBC()
 
 // Map file format data
 static char const* MAP_MAGIC         = "MAPS";
-static char const* MAP_VERSION_MAGIC = "v1.8";
+static char const* MAP_VERSION_MAGIC = "v1.3";
 static char const* MAP_AREA_MAGIC    = "AREA";
 static char const* MAP_HEIGHT_MAGIC  = "MHGT";
 static char const* MAP_LIQUID_MAGIC  = "MLIQ";
@@ -314,10 +336,9 @@ struct map_areaHeader
     uint16 gridArea;
 };
 
-#define MAP_HEIGHT_NO_HEIGHT            0x0001
-#define MAP_HEIGHT_AS_INT16             0x0002
-#define MAP_HEIGHT_AS_INT8              0x0004
-#define MAP_HEIGHT_HAS_FLIGHT_BOUNDS    0x0008
+#define MAP_HEIGHT_NO_HEIGHT  0x0001
+#define MAP_HEIGHT_AS_INT16   0x0002
+#define MAP_HEIGHT_AS_INT8    0x0004
 
 struct map_heightHeader
 {
@@ -362,7 +383,7 @@ float selectUInt16StepStore(float maxDiff)
     return 65535 / maxDiff;
 }
 // Temporary grid data store
-uint16 area_ids[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];
+uint16 area_flags[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];
 
 float V8[ADT_GRID_SIZE][ADT_GRID_SIZE];
 float V9[ADT_GRID_SIZE+1][ADT_GRID_SIZE+1];
@@ -376,20 +397,17 @@ uint8 liquid_flags[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];
 bool  liquid_show[ADT_GRID_SIZE][ADT_GRID_SIZE];
 float liquid_height[ADT_GRID_SIZE+1][ADT_GRID_SIZE+1];
 
-int16 flight_box_max[3][3];
-int16 flight_box_min[3][3];
-
-bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int /*cell_y*/, int /*cell_x*/, uint32 build)
+bool ConvertADT(char *filename, char *filename2, int /*cell_y*/, int /*cell_x*/, uint32 build)
 {
     ADT_file adt;
 
-    if (!adt.loadFile(inputPath))
+    if (!adt.loadFile(filename))
         return false;
 
     adt_MCIN *cells = adt.a_grid->getMCIN();
     if (!cells)
     {
-        printf("Can't find cells in '%s'\n", inputPath.c_str());
+        printf("Can't find cells in '%s'\n", filename);
         return false;
     }
 
@@ -399,25 +417,39 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
 
     // Prepare map header
     map_fileheader map;
-    map.mapMagic = *reinterpret_cast<uint32 const*>(MAP_MAGIC);
-    map.versionMagic = *reinterpret_cast<uint32 const*>(MAP_VERSION_MAGIC);
+    map.mapMagic = *(uint32 const*)MAP_MAGIC;
+    map.versionMagic = *(uint32 const*)MAP_VERSION_MAGIC;
     map.buildMagic = build;
 
     // Get area flags data
-    for (int i = 0; i < ADT_CELLS_PER_GRID; i++)
-        for (int j = 0; j < ADT_CELLS_PER_GRID; j++)
-            area_ids[i][j] = cells->getMCNK(i, j)->areaid;
-
+    for (int i=0;i<ADT_CELLS_PER_GRID;i++)
+    {
+        for(int j=0;j<ADT_CELLS_PER_GRID;j++)
+        {
+            adt_MCNK * cell = cells->getMCNK(i,j);
+            uint32 areaid = cell->areaid;
+            if(areaid && areaid <= maxAreaId)
+            {
+                if(areas[areaid] != 0xffff)
+                {
+                    area_flags[i][j] = areas[areaid];
+                    continue;
+                }
+                printf("File: %s\nCan't find area flag for areaid %u [%d, %d].\n", filename, areaid, cell->ix, cell->iy);
+            }
+            area_flags[i][j] = 0xffff;
+        }
+    }
     //============================================
     // Try pack area data
     //============================================
     bool fullAreaData = false;
-    uint32 areaId = area_ids[0][0];
-    for (int y = 0; y < ADT_CELLS_PER_GRID; ++y)
+    uint32 areaflag = area_flags[0][0];
+    for (int y=0;y<ADT_CELLS_PER_GRID;y++)
     {
-        for (int x = 0; x < ADT_CELLS_PER_GRID; ++x)
+        for(int x=0;x<ADT_CELLS_PER_GRID;x++)
         {
-            if (area_ids[y][x] != areaId)
+            if(area_flags[y][x]!=areaflag)
             {
                 fullAreaData = true;
                 break;
@@ -429,27 +461,27 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
     map.areaMapSize   = sizeof(map_areaHeader);
 
     map_areaHeader areaHeader;
-    areaHeader.fourcc = *reinterpret_cast<uint32 const*>(MAP_AREA_MAGIC);
+    areaHeader.fourcc = *(uint32 const*)MAP_AREA_MAGIC;
     areaHeader.flags = 0;
     if (fullAreaData)
     {
         areaHeader.gridArea = 0;
-        map.areaMapSize += sizeof(area_ids);
+        map.areaMapSize+=sizeof(area_flags);
     }
     else
     {
         areaHeader.flags |= MAP_AREA_NO_AREA;
-        areaHeader.gridArea = static_cast<uint16>(areaId);
+        areaHeader.gridArea = (uint16)areaflag;
     }
 
     //
     // Get Height map from grid
     //
-    for (int i = 0; i<ADT_CELLS_PER_GRID; i++)
+    for (int i=0;i<ADT_CELLS_PER_GRID;i++)
     {
-        for (int j = 0; j<ADT_CELLS_PER_GRID; j++)
+        for(int j=0;j<ADT_CELLS_PER_GRID;j++)
         {
-            adt_MCNK * cell = cells->getMCNK(i, j);
+            adt_MCNK * cell = cells->getMCNK(i,j);
             if (!cell)
                 continue;
             // Height values for triangles stored in order:
@@ -469,22 +501,22 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             // . . . . . . . .
 
             // Set map height as grid height
-            for (int y = 0; y <= ADT_CELL_SIZE; y++)
+            for (int y=0; y <= ADT_CELL_SIZE; y++)
             {
                 int cy = i*ADT_CELL_SIZE + y;
-                for (int x = 0; x <= ADT_CELL_SIZE; x++)
+                for (int x=0; x <= ADT_CELL_SIZE; x++)
                 {
                     int cx = j*ADT_CELL_SIZE + x;
-                    V9[cy][cx] = cell->ypos;
+                    V9[cy][cx]=cell->ypos;
                 }
             }
-            for (int y = 0; y < ADT_CELL_SIZE; y++)
+            for (int y=0; y < ADT_CELL_SIZE; y++)
             {
                 int cy = i*ADT_CELL_SIZE + y;
-                for (int x = 0; x < ADT_CELL_SIZE; x++)
+                for (int x=0; x < ADT_CELL_SIZE; x++)
                 {
                     int cx = j*ADT_CELL_SIZE + x;
-                    V8[cy][cx] = cell->ypos;
+                    V8[cy][cx]=cell->ypos;
                 }
             }
             // Get custom height
@@ -492,23 +524,23 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             if (!v)
                 continue;
             // get V9 height map
-            for (int y = 0; y <= ADT_CELL_SIZE; y++)
+            for (int y=0; y <= ADT_CELL_SIZE; y++)
             {
                 int cy = i*ADT_CELL_SIZE + y;
-                for (int x = 0; x <= ADT_CELL_SIZE; x++)
+                for (int x=0; x <= ADT_CELL_SIZE; x++)
                 {
                     int cx = j*ADT_CELL_SIZE + x;
-                    V9[cy][cx] += v->height_map[y*(ADT_CELL_SIZE * 2 + 1) + x];
+                    V9[cy][cx]+=v->height_map[y*(ADT_CELL_SIZE*2+1)+x];
                 }
             }
             // get V8 height map
-            for (int y = 0; y < ADT_CELL_SIZE; y++)
+            for (int y=0; y < ADT_CELL_SIZE; y++)
             {
                 int cy = i*ADT_CELL_SIZE + y;
-                for (int x = 0; x < ADT_CELL_SIZE; x++)
+                for (int x=0; x < ADT_CELL_SIZE; x++)
                 {
                     int cx = j*ADT_CELL_SIZE + x;
-                    V8[cy][cx] += v->height_map[y*(ADT_CELL_SIZE * 2 + 1) + ADT_CELL_SIZE + 1 + x];
+                    V8[cy][cx]+=v->height_map[y*(ADT_CELL_SIZE*2+1)+ADT_CELL_SIZE+1+x];
                 }
             }
         }
@@ -518,18 +550,18 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
     //============================================
     float maxHeight = -20000;
     float minHeight =  20000;
-    for (int y = 0; y<ADT_GRID_SIZE; y++)
+    for (int y=0; y<ADT_GRID_SIZE; y++)
     {
-        for (int x = 0; x<ADT_GRID_SIZE; x++)
+        for(int x=0;x<ADT_GRID_SIZE;x++)
         {
             float h = V8[y][x];
             if (maxHeight < h) maxHeight = h;
             if (minHeight > h) minHeight = h;
         }
     }
-    for (int y = 0; y <= ADT_GRID_SIZE; y++)
+    for (int y=0; y<=ADT_GRID_SIZE; y++)
     {
-        for (int x = 0; x <= ADT_GRID_SIZE; x++)
+        for(int x=0;x<=ADT_GRID_SIZE;x++)
         {
             float h = V9[y][x];
             if (maxHeight < h) maxHeight = h;
@@ -540,12 +572,12 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
     // Check for allow limit minimum height (not store height in deep ochean - allow save some memory)
     if (CONF_allow_height_limit && minHeight < CONF_use_minHeight)
     {
-        for (int y = 0; y<ADT_GRID_SIZE; y++)
-            for (int x = 0; x<ADT_GRID_SIZE; x++)
+        for (int y=0; y<ADT_GRID_SIZE; y++)
+            for(int x=0;x<ADT_GRID_SIZE;x++)
                 if (V8[y][x] < CONF_use_minHeight)
                     V8[y][x] = CONF_use_minHeight;
-        for (int y = 0; y <= ADT_GRID_SIZE; y++)
-            for (int x = 0; x <= ADT_GRID_SIZE; x++)
+        for (int y=0; y<=ADT_GRID_SIZE; y++)
+            for(int x=0;x<=ADT_GRID_SIZE;x++)
                 if (V9[y][x] < CONF_use_minHeight)
                     V9[y][x] = CONF_use_minHeight;
         if (minHeight < CONF_use_minHeight)
@@ -554,35 +586,21 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             maxHeight = CONF_use_minHeight;
     }
 
-    bool hasFlightBox = false;
-    if (adt_MFBO* mfbo = adt.a_grid->getMFBO())
-    {
-        memcpy(flight_box_max, &mfbo->max, sizeof(flight_box_max));
-        memcpy(flight_box_min, &mfbo->min, sizeof(flight_box_min));
-        hasFlightBox = true;
-    }
-
     map.heightMapOffset = map.areaMapOffset + map.areaMapSize;
     map.heightMapSize = sizeof(map_heightHeader);
 
     map_heightHeader heightHeader;
-    heightHeader.fourcc = *reinterpret_cast<uint32 const*>(MAP_HEIGHT_MAGIC);
+    heightHeader.fourcc = *(uint32 const*)MAP_HEIGHT_MAGIC;
     heightHeader.flags = 0;
     heightHeader.gridHeight    = minHeight;
     heightHeader.gridMaxHeight = maxHeight;
-    
+
     if (maxHeight == minHeight)
         heightHeader.flags |= MAP_HEIGHT_NO_HEIGHT;
 
     // Not need store if flat surface
     if (CONF_allow_float_to_int && (maxHeight - minHeight) < CONF_flat_height_delta_limit)
         heightHeader.flags |= MAP_HEIGHT_NO_HEIGHT;
-    
-    if (hasFlightBox)
-    {
-        heightHeader.flags |= MAP_HEIGHT_HAS_FLIGHT_BOUNDS;
-        map.heightMapSize += sizeof(flight_box_max) + sizeof(flight_box_min);
-    }
 
     // Try store as packed in uint16 or uint8 values
     if (!(heightHeader.flags & MAP_HEIGHT_NO_HEIGHT))
@@ -594,12 +612,12 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             float diff = maxHeight - minHeight;
             if (diff < CONF_float_to_int8_limit)      // As uint8 (max accuracy = CONF_float_to_int8_limit/256)
             {
-                heightHeader.flags |= MAP_HEIGHT_AS_INT8;
+                heightHeader.flags|=MAP_HEIGHT_AS_INT8;
                 step = selectUInt8StepStore(diff);
             }
             else if (diff<CONF_float_to_int16_limit)  // As uint16 (max accuracy = CONF_float_to_int16_limit/65536)
             {
-                heightHeader.flags |= MAP_HEIGHT_AS_INT16;
+                heightHeader.flags|=MAP_HEIGHT_AS_INT16;
                 step = selectUInt16StepStore(diff);
             }
         }
@@ -607,32 +625,32 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
         // Pack it to int values if need
         if (heightHeader.flags&MAP_HEIGHT_AS_INT8)
         {
-            for (int y = 0; y<ADT_GRID_SIZE; y++)
-                for (int x = 0; x<ADT_GRID_SIZE; x++)
+            for (int y=0; y<ADT_GRID_SIZE; y++)
+                for(int x=0;x<ADT_GRID_SIZE;x++)
                     uint8_V8[y][x] = uint8((V8[y][x] - minHeight) * step + 0.5f);
-            for (int y = 0; y <= ADT_GRID_SIZE; y++)
-                for (int x = 0; x <= ADT_GRID_SIZE; x++)
+            for (int y=0; y<=ADT_GRID_SIZE; y++)
+                for(int x=0;x<=ADT_GRID_SIZE;x++)
                     uint8_V9[y][x] = uint8((V9[y][x] - minHeight) * step + 0.5f);
-            map.heightMapSize += sizeof(uint8_V9) + sizeof(uint8_V8);
+            map.heightMapSize+= sizeof(uint8_V9) + sizeof(uint8_V8);
         }
         else if (heightHeader.flags&MAP_HEIGHT_AS_INT16)
         {
-            for (int y = 0; y<ADT_GRID_SIZE; y++)
-                for (int x = 0; x<ADT_GRID_SIZE; x++)
+            for (int y=0; y<ADT_GRID_SIZE; y++)
+                for(int x=0;x<ADT_GRID_SIZE;x++)
                     uint16_V8[y][x] = uint16((V8[y][x] - minHeight) * step + 0.5f);
-            for (int y = 0; y <= ADT_GRID_SIZE; y++)
-                for (int x = 0; x <= ADT_GRID_SIZE; x++)
+            for (int y=0; y<=ADT_GRID_SIZE; y++)
+                for(int x=0;x<=ADT_GRID_SIZE;x++)
                     uint16_V9[y][x] = uint16((V9[y][x] - minHeight) * step + 0.5f);
-            map.heightMapSize += sizeof(uint16_V9) + sizeof(uint16_V8);
+            map.heightMapSize+= sizeof(uint16_V9) + sizeof(uint16_V8);
         }
         else
-            map.heightMapSize += sizeof(V9) + sizeof(V8);
+            map.heightMapSize+= sizeof(V9) + sizeof(V8);
     }
 
     // Get from MCLQ chunk (old)
     for (int i = 0; i < ADT_CELLS_PER_GRID; i++)
     {
-        for (int j = 0; j < ADT_CELLS_PER_GRID; j++)
+        for(int j = 0; j < ADT_CELLS_PER_GRID; j++)
         {
             adt_MCNK *cell = cells->getMCNK(i, j);
             if (!cell)
@@ -652,7 +670,7 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
                     if (liquid->flags[y][x] != 0x0F)
                     {
                         liquid_show[cy][cx] = true;
-                        if (liquid->flags[y][x] & (1 << 7))
+                        if (liquid->flags[y][x] & (1<<7))
                             liquid_flags[i][j] |= MAP_LIQUID_TYPE_DARK_WATER;
                         ++count;
                     }
@@ -660,17 +678,17 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             }
 
             uint32 c_flag = cell->flags;
-            if (c_flag & (1 << 2))
+            if (c_flag & (1<<2))
             {
                 liquid_entry[i][j] = 1;
                 liquid_flags[i][j] |= MAP_LIQUID_TYPE_WATER;            // water
             }
-            if (c_flag & (1 << 3))
+            if (c_flag & (1<<3))
             {
                 liquid_entry[i][j] = 2;
                 liquid_flags[i][j] |= MAP_LIQUID_TYPE_OCEAN;            // ocean
             }
-            if (c_flag & (1 << 4))
+            if (c_flag & (1<<4))
             {
                 liquid_entry[i][j] = 3;
                 liquid_flags[i][j] |= MAP_LIQUID_TYPE_MAGMA;            // magma/slime
@@ -728,7 +746,7 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
                     case LIQUID_TYPE_MAGMA: liquid_flags[i][j] |= MAP_LIQUID_TYPE_MAGMA; break;
                     case LIQUID_TYPE_SLIME: liquid_flags[i][j] |= MAP_LIQUID_TYPE_SLIME; break;
                     default:
-                        printf("\nCan't find Liquid type %u for map %s\nchunk %d,%d\n", h->liquidType, inputPath.c_str(), i, j);
+                        printf("\nCan't find Liquid type %u for map %s\nchunk %d,%d\n", h->liquidType, filename, i, j);
                         break;
                 }
                 // Dark water detect
@@ -871,17 +889,17 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
         map.holesSize = 0;
 
     // Ok all data prepared - store it
-    FILE* output = fopen(outputPath.c_str(), "wb");
+    FILE* output = fopen(filename2, "wb");
     if (!output)
     {
-        printf("Can't create the output file '%s'\n", outputPath.c_str());
+        printf("Can't create the output file '%s'\n", filename2);
         return false;
     }
     fwrite(&map, sizeof(map), 1, output);
     // Store area data
     fwrite(&areaHeader, sizeof(areaHeader), 1, output);
     if (!(areaHeader.flags&MAP_AREA_NO_AREA))
-        fwrite(area_ids, sizeof(area_ids), 1, output);
+        fwrite(area_flags, sizeof(area_flags), 1, output);
 
     // Store height data
     fwrite(&heightHeader, sizeof(heightHeader), 1, output);
@@ -902,12 +920,6 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
             fwrite(V9, sizeof(V9), 1, output);
             fwrite(V8, sizeof(V8), 1, output);
         }
-    }
-
-    if (heightHeader.flags & MAP_HEIGHT_HAS_FLIGHT_BOUNDS)
-    {
-        fwrite(flight_box_max, sizeof(flight_box_max), 1, output);
-        fwrite(flight_box_min, sizeof(flight_box_min), 1, output);
     }
 
     // Store liquid data if need
@@ -937,14 +949,15 @@ bool ConvertADT(std::string const& inputPath, std::string const& outputPath, int
 
 void ExtractMapsFromMpq(uint32 build)
 {
-    std::string mpqFileName;
-    std::string outputFileName;
-    std::string mpqMapName;
+    char mpq_filename[1024];
+    char output_filename[1024];
+    char mpq_map_name[1024];
 
     printf("Extracting maps...\n");
 
     uint32 map_count = ReadMapDBC();
 
+    ReadAreaTableDBC();
     ReadLiquidTypeTableDBC();
 
     std::string path = output_path;
@@ -956,9 +969,9 @@ void ExtractMapsFromMpq(uint32 build)
     {
         printf("Extract %s (%d/%u)                  \n", map_ids[z].name, z+1, map_count);
         // Loadup map grid data
-        mpqMapName = Trinity::StringFormat("World\\Maps\\%s\\%s.wdt", map_ids[z].name, map_ids[z].name);
+        sprintf(mpq_map_name, "World\\Maps\\%s\\%s.wdt", map_ids[z].name, map_ids[z].name);
         WDT_file wdt;
-        if (!wdt.loadFile(mpqMapName, false))
+        if (!wdt.loadFile(mpq_map_name, false))
         {
 //            printf("Error loading %s map wdt data\n", map_ids[z].name);
             continue;
@@ -970,16 +983,17 @@ void ExtractMapsFromMpq(uint32 build)
             {
                 if (!wdt.main->adt_list[y][x].exist)
                     continue;
-                mpqFileName = Trinity::StringFormat("World\\Maps\\%s\\%s_%u_%u.adt", map_ids[z].name, map_ids[z].name, x, y);
-                outputFileName = Trinity::StringFormat("%s/maps/%03u%02u%02u.map", output_path, map_ids[z].id, y, x);
-                ConvertADT(mpqFileName, outputFileName, y, x, build);
+                sprintf(mpq_filename, "World\\Maps\\%s\\%s_%u_%u.adt", map_ids[z].name, map_ids[z].name, x, y);
+                sprintf(output_filename, "%s/maps/%03u%02u%02u.map", output_path, map_ids[z].id, y, x);
+                ConvertADT(mpq_filename, output_filename, y, x, build);
             }
             // draw progress bar
             printf("Processing........................%d%%\r", (100 * (y+1)) / WDT_MAP_SIZE);
         }
     }
     printf("\n");
-    delete[] map_ids;
+    delete [] areas;
+    delete [] map_ids;
 }
 
 bool ExtractFile( char const* mpq_name, std::string const& filename )

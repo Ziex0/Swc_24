@@ -2795,7 +2795,7 @@ void ObjectMgr::LoadItemTemplates()
             itemTemplate.ItemSet = 0;
         }
 
-        if (itemTemplate.Area && !sAreaTableStore.LookupEntry(itemTemplate.Area))
+        if (itemTemplate.Area && !GetAreaEntryByAreaID(itemTemplate.Area))
             sLog->outErrorDb("Item (Entry: %u) has wrong Area (%u)", entry, itemTemplate.Area);
 
         if (itemTemplate.Map && !sMapStore.LookupEntry(itemTemplate.Map))
@@ -4298,7 +4298,7 @@ void ObjectMgr::LoadQuests()
         // client quest log visual (area case)
         if (qinfo->ZoneOrSort > 0)
         {
-            if (!sAreaTableStore.LookupEntry(qinfo->ZoneOrSort))
+            if (!GetAreaEntryByAreaID(qinfo->ZoneOrSort))
             {
                 sLog->outErrorDb("Quest %u has `ZoneOrSort` = %u (zone case) but zone with this id does not exist.",
                     qinfo->GetQuestId(), qinfo->ZoneOrSort);
@@ -6136,7 +6136,7 @@ void ObjectMgr::LoadGraveyardZones()
             continue;
         }
 
-        AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(zoneId);
+        AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(zoneId);
         if (!areaEntry)
         {
             sLog->outErrorDb("Table `game_graveyard_zone` has a record for not existing zone id (%u), skipped.", zoneId);
@@ -6885,10 +6885,6 @@ void ObjectMgr::LoadGameObjectTemplate()
         got.flags          = fields[8].GetUInt32();
         got.size           = fields[9].GetFloat();
 
-        if (entry == 3640)
-        {
-            uint8 a = 1;
-        }
         for (uint8 i = 0; i < MAX_GAMEOBJECT_QUEST_ITEMS; ++i)
             got.questItems[i] = fields[10 + i].GetUInt32();
 
@@ -8208,7 +8204,7 @@ void ObjectMgr::LoadFishingBaseSkillLevel()
         uint32 entry  = fields[0].GetUInt32();
         int32 skill   = fields[1].GetInt16();
 
-        AreaTableEntry const* fArea = sAreaTableStore.LookupEntry(entry);
+        AreaTableEntry const* fArea = GetAreaEntryByAreaID(entry);
         if (!fArea)
         {
             sLog->outErrorDb("AreaId %u defined in `skill_fishing_base_level` does not exist", entry);
