@@ -7,6 +7,7 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "CreatureTextMgr.h"
 #include "culling_of_stratholme.h"
 #include "Player.h"
+#include "TemporarySummon.h"
 #include "SpellInfo.h"
 
 class instance_culling_of_stratholme : public InstanceMapScript
@@ -296,7 +297,8 @@ class instance_culling_of_stratholme : public InstanceMapScript
 			if (!instance->GetPlayers().isEmpty())
 				if (Player* player = instance->GetPlayers().getFirst()->GetSource())
 				{
-					Position pos = player->GetPosition();
+					Position pos;
+					player->GetPosition(&pos);
 					if (Creature* cr = instance->SummonCreature(NPC_CHROMIE_MIDDLE, pos))
 					{
 						cr->SetVisible(false);

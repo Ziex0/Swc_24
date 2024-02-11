@@ -9,7 +9,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "CombatAI.h"
 #include "Player.h"
 #include "SpellInfo.h"
-#include "World.h"
 
 enum Misc
 {
@@ -110,7 +109,6 @@ public:
 		boss_skadiAI(Creature *pCreature) : ScriptedAI(pCreature), summons(me)
 		{
     		m_pInstance = pCreature->GetInstanceScript();
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
 		}
 
 		InstanceScript *m_pInstance;
@@ -118,7 +116,6 @@ public:
 		SummonList summons;
 		uint64 GraufGUID;
 		bool SecondPhase, EventStarted;
-        bool preNerf;
 
 		void Reset()
 		{
@@ -274,8 +271,6 @@ public:
 		boss_skadi_graufAI(Creature *pCreature) : VehicleAI(pCreature), summons(me)
 		{
     		m_pInstance = pCreature->GetInstanceScript();
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
-            harpoonReqCount = preNerf ? 5 : 3;
 		}
 
 		InstanceScript *m_pInstance;
@@ -283,8 +278,6 @@ public:
 		SummonList summons;
 		uint8 currentPos;
 		uint8 AchievementHitCount;
-        bool preNerf;
-        uint8 harpoonReqCount;
 
 		void Reset()
 		{
@@ -311,7 +304,7 @@ public:
 			else if (param == ACTION_MYGIRL_ACHIEVEMENT)
 			{
 				AchievementHitCount++;
-				if (AchievementHitCount >= harpoonReqCount && m_pInstance)
+				if (AchievementHitCount >= 3 && m_pInstance)
 					m_pInstance->SetData(DATA_SKADI_ACHIEVEMENT, true);
 					
 			}
@@ -495,14 +488,7 @@ public:
 class go_harpoon_canon : public GameObjectScript
 { 
 public: 
-    go_harpoon_canon() : GameObjectScript("go_harpoon_canon")
-    {
-        preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
-        harpoonReqCount = preNerf ? 5 : 3;
-    } 
-
-    bool preNerf;
-    uint8 harpoonReqCount;
+    go_harpoon_canon() : GameObjectScript("go_harpoon_canon") { } 
 
 	bool OnGossipHello(Player* pPlayer, GameObject* pGO)
 	{
@@ -515,7 +501,7 @@ public:
 
 				if (Creature *grauf = ObjectAccessor::GetCreature(*pPlayer, m_pInstance->GetData64(DATA_GRAUF)))
 				{
-					if (count >= harpoonReqCount)
+					if (count >= 3)
 					{
 						m_pInstance->SetData(SKADI_IN_RANGE, 0);
 						grauf->AI()->DoAction(ACTION_REMOVE_SKADI);

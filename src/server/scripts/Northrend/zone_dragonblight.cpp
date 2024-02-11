@@ -30,16 +30,10 @@ EndContentData */
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "ScriptedEscortAI.h"
-#include "Cell.h"
-#include "CellImpl.h"
 #include "SpellScript.h"
 #include "Player.h"
 #include "Vehicle.h"
 #include "CreatureTextMgr.h"
-#include "PassiveAI.h"
-#include "CombatAI.h"
-#include "Chat.h"
-#include "SpellAuras.h"
 
 // Ours
 /********
@@ -600,7 +594,7 @@ public:
 		{
 			me->SetCorpseDelay(60);
 			CombatAI::Reset();
-			if (Unit* target = me->SelectNearestTargetInAttackDistance(50.0f))
+			if (Unit* target = me->SelectNearestTarget(50.0f))
 				AttackStart(target);
 		}
 
@@ -733,7 +727,7 @@ enum eSandC
 class WretchedGhoulCleaner
 {
     public:
-        void operator()(Creature* creature) const
+        void operator()(Creature* creature)
         {
 			if (creature->GetEntry() == NPC_SAC_WRETCHED_GHOUL && creature->GetDisplayId() != 11686 && creature->IsAlive())
 				Unit::Kill(creature, creature);

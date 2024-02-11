@@ -72,7 +72,6 @@ enum WorldTimers
 {
     WUPDATE_AUCTIONS,
     WUPDATE_WEATHERS,
-    WUPDATE_UPTIME,
     WUPDATE_CORPSES,
     WUPDATE_EVENTS,
     WUPDATE_CLEANDB,
@@ -108,6 +107,7 @@ enum WorldBoolConfigs
     CONFIG_DETECT_POS_COLLISION,
     CONFIG_RESTRICTED_LFG_CHANNEL,
     CONFIG_SILENTLY_GM_JOIN_TO_CHANNEL,
+    CONFIG_TALENTS_INSPECTING,
     CONFIG_CHAT_FAKE_MESSAGE_PREVENTING,
     CONFIG_DEATH_CORPSE_RECLAIM_DELAY_PVP,
     CONFIG_DEATH_CORPSE_RECLAIM_DELAY_PVE,
@@ -144,10 +144,6 @@ enum WorldBoolConfigs
     CONFIG_QUEST_IGNORE_AUTO_ACCEPT,
     CONFIG_QUEST_IGNORE_AUTO_COMPLETE,
     CONFIG_WARDEN_ENABLED,
-    CONFIG_CALCULATE_CREATURE_ZONE_AREA_DATA,
-    CONFIG_CALCULATE_GAMEOBJECT_ZONE_AREA_DATA,
-    CONFIG_EVENT_ANNOUNCE,
-    CONFIG_DYNAMIC_SPAWN_ENABLED,
     BOOL_CONFIG_VALUE_COUNT
 };
 
@@ -156,13 +152,13 @@ enum WorldFloatConfigs
     CONFIG_GROUP_XP_DISTANCE = 0,
     CONFIG_MAX_RECRUIT_A_FRIEND_DISTANCE,
     CONFIG_SIGHT_MONSTER,
+    CONFIG_SIGHT_GUARDER,
     CONFIG_LISTEN_RANGE_SAY,
     CONFIG_LISTEN_RANGE_TEXTEMOTE,
     CONFIG_LISTEN_RANGE_YELL,
     CONFIG_CREATURE_FAMILY_FLEE_ASSISTANCE_RADIUS,
     CONFIG_CREATURE_FAMILY_ASSISTANCE_RADIUS,
     CONFIG_CHANCE_OF_GM_SURVEY,
-    CONFIG_DYNAMIC_SPAWN_RESPAWN_DECREASE,
     FLOAT_CONFIG_VALUE_COUNT
 };
 
@@ -234,6 +230,7 @@ enum WorldIntConfigs
     CONFIG_CHATFLOOD_MESSAGE_COUNT,
     CONFIG_CHATFLOOD_MESSAGE_DELAY,
     CONFIG_CHATFLOOD_MUTE_TIME,
+    CONFIG_EVENT_ANNOUNCE,
     CONFIG_CREATURE_FAMILY_ASSISTANCE_DELAY,
     CONFIG_CREATURE_FAMILY_FLEE_DELAY,
     CONFIG_WORLD_BOSS_LEVEL_DIFF,
@@ -308,13 +305,6 @@ enum WorldIntConfigs
     CONFIG_WARDEN_NUM_MEM_CHECKS,
     CONFIG_WARDEN_NUM_OTHER_CHECKS,
     CONFIG_BIRTHDAY_TIME,
-    CONFIG_TALENTS_INSPECTING,
-    CONFIG_CURRENT_BUILD, // Maczuga
-    CONFIG_DYNAMIC_SPAWN_PLAYERS_TO_DECREASE,
-    CONFIG_DYNAMIC_SPAWN_CREATURE_MIN_RESPAWN_TIME,
-    CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MIN_RESPAWN_TIME,
-    CONFIG_DYNAMIC_SPAWN_CREATURE_MAX_MIN_RESPAWN_TIME,
-    CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MAX_MIN_RESPAWN_TIME,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -382,9 +372,6 @@ enum Rates
     RATE_DURABILITY_LOSS_ABSORB,
     RATE_DURABILITY_LOSS_BLOCK,
     RATE_MOVESPEED,
-    RATE_VIP_XP_KILL,
-    RATE_VIP_XP_QUEST,
-    RATE_VIP_XP_EXPLORE,
     MAX_RATES
 };
 
@@ -458,27 +445,12 @@ enum RealmZone
 
 enum WorldStates
 {
-    WS_ARENA_DISTRIBUTION_TIME  = 20001,                     // Next arena distribution time
     WS_WEEKLY_QUEST_RESET_TIME  = 20002,                     // Next weekly reset time
     WS_BG_DAILY_RESET_TIME      = 20003,                     // Next daily BG reset time
     WS_CLEANING_FLAGS           = 20004,                     // Cleaning Flags
     WS_DAILY_QUEST_RESET_TIME   = 20005,                     // pussywizard
     WS_GUILD_DAILY_RESET_TIME   = 20006,                     // Next guild cap reset time
     WS_MONTHLY_QUEST_RESET_TIME = 20007,                     // Next monthly reset time
-};
-
-enum ContentPatches
-{
-    PATCH_30X   = 9551,  // Patch 3.0.9
-    PATCH_31X   = 9947,  // Patch 3.1.3
-    PATCH_320   = 10314, // Patch 3.2.0
-    PATCH_322   = 10505, // Patch 3.2.2
-    PATCH_330   = 11159, // Patch 3.3.0
-    PATCH_332   = 11599, // Patch 3.3.2
-    PATCH_333   = 11723, // Patch 3.3.3
-    PATCH_335   = 12340, // Patch 3.3.5
-    PATCH_MIN   = PATCH_30X,
-    PATCH_MAX   = PATCH_335
 };
 
 /// Storage class for commands issued for delayed execution
@@ -504,7 +476,7 @@ struct CliCommandHolder
     ~CliCommandHolder() { delete[] m_command; }
 };
 
-typedef std::unordered_map<uint32, WorldSession*> SessionMap;
+typedef UNORDERED_MAP<uint32, WorldSession*> SessionMap;
 
 #define WORLD_SLEEP_CONST 10
 
@@ -533,7 +505,7 @@ enum GlobalPlayerUpdateMask
 	PLAYER_UPDATE_DATA_NAME				= 0x10,
 };
 
-typedef std::unordered_map<uint32, GlobalPlayerData> GlobalPlayerDataMap;
+typedef UNORDERED_MAP<uint32, GlobalPlayerData> GlobalPlayerDataMap;
 typedef std::map<std::string, uint32> GlobalPlayerNameMap;
 
 // xinef: petitions storage
@@ -769,8 +741,6 @@ class World
         void LoadDBVersion();
         char const* GetDBVersion() const { return m_DBVersion.c_str(); }
 
-        void LoadAutobroadcasts();
-
         void UpdateAreaDependentAuras();
 
         uint32 GetCleaningFlags() const { return m_CleaningFlags; }
@@ -782,10 +752,8 @@ class World
 
 		std::string const& GetRealmName() const { return _realmName; } // pussywizard
 		void SetRealmName(std::string name) { _realmName = name; } // pussywizard
-        
-        bool IsInCurrentContent(ContentPatches patchSince = PATCH_MIN, ContentPatches patchTo = PATCH_MAX) const; // Maczuga
 
-protected:
+    protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
         void _UpdateRealmCharCount(PreparedQueryResult resultCharCount);
@@ -819,7 +787,7 @@ protected:
 
         SessionMap m_sessions;
         SessionMap m_offlineSessions;
-        typedef std::unordered_map<uint32, time_t> DisconnectMap;
+        typedef UNORDERED_MAP<uint32, time_t> DisconnectMap;
         DisconnectMap m_disconnects;
         uint32 m_maxActiveSessionCount;
         uint32 m_maxQueuedSessionCount;
@@ -873,11 +841,7 @@ protected:
         // used versions
         std::string m_DBVersion;
 
-        typedef std::map<uint8, std::string> AutobroadcastsMap;
-        AutobroadcastsMap m_Autobroadcasts;
-
-        typedef std::map<uint8, uint8> AutobroadcastsWeightMap;
-        AutobroadcastsWeightMap m_AutobroadcastsWeights;
+        std::list<std::string> m_Autobroadcasts;
 
         void ProcessQueryCallbacks();
         ACE_Future_Set<PreparedQueryResult> m_realmCharCallbacks;

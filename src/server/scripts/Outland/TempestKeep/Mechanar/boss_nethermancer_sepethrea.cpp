@@ -5,8 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "mechanar.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
 
 enum Says
 {

@@ -35,19 +35,21 @@ class instance_commandscript : public CommandScript
 public:
     instance_commandscript() : CommandScript("instance_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> instanceCommandTable =
+        static ChatCommand instanceCommandTable[] =
         {
-            { "listbinds",      SEC_ADMINISTRATOR,  false,  &HandleInstanceListBindsCommand,    "" },
-            { "unbind",         SEC_ADMINISTRATOR,  false,  &HandleInstanceUnbindCommand,       "" },
-            { "stats",          SEC_ADMINISTRATOR,  true,   &HandleInstanceStatsCommand,        "" },
-            { "savedata",       SEC_ADMINISTRATOR,  false,  &HandleInstanceSaveDataCommand,     "" }
+            { "listbinds",      SEC_ADMINISTRATOR,  false,  &HandleInstanceListBindsCommand,    "", NULL },
+            { "unbind",         SEC_ADMINISTRATOR,  false,  &HandleInstanceUnbindCommand,       "", NULL },
+            { "stats",          SEC_ADMINISTRATOR,  true,   &HandleInstanceStatsCommand,        "", NULL },
+            { "savedata",       SEC_ADMINISTRATOR,  false,  &HandleInstanceSaveDataCommand,     "", NULL },
+            { NULL,             0,                  false,  NULL,                               "", NULL }
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "instance",       SEC_ADMINISTRATOR,  true,   NULL,                               "", instanceCommandTable }
+            { "instance",       SEC_ADMINISTRATOR,  true,   NULL,                               "", instanceCommandTable },
+            { NULL,             0,                  false,  NULL,                               "", NULL }
         };
 
         return commandTable;
@@ -67,9 +69,7 @@ public:
 
     static bool HandleInstanceListBindsCommand(ChatHandler* handler, char const* /*args*/)
     {
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
             player = handler->GetSession()->GetPlayer();
 
@@ -97,9 +97,7 @@ public:
         if (!*args)
             return false;
 
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
             player = handler->GetSession()->GetPlayer();
 

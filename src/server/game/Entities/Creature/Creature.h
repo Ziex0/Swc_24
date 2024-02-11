@@ -72,12 +72,11 @@ enum CreatureFlagsExtra
 
 #define MAX_AGGRO_RESET_TIME 10 // in seconds
 
-const uint32 CREATURE_REGEN_INTERVAL = 2 * IN_MILLISECONDS;
-const uint32 PET_FOCUS_REGEN_INTERVAL = 4 * IN_MILLISECONDS;
+#define MAX_KILL_CREDIT 2
+#define CREATURE_REGEN_INTERVAL 2 * IN_MILLISECONDS
+#define PET_FOCUS_REGEN_INTERVAL 4 * IN_MILLISECONDS
 
-const uint8 MAX_KILL_CREDIT = 2;
-const uint32 MAX_CREATURE_QUEST_ITEMS = 6;
-const uint32 MAX_CREATURE_SPELLS = 8;
+#define MAX_CREATURE_QUEST_ITEMS 6
 
 #define MAX_EQUIPMENT_ITEMS 3
 
@@ -92,7 +91,7 @@ struct CreatureTemplate
     uint32  Modelid3;
     uint32  Modelid4;
     std::string  Name;
-    std::string  Title;
+    std::string  SubName;
     std::string  IconName;
     uint32  GossipMenuId;
     uint8   minlevel;
@@ -104,11 +103,13 @@ struct CreatureTemplate
     float   speed_run;
     float   scale;
     uint32  rank;
+    float   mindmg;
+    float   maxdmg;
     uint32  dmgschool;
-    uint32  BaseAttackTime;
-    uint32  RangeAttackTime;
-    float   BaseVariance;
-    float   RangeVariance;
+    uint32  attackpower;
+    float   dmg_multiplier;
+    uint32  baseattacktime;
+    uint32  rangeattacktime;
     uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
     uint32  unit_flags;                                     // enum UnitFlags mask values
     uint32  unit_flags2;                                    // enum UnitFlags2 mask values
@@ -118,13 +119,16 @@ struct CreatureTemplate
     uint32  trainer_spell;
     uint32  trainer_class;
     uint32  trainer_race;
+    float   minrangedmg;
+    float   maxrangedmg;
+    uint32  rangedattackpower;
     uint32  type;                                           // enum CreatureType values
     uint32  type_flags;                                     // enum CreatureTypeFlags mask values
     uint32  lootid;
     uint32  pickpocketLootId;
     uint32  SkinLootId;
     int32   resistance[MAX_SPELL_SCHOOL];
-    uint32  spells[MAX_CREATURE_SPELLS];
+    uint32  spells[CREATURE_MAX_SPELLS];
     uint32  PetSpellDataId;
     uint32  VehicleId;
     uint32  mingold;
@@ -136,8 +140,6 @@ struct CreatureTemplate
     float   ModHealth;
     float   ModMana;
     float   ModArmor;
-    float   ModDamage;
-    float   ModExperience;
     bool    RacialLeader;
     uint32  questItems[MAX_CREATURE_QUEST_ITEMS];
     uint32  movementId;
@@ -174,11 +176,8 @@ struct CreatureTemplate
     void InitializeQueryData();
 };
 
-typedef std::vector<uint32> CreatureQuestItemList;
-typedef std::unordered_map<uint32, CreatureQuestItemList> CreatureQuestItemMap;
-
 // Benchmarked: Faster than std::map (insert/find)
-typedef std::unordered_map<uint32, CreatureTemplate> CreatureTemplateContainer;
+typedef UNORDERED_MAP<uint32, CreatureTemplate> CreatureTemplateContainer;
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push, N), also any gcc version not support it at some platform
 #if defined(__GNUC__)
@@ -226,12 +225,12 @@ struct CreatureBaseStats
     static CreatureBaseStats const* GetBaseStats(uint8 level, uint8 unitClass);
 };
 
-typedef std::unordered_map<uint16, CreatureBaseStats> CreatureBaseStatsContainer;
+typedef UNORDERED_MAP<uint16, CreatureBaseStats> CreatureBaseStatsContainer;
 
 struct CreatureLocale
 {
     StringVector Name;
-    StringVector Title;
+    StringVector SubName;
 };
 
 struct GossipMenuItemsLocale
@@ -251,8 +250,8 @@ struct EquipmentInfo
 };
 
 // Benchmarked: Faster than std::map (insert/find)
-typedef std::unordered_map<uint8, EquipmentInfo> EquipmentInfoContainerInternal;
-typedef std::unordered_map<uint32, EquipmentInfoContainerInternal> EquipmentInfoContainer;
+typedef UNORDERED_MAP<uint8, EquipmentInfo> EquipmentInfoContainerInternal;
+typedef UNORDERED_MAP<uint32, EquipmentInfoContainerInternal> EquipmentInfoContainer;
 
 // from `creature` table
 struct CreatureData
@@ -293,15 +292,14 @@ struct CreatureModelInfo
 };
 
 // Benchmarked: Faster than std::map (insert/find)
-typedef std::unordered_map<uint16, CreatureModelInfo> CreatureModelContainer;
+typedef UNORDERED_MAP<uint16, CreatureModelInfo> CreatureModelContainer;
 
 enum InhabitTypeValues
 {
     INHABIT_GROUND = 1,
     INHABIT_WATER  = 2,
     INHABIT_AIR    = 4,
-    INHABIT_ROOT   = 8,
-    INHABIT_ANYWHERE = INHABIT_GROUND | INHABIT_WATER | INHABIT_AIR | INHABIT_ROOT
+    INHABIT_ANYWHERE = INHABIT_GROUND | INHABIT_WATER | INHABIT_AIR
 };
 
 // Enums used by StringTextData::Type (CreatureEventAI)
@@ -335,7 +333,7 @@ struct CreatureAddon
     std::vector<uint32> auras;
 };
 
-typedef std::unordered_map<uint32, CreatureAddon> CreatureAddonContainer;
+typedef UNORDERED_MAP<uint32, CreatureAddon> CreatureAddonContainer;
 
 // Vendors
 struct VendorItem
@@ -411,7 +409,7 @@ struct TrainerSpell
     bool IsCastable() const { return learnedSpell[0] != spell; }
 };
 
-typedef std::unordered_map<uint32 /*spellid*/, TrainerSpell> TrainerSpellMap;
+typedef UNORDERED_MAP<uint32 /*spellid*/, TrainerSpell> TrainerSpellMap;
 
 struct TrainerSpellData
 {
@@ -450,14 +448,13 @@ class Creature : public Unit, public GridObject<Creature>, public MovableMapObje
         bool LoadCreaturesAddon(bool reload = false);
         void SelectLevel(bool changelevel = true);
         void LoadEquipment(int8 id = 1, bool force = false);
-        void SetSpawnHealth();
 
         uint32 GetDBTableGUIDLow() const { return m_DBTableGuid; }
 
         void Update(uint32 time);                         // overwrited Unit::Update
         void GetRespawnPosition(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
 
-        void SetCorpseDelay(uint32 delay) { m_baseCorpseDelay = m_corpseDelay = delay; }
+        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
         uint32 GetCorpseDelay() const { return m_corpseDelay; }
         bool IsRacialLeader() const { return GetCreatureTemplate()->RacialLeader; }
         bool IsCivilian() const { return GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_CIVILIAN; }
@@ -603,7 +600,7 @@ class Creature : public Unit, public GridObject<Creature>, public MovableMapObje
         SpellInfo const* reachWithSpellAttack(Unit* victim);
         SpellInfo const* reachWithSpellCure(Unit* victim);
 
-        uint32 m_spells[MAX_CREATURE_SPELLS];
+        uint32 m_spells[CREATURE_MAX_SPELLS];
         CreatureSpellCooldowns m_CreatureSpellCooldowns;
 		uint32 m_ProhibitSchoolTime[7];
 
@@ -740,9 +737,7 @@ class Creature : public Unit, public GridObject<Creature>, public MovableMapObje
         time_t m_corpseRemoveTime;                          // (msecs)timer for death or corpse disappearance
         time_t m_respawnTime;                               // (secs) time of next respawn
         uint32 m_respawnDelay;                              // (secs) delay between corpse disappearance and respawning
-        uint32 m_baseRespawnDelay;                          // (secs) base delay between corpse disappearance and respawning
         uint32 m_corpseDelay;                               // (secs) delay between death and corpse disappearance
-        uint32 m_baseCorpseDelay;                           // (secs) base delay between death and corpse disappearance
         float m_respawnradius;
 		uint16 m_transportCheckTimer;
         uint32 lootPickPocketRestoreTime;

@@ -33,7 +33,6 @@
 #include "SpellInfo.h"
 #include "Player.h"
 #include "Chat.h"
-#include <DisableMgr.h>
 
 class LoadPetFromDBQueryHolder : public SQLQueryHolder
 {
@@ -176,7 +175,7 @@ uint8 WorldSession::HandleLoadPetFromDBFirstCallback(PreparedQueryResult result,
 
     pet->SetDisplayId(fields[3].GetUInt32());
     pet->SetNativeDisplayId(fields[3].GetUInt32());
-    uint32 petlevel = fields[4].GetUInt16();
+    uint32 petlevel = fields[4].GetUInt8();
     pet->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     pet->SetName(fields[8].GetString());
 
@@ -556,7 +555,7 @@ void WorldSession::HandlePetActionHelper(Unit* pet, uint64 guid1, uint16 spellid
 							return;
 
                     // Not let attack through obstructions
-                    bool checkLos = !DisableMgr::IsPathfindingEnabled(pet->GetMap()) || 
+                    bool checkLos = !MMAP::MMapFactory::IsPathfindingEnabled(pet->GetMap()) || 
 									(TargetUnit->GetTypeId() == TYPEID_UNIT && (TargetUnit->ToCreature()->isWorldBoss() || TargetUnit->ToCreature()->IsDungeonBoss()));
 
 					if (checkLos && !pet->IsWithinLOSInMap(TargetUnit))

@@ -392,6 +392,9 @@ bool AuthSocket::_HandleLogonChallenge()
     pkt << uint8(AUTH_LOGON_CHALLENGE);
     pkt << uint8(0x00);
 
+    // Verify that this IP is not in the ip_banned table
+    LoginDatabase.Execute(LoginDatabase.GetPreparedStatement(LOGIN_DEL_EXPIRED_IP_BANS));
+
     std::string const& ip_address = socket().getRemoteAddress();
     PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_IP_BANNED);
     stmt->setString(0, ip_address);
@@ -403,13 +406,6 @@ bool AuthSocket::_HandleLogonChallenge()
     }
     else
     {
-//        if (_login.find("@") == std::string::npos)                  // account is not email address
-//        {
-//            pkt << uint8(WOW_FAIL_CONVERSION_REQUIRED);
-//            socket().send((char const*)pkt.contents(), pkt.size());
-//            return true;
-//        }
-
         // Get the account details from the account table
         // No SQL injection (prepared statement)
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_LOGONCHALLENGE);
@@ -418,10 +414,10 @@ bool AuthSocket::_HandleLogonChallenge()
         PreparedQueryResult res2 = LoginDatabase.Query(stmt);
         if (res2)
         {
-            bool locked = false;
             Field* fields = res2->Fetch();
 
             // If the IP is 'locked', check that the player comes indeed from the correct IP address
+            bool locked = false;
             if (fields[2].GetUInt8() == 1)                  // if ip is locked
             {
                 ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "[AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), fields[3].GetCString());
@@ -439,14 +435,11 @@ bool AuthSocket::_HandleLogonChallenge()
             else
                 ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "[AuthChallenge] Account '%s' is not locked to ip", _login.c_str());
 
-            if (fields[7].GetUInt8() == 0)                  // if account is not active
-            {
-                pkt << uint8(WOW_FAIL_UNLOCKABLE_LOCK);
-                locked = true;
-            }
-
             if (!locked)
             {
+                //set expired bans to inactive
+                LoginDatabase.DirectExecute(LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPIRED_ACCOUNT_BANS));
+
                 // If the account is banned, reject the logon attempt
                 stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BANNED);
                 stmt->setUInt32(0, fields[1].GetUInt32());

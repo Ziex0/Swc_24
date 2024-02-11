@@ -19,7 +19,6 @@
 #ifndef _BYTEBUFFER_H
 #define _BYTEBUFFER_H
 
-#include "Common.h"
 #include "Define.h"
 #include "Errors.h"
 #include "ByteConverter.h"
@@ -240,7 +239,7 @@ class ByteBuffer
         ByteBuffer &operator>>(float &value)
         {
             value = read<float>();
-			if (!std::isfinite(value))
+			if (!myisfinite(value))
 			{
 				value = 0.0f;
                 //throw ByteBufferException();
@@ -251,7 +250,7 @@ class ByteBuffer
         ByteBuffer &operator>>(double &value)
         {
             value = read<double>();
-			if (!std::isfinite(value))
+			if (!myisfinite(value))
 			{
 				value = 0.0f;
                 //throw ByteBufferException();
@@ -377,7 +376,7 @@ class ByteBuffer
             lt.tm_mon = (packedDate >> 20) & 0xF;
             lt.tm_year = ((packedDate >> 24) & 0x1F) + 100;
 
-            return uint32(mktime(&lt));
+            return uint32(mktime(&lt) + timezone);
         }
 
         ByteBuffer& ReadPackedTime(uint32& time)

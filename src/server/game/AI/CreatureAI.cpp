@@ -128,20 +128,14 @@ void CreatureAI::MoveInLineOfSight(Unit* who)
     if (me->GetVictim())
         return;
 
-    if (me->GetCreatureType() == CREATURE_TYPE_NON_COMBAT_PET) // non-combat pets should just stand there and look good;)
-        return;
-
-    // Northshire Abbey - wolves fix. They can call assistance only outside the starting zone.
-    if (me->ToUnit()->getLevel() < 5 && me->GetAreaId() == 9)
-        return;
-
 	// pussywizard: civilian, non-combat pet or any other NOT HOSTILE TO ANYONE (!)
 	if (me->IsMoveInLineOfSightDisabled())
-		if (!who->IsInCombat() ||                                         // if not in combat, nothing more to do
+		if (me->GetCreatureType() == CREATURE_TYPE_NON_COMBAT_PET ||      // nothing more to do, return
+			!who->IsInCombat() ||                                         // if not in combat, nothing more to do
 			!me->IsWithinDist(who, ATTACK_DISTANCE))                      // if in combat and in dist - neutral to all can actually assist other creatures
 			return;
 
-    if (me->HasReactState(REACT_AGGRESSIVE) && me->CanStartAttack(who))
+    if (me->CanStartAttack(who))
         AttackStart(who);
 }
 
@@ -260,13 +254,15 @@ Creature* CreatureAI::DoSummon(uint32 entry, const Position& pos, uint32 despawn
 
 Creature* CreatureAI::DoSummon(uint32 entry, WorldObject* obj, float radius, uint32 despawnTime, TempSummonType summonType)
 {
-    Position pos = obj->GetRandomNearPosition(radius);
+    Position pos;
+    obj->GetRandomNearPosition(pos, radius);
     return me->SummonCreature(entry, pos, summonType, despawnTime);
 }
 
 Creature* CreatureAI::DoSummonFlyer(uint32 entry, WorldObject* obj, float flightZ, float radius, uint32 despawnTime, TempSummonType summonType)
 {
-    Position pos = obj->GetRandomNearPosition(radius);
+    Position pos;
+    obj->GetRandomNearPosition(pos, radius);
     pos.m_positionZ += flightZ;
     return me->SummonCreature(entry, pos, summonType, despawnTime);
 }

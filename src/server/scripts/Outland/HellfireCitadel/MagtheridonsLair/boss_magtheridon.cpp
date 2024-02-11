@@ -6,7 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "magtheridons_lair.h"
 #include "SpellInfo.h"
-#include "SpellScript.h"
 
 enum Yells
 {

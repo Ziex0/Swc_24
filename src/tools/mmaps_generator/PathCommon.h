@@ -19,11 +19,9 @@
 #ifndef _MMAP_COMMON_H
 #define _MMAP_COMMON_H
 
-#include "Common.h"
 #include <string>
 #include <vector>
 #include <ace/OS_NS_sys_time.h>
-
 
 #include "Define.h"
 
@@ -65,7 +63,7 @@ namespace MMAP
                 if (*++filter == '\0')   // wildcard at end of filter means all remaing chars match
                     return true;
 
-                for (;;)
+                while (true)
                 {
                     if (*filter == *str)
                         break;

@@ -53,7 +53,7 @@ class SystemMgr
         ~SystemMgr() {}
 
     public:
-        typedef std::unordered_map<uint32, ScriptPointVector> PointMoveMap;
+        typedef UNORDERED_MAP<uint32, ScriptPointVector> PointMoveMap;
 
         //Database
         void LoadScriptWaypoints();

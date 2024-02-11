@@ -11,7 +11,6 @@ REWRITTEN BY XINEF
 #include "GridNotifiersImpl.h"
 #include "Cell.h"
 #include "CellImpl.h"
-#include "PassiveAI.h"
 
 /*######
 ## npc_belnistrasz for Quest 3525 "Extinguishing the Idol"

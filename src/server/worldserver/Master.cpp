@@ -23,7 +23,7 @@
 #include <ace/Sig_Handler.h>
 
 #include "Common.h"
-#include "GitRevision.h"
+#include "SystemConfig.h"
 #include "SignalHandler.h"
 #include "World.h"
 #include "WorldRunnable.h"
@@ -40,10 +40,8 @@
 #include "TCSoap.h"
 #include "Timer.h"
 #include "Util.h"
-#include "Realm/RealmList.h"
-
-#include "ScriptMgr.h"
-#include "ScriptLoader.h"
+#include "AuthSocket.h"
+#include "RealmList.h"
 
 #include "BigNumber.h"
 #include "OpenSSLCrypto.h"
@@ -128,7 +126,7 @@ int Master::Run()
     BigNumber seed1;
     seed1.SetRand(16 * 8);
 
-    sLog->outString("%s (worldserver-daemon)", GitRevision::GetFullVersion());
+    sLog->outString("%s (worldserver-daemon)", _FULLVERSION);
     sLog->outString("<Ctrl-C> to stop.\n");
 
     /// worldserver PID file creation
@@ -152,7 +150,6 @@ int Master::Run()
     LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = (flag & ~%u) | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, REALM_FLAG_INVALID, realmID);
 
     ///- Initialize the World
-    sScriptMgr->SetScriptLoader(AddScripts);
     sWorld->SetInitialWorldSettings();
 
     ///- Initialize the signal handlers
@@ -292,7 +289,7 @@ int Master::Run()
     // set server online (allow connecting now)
     LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = flag & ~%u, population = 0 WHERE id = '%u'", REALM_FLAG_INVALID, realmID);
 
-    sLog->outString("%s (worldserver-daemon) ready...", GitRevision::GetFullVersion());
+    sLog->outString("%s (worldserver-daemon) ready...", _FULLVERSION);
 
     // when the main thread closes the singletons get unloaded
     // since worldrunnable uses them, it will crash if unloaded after master
@@ -479,7 +476,7 @@ bool Master::_StartDB()
     ClearOnlineAccounts();
 
     ///- Insert version info into DB
-    WorldDatabase.PExecute("UPDATE version SET core_version = '%s', core_revision = '%s'", GitRevision::GetFullVersion(), GitRevision::GetHash());        // One-time query
+    WorldDatabase.PExecute("UPDATE version SET core_version = '%s', core_revision = '%s'", _FULLVERSION, _HASH);        // One-time query
 
     sWorld->LoadDBVersion();
 

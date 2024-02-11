@@ -94,8 +94,7 @@ bool WorldSessionFilter::Process(WorldPacket* packet)
 }
 
 /// WorldSession constructor
-WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter, bool skipQueue,
-    time_t premium_services[MAX_PREMIUM_SERVICES]):
+WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter, bool skipQueue):
 m_muteTime(mute_time), m_timeOutTime(0), m_GUIDLow(0), _player(NULL), m_Socket(sock),
 _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
 m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerSave(false),
@@ -110,11 +109,6 @@ isRecruiter(isARecruiter), m_currentBankerGUID(0), timeWhoCommandAllowed(0), _la
 	_offlineTime = 0;
 	_kicked = false;
 	_shouldSetOfflineInDB = true;
-
-    for (uint8 i = 0; i < MAX_PREMIUM_SERVICES; i++)
-    {
-        _premiumServices[i] = premium_services[i];
-    }
 
     if (sock)
     {
@@ -835,8 +829,8 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
         in conjunction with any of the moving movement flags such as MOVEMENTFLAG_FORWARD.
         It will freeze clients that receive this player's movement info.
     */
-    REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_ROOT) && mi->HasMovementFlag(MOVEMENTFLAG_MASK_MOVING),
-        MOVEMENTFLAG_MASK_MOVING);
+    REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_ROOT),
+        MOVEMENTFLAG_ROOT);
 
     //! Cannot hover without SPELL_AURA_HOVER
     REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_HOVER) && !GetPlayer()->m_mover->HasAuraType(SPELL_AURA_HOVER), // pussywizard: added m_mover
@@ -863,9 +857,7 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
         MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD);
 
     //! Cannot walk on water without SPELL_AURA_WATER_WALK
-    REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_WATERWALKING) && 
-        !GetPlayer()->m_mover->HasAuraType(SPELL_AURA_WATER_WALK) && // pussywizard: added m_mover
-        !GetPlayer()->m_mover->HasAuraType(SPELL_AURA_GHOST), // Maczuga: added aura_ghost
+    REMOVE_VIOLATING_FLAGS(mi->HasMovementFlag(MOVEMENTFLAG_WATERWALKING) && !GetPlayer()->m_mover->HasAuraType(SPELL_AURA_WATER_WALK), // pussywizard: added m_mover
         MOVEMENTFLAG_WATERWALKING);
 
     //! Cannot feather fall without SPELL_AURA_FEATHER_FALL
@@ -1092,7 +1084,7 @@ void WorldSession::InitializeQueryCallbackParameters()
     // Callback parameters that have pointers in them should be properly
     // initialized to NULL here.
     _charCreateCallback.SetParam(NULL);
-	_loadPetFromDBFirstCallback.SetFirstParam(0);
+	_loadPetFromDBFirstCallback.SetFirstParam(NULL);
 	_loadPetFromDBFirstCallback.SetSecondParam(NULL);
 }
 

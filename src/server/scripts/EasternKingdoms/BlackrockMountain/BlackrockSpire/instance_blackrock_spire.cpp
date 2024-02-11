@@ -145,7 +145,8 @@ public:
                     break;
                 case GO_EMBERSEER_IN:
                     go_emberseerin = go->GetGUID();
-                    HandleGameObject(0, GetBossState(DATA_DRAGONSPIRE_ROOM) == DONE, go);
+                    if (GetBossState(DATA_DRAGONSPIRE_ROOM) == DONE)
+                        HandleGameObject(0, true, go);
                     break;
                 case GO_DOORS:
                     go_doors = go->GetGUID();
@@ -503,8 +504,6 @@ public:
                     HandleGameObject(0, true, door1);
                 if (GameObject* door2 = instance->GetGameObject(go_doors))
                     HandleGameObject(0, true, door2);
-                if (GameObject* door3 = instance->GetGameObject(go_emberseerin))
-                    HandleGameObject(0, true, door3);
             }
         }
 
@@ -628,14 +627,7 @@ public:
             if (!instance)
                 return false;
 
-            Creature* rend;
-            if (instance->GetBossState(DATA_WARCHIEF_REND_BLACKHAND) == NOT_STARTED)
-            {
-                if ((rend = player->FindNearestCreature(NPC_WARCHIEF_REND_BLACKHAND, 100.0f, false)))
-                    rend->Respawn(true);
-            }
-
-            if ((rend = player->FindNearestCreature(NPC_WARCHIEF_REND_BLACKHAND, 100.0f)))
+            if (Creature* rend = player->FindNearestCreature(NPC_WARCHIEF_REND_BLACKHAND, 50.0f))
             {
                 rend->AI()->SetData(AREATRIGGER, AREATRIGGER_BLACKROCK_STADIUM);
                 return true;

@@ -12,8 +12,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "ruby_sanctum.h"
 #include "Player.h"
-#include "Opcodes.h"
-#include "PassiveAI.h"
 
 
 enum Texts
@@ -1028,7 +1026,8 @@ class spell_halion_damage_aoe_summon : public SpellScriptLoader
                 SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(uint32(GetSpellInfo()->Effects[effIndex].MiscValueB));
                 uint32 duration = uint32(GetSpellInfo()->GetDuration());
 
-                Position pos = caster->GetPosition();
+                Position pos;
+                caster->GetPosition(&pos);
                 if (Creature* summon = caster->GetMap()->SummonCreature(entry, pos, properties, duration, caster, GetSpellInfo()->Id))
 				{
 					bool heroic = summon->GetMap()->IsHeroic();

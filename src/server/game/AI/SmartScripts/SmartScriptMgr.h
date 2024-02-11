@@ -1546,7 +1546,7 @@ struct SmartScriptHolder
 
 };
 
-typedef std::unordered_map<uint32, WayPoint*> WPPath;
+typedef UNORDERED_MAP<uint32, WayPoint*> WPPath;
 
 typedef std::list<WorldObject*> ObjectList;
 typedef std::list<uint64> GuidList;
@@ -1600,7 +1600,7 @@ public:
         delete m_guidList;
     }
 };
-typedef std::unordered_map<uint32, ObjectGuidList*> ObjectListMap;
+typedef UNORDERED_MAP<uint32, ObjectGuidList*> ObjectListMap;
 
 class SmartWaypointMgr
 {
@@ -1619,7 +1619,7 @@ class SmartWaypointMgr
         }
 
     private:
-        std::unordered_map<uint32, WPPath*> waypoint_map;
+        UNORDERED_MAP<uint32, WPPath*> waypoint_map;
 };
 
 // all events for a single entry
@@ -1627,7 +1627,7 @@ typedef std::vector<SmartScriptHolder> SmartAIEventList;
 typedef std::list<SmartScriptHolder> SmartAIEventStoredList;
 
 // all events for all entries / guids
-typedef std::unordered_map<int32, SmartAIEventList> SmartAIEventMap;
+typedef UNORDERED_MAP<int32, SmartAIEventList> SmartAIEventMap;
 
 class SmartAIMgr
 {

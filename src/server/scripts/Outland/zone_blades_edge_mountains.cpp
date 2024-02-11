@@ -335,9 +335,7 @@ enum Daranelle
 {
     SAY_SPELL_INFLUENCE       = 0,
     SPELL_LASHHAN_CHANNEL     = 36904,
-    SPELL_DISPELLING_ANALYSIS = 37028,
-
-    NPC_KALIRI_TOTEM          = 21468
+    SPELL_DISPELLING_ANALYSIS = 37028
 };
 
 class npc_daranelle : public CreatureScript
@@ -360,13 +358,9 @@ public:
             {
                 if (who->HasAura(SPELL_LASHHAN_CHANNEL) && me->IsWithinDistInMap(who, 10.0f))
                 {
-                    if (Creature* bird = who->FindNearestCreature(NPC_KALIRI_TOTEM, 10.0f))
-                    {
-                        Talk(SAY_SPELL_INFLUENCE, who);
-                        /// @todo Move the below to updateAI and run if this statement == true
-                        DoCast(who, SPELL_DISPELLING_ANALYSIS, true);
-                        bird->DespawnOrUnsummon(2000);
-                    }
+                    Talk(SAY_SPELL_INFLUENCE, who);
+                    /// @todo Move the below to updateAI and run if this statement == true
+                    DoCast(who, SPELL_DISPELLING_ANALYSIS, true);
                 }
             }
 

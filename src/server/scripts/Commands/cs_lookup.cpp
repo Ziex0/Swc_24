@@ -31,51 +31,53 @@ EndScriptData */
 #include "ReputationMgr.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
-#include "../../game/Character/CharacterMgr.h"
 
 class lookup_commandscript : public CommandScript
 {
 public:
     lookup_commandscript() : CommandScript("lookup_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> lookupPlayerCommandTable =
+        static ChatCommand lookupPlayerCommandTable[] =
         {
-            { "ip",             SEC_GAMEMASTER,     true,  &HandleLookupPlayerIpCommand,        "" },
-            { "account",        SEC_GAMEMASTER,     true,  &HandleLookupPlayerAccountCommand,   "" },
-            { "email",          SEC_GAMEMASTER,     true,  &HandleLookupPlayerEmailCommand,     "" }
+            { "ip",             SEC_GAMEMASTER,     true,  &HandleLookupPlayerIpCommand,        "", NULL },
+            { "account",        SEC_GAMEMASTER,     true,  &HandleLookupPlayerAccountCommand,   "", NULL },
+            { "email",          SEC_GAMEMASTER,     true,  &HandleLookupPlayerEmailCommand,     "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> lookupSpellCommandTable =
+        static ChatCommand lookupSpellCommandTable[] =
         {
-            { "id",             SEC_ADMINISTRATOR,  true,  &HandleLookupSpellIdCommand,         "" },
-            { "",               SEC_ADMINISTRATOR,  true,  &HandleLookupSpellCommand,           "" }
+            { "id",             SEC_ADMINISTRATOR,  true,  &HandleLookupSpellIdCommand,         "", NULL },
+            { "",               SEC_ADMINISTRATOR,  true,  &HandleLookupSpellCommand,           "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> lookupCommandTable =
+        static ChatCommand lookupCommandTable[] =
         {
-            { "area",           SEC_GAMEMASTER,      true,  &HandleLookupAreaCommand,            "" },
-            { "creature",       SEC_ADMINISTRATOR,  true,  &HandleLookupCreatureCommand,        "" },
-            { "event",          SEC_GAMEMASTER,     true,  &HandleLookupEventCommand,           "" },
-            { "faction",        SEC_ADMINISTRATOR,  true,  &HandleLookupFactionCommand,         "" },
-            { "item",           SEC_ADMINISTRATOR,  true,  &HandleLookupItemCommand,            "" },
-            { "itemset",        SEC_ADMINISTRATOR,  true,  &HandleLookupItemSetCommand,         "" },
-            { "object",         SEC_ADMINISTRATOR,  true,  &HandleLookupObjectCommand,          "" },
-            { "quest",          SEC_ADMINISTRATOR,  true,  &HandleLookupQuestCommand,           "" },
+            { "area",           SEC_GAMEMASTER,      true,  &HandleLookupAreaCommand,            "", NULL },
+            { "creature",       SEC_ADMINISTRATOR,  true,  &HandleLookupCreatureCommand,        "", NULL },
+            { "event",          SEC_GAMEMASTER,     true,  &HandleLookupEventCommand,           "", NULL },
+            { "faction",        SEC_ADMINISTRATOR,  true,  &HandleLookupFactionCommand,         "", NULL },
+            { "item",           SEC_ADMINISTRATOR,  true,  &HandleLookupItemCommand,            "", NULL },
+            { "itemset",        SEC_ADMINISTRATOR,  true,  &HandleLookupItemSetCommand,         "", NULL },
+            { "object",         SEC_ADMINISTRATOR,  true,  &HandleLookupObjectCommand,          "", NULL },
+            { "quest",          SEC_ADMINISTRATOR,  true,  &HandleLookupQuestCommand,           "", NULL },
             { "player",         SEC_GAMEMASTER,     true,  NULL,                                "", lookupPlayerCommandTable },
-            { "skill",          SEC_ADMINISTRATOR,  true,  &HandleLookupSkillCommand,           "" },
+            { "skill",          SEC_ADMINISTRATOR,  true,  &HandleLookupSkillCommand,           "", NULL },
             { "spell",          SEC_ADMINISTRATOR,  true,  NULL,                                "", lookupSpellCommandTable },
-            { "taxinode",       SEC_ADMINISTRATOR,  true,  &HandleLookupTaxiNodeCommand,        "" },
-            { "tele",           SEC_GAMEMASTER,      true,  &HandleLookupTeleCommand,            "" },
-            { "title",          SEC_GAMEMASTER,     true,  &HandleLookupTitleCommand,           "" },
-            { "map",            SEC_ADMINISTRATOR,  true,  &HandleLookupMapCommand,             "" },
-            { "char_template",  SEC_ADMINISTRATOR,  true,  &HandleLookupCharacterTemplateCommand, "" }
+            { "taxinode",       SEC_ADMINISTRATOR,  true,  &HandleLookupTaxiNodeCommand,        "", NULL },
+            { "tele",           SEC_GAMEMASTER,      true,  &HandleLookupTeleCommand,            "", NULL },
+            { "title",          SEC_GAMEMASTER,     true,  &HandleLookupTitleCommand,           "", NULL },
+            { "map",            SEC_ADMINISTRATOR,  true,  &HandleLookupMapCommand,             "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "lookup",         SEC_ADMINISTRATOR,  true,  NULL,                                "", lookupCommandTable }
+            { "lookup",         SEC_ADMINISTRATOR,  true,  NULL,                                "", lookupCommandTable },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
         return commandTable;
     }
@@ -1319,57 +1321,6 @@ public:
 
         return true;
     }
-
-    static bool HandleLookupCharacterTemplateCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
-
-        std::string namePart = args;
-        std::wstring wNamePart;
-
-        // converting string that we try to find to lower case
-        if (!Utf8toWStr(namePart, wNamePart))
-            return false;
-
-        wstrToLower(wNamePart);
-
-        bool found = false;
-        uint32 count = 0;
-        uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
-
-        // Search in `character_template`
-        CharacterTemplateStore const* its = sCharacterMgr->GetCharacterTemplateStore();
-        for (CharacterTemplateStore::const_iterator itr = its->begin(); itr != its->end(); ++itr)
-        {
-            std::string name = itr->second.name;
-            if (name.empty())
-                continue;
-
-            if (Utf8FitTo(name, wNamePart))
-            {
-                if (maxResults && count++ == maxResults)
-                {
-                    handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
-                    return true;
-                }
-
-                if (handler->GetSession())
-                    handler->PSendSysMessage(LANG_ITEM_LIST_CHAT, itr->second.id, itr->second.id, name.c_str());
-                else
-                    handler->PSendSysMessage(LANG_ITEM_LIST_CONSOLE, itr->second.id, name.c_str());
-
-                if (!found)
-                    found = true;
-            }
-        }
-
-        if (!found)
-            handler->SendSysMessage(LANG_COMMAND_NOITEMFOUND);
-
-        return true;
-    }
-
 };
 
 void AddSC_lookup_commandscript()

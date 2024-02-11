@@ -9,8 +9,6 @@ REWRITTEN BY XINEF
 #include "Cell.h"
 #include "CellImpl.h"
 #include "sunwell_plateau.h"
-#include "PassiveAI.h"
-#include "SpellScript.h"
 
 enum Yells
 {

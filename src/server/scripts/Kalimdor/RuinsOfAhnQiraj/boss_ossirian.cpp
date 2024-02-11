@@ -146,7 +146,8 @@ class boss_ossirian : public CreatureScript
 
                 for (uint8 i = 0; i < NUM_TORNADOS; ++i)
                 {
-                    Position Point = me->GetRandomPoint(RoomCenter, RoomRadius);
+                    Position Point;
+                    me->GetRandomPoint(RoomCenter, RoomRadius, Point);
                     if (Creature* Tornado = me->GetMap()->SummonCreature(NPC_SAND_VORTEX, Point))
                         Tornado->CastSpell(Tornado, SPELL_SAND_STORM, true);
                 }

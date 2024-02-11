@@ -33,18 +33,20 @@ class event_commandscript : public CommandScript
 public:
     event_commandscript() : CommandScript("event_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> eventCommandTable =
+        static ChatCommand eventCommandTable[] =
         {
-            { "activelist",     SEC_GAMEMASTER,     true,  &HandleEventActiveListCommand,     "" },
-            { "start",          SEC_GAMEMASTER,     true,  &HandleEventStartCommand,          "" },
-            { "stop",           SEC_GAMEMASTER,     true,  &HandleEventStopCommand,           "" },
-            { "",               SEC_GAMEMASTER,     true,  &HandleEventInfoCommand,           "" }
+            { "activelist",     SEC_GAMEMASTER,     true,  &HandleEventActiveListCommand,     "", NULL },
+            { "start",          SEC_GAMEMASTER,     true,  &HandleEventStartCommand,          "", NULL },
+            { "stop",           SEC_GAMEMASTER,     true,  &HandleEventStopCommand,           "", NULL },
+            { "",               SEC_GAMEMASTER,     true,  &HandleEventInfoCommand,           "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "event",          SEC_GAMEMASTER,     false, NULL,                  "", eventCommandTable }
+            { "event",          SEC_GAMEMASTER,     false, NULL,                  "", eventCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }

@@ -5,7 +5,7 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ahnkahet.h"
-#include "World.h"
+
 
 enum Yells
 {
@@ -78,7 +78,6 @@ public:
         boss_jedoga_shadowseekerAI(Creature* c) : ScriptedAI(c), summons(me)
         {
             pInstance = c->GetInstanceScript();
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
         }
 
         InstanceScript* pInstance;
@@ -89,7 +88,6 @@ public:
 		uint32 introCheck;
 		bool isFlying;
 		bool startFly;
-        bool preNerf;
 
 		void JustSummoned(Creature *cr) { summons.Summon(cr); }
 		void MoveInLineOfSight(Unit *) { }
@@ -149,14 +147,12 @@ public:
 
 			uint8 rnd = urand(0, summons.size()-1);
 			uint8 loop = 0;
-            Creature *summon = nullptr;
 			for (std::list<uint64>::iterator i = summons.begin(); i != summons.end();)
 			{
-				summon = ObjectAccessor::GetCreature(*me, *i);
+				Creature *summon = ObjectAccessor::GetCreature(*me, *i);
 				if (summon && summon->GetEntry() == NPC_INITIATE && loop >= rnd)
 				{
 					summon->AI()->DoAction(ACTION_ACTIVATE);
-                    summons.erase(i);
 					break;
 				}
 
@@ -254,9 +250,6 @@ public:
         {
 			me->GetMotionMaster()->MoveIdle();
             me->GetMotionMaster()->MovePoint(POINT_DOWN, JedogaPosition[1]);
-
-            if (preNerf)
-                events.RescheduleEvent(EVENT_JEDOGA_MOVE_UP, urand(20000, 25000));
         }
 
         void MoveUp(bool start)

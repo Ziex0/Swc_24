@@ -47,7 +47,6 @@ GameObject::GameObject() : WorldObject(false), MovableMapObject(),
     m_valuesCount = GAMEOBJECT_END;
     m_respawnTime = 0;
     m_respawnDelayTime = 300;
-    m_baseRespawnDelayTime = 300;
     m_lootState = GO_NOT_READY;
     m_spawnedByDefault = true;
 	m_allowModifyDestructibleBuilding = true;
@@ -286,7 +285,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
     SetDisplayId(goinfo->displayId);
 
     if (!m_model)
-        m_model = CreateModel();
+        m_model = GameObjectModel::Create(*this);
     // GAMEOBJECT_BYTES_1, index at 0, 1, 2 and 3
     SetGoType(GameobjectTypes(goinfo->type));
     SetGoState(go_state);
@@ -708,24 +707,6 @@ void GameObject::Update(uint32 diff)
                 return;
             }
 
-            if (sWorld->getBoolConfig(CONFIG_DYNAMIC_SPAWN_ENABLED) && !GetMap()->IsBattlegroundOrArena() && !GetMap()->Instanceable() && GetAreaId() != 0)
-            {
-                if (m_baseRespawnDelayTime >= sWorld->getIntConfig(CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MIN_RESPAWN_TIME))
-                {
-                    uint32 count = GetMap()->GetPlayersInAreaCount(GetAreaId());
-
-                    if (count > 0)
-                    {
-                        float rateDecrease = std::min(count / sWorld->getIntConfig(CONFIG_DYNAMIC_SPAWN_PLAYERS_TO_DECREASE) * 
-                            sWorld->getFloatConfig(CONFIG_DYNAMIC_SPAWN_RESPAWN_DECREASE), 100.0f);
-
-                        if (rateDecrease > 0)
-                            m_respawnDelayTime = std::max(CalculatePct(uint64(m_baseRespawnDelayTime), 100 - rateDecrease), 
-                                uint64(sWorld->getIntConfig(CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MAX_MIN_RESPAWN_TIME)));
-                    }
-                }
-            }
-
             m_respawnTime = time(NULL) + m_respawnDelayTime;
 
             // if option not set then object will be saved at grid unload
@@ -832,7 +813,7 @@ void GameObject::SaveToDB()
 
 void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
 { 
-//	return;
+	return;
 
     const GameObjectTemplate* goI = GetGOInfo();
 
@@ -925,12 +906,12 @@ bool GameObject::LoadGameObjectFromDB(uint32 guid, Map* map, bool addToMap)
         if (!GetGOInfo()->GetDespawnPossibility() && !GetGOInfo()->IsDespawnAtAction())
         {
             SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN);
-            m_baseRespawnDelayTime = m_respawnDelayTime = 0;
+            m_respawnDelayTime = 0;
             m_respawnTime = 0;
         }
         else
         {
-            m_baseRespawnDelayTime = m_respawnDelayTime = data->spawntimesecs;
+            m_respawnDelayTime = data->spawntimesecs;
             m_respawnTime = GetMap()->GetGORespawnTime(m_DBTableGuid);
 
             // ready to respawn
@@ -944,7 +925,7 @@ bool GameObject::LoadGameObjectFromDB(uint32 guid, Map* map, bool addToMap)
     else
     {
         m_spawnedByDefault = false;
-        m_baseRespawnDelayTime = m_respawnDelayTime = -data->spawntimesecs;
+        m_respawnDelayTime = -data->spawntimesecs;
         m_respawnTime = 0;
     }
 
@@ -1807,9 +1788,6 @@ void GameObject::Use(Unit* user)
         return;
     }
 
-    if (Player* player = user->ToPlayer())
-        sOutdoorPvPMgr->HandleCustomSpell(player, spellId, this);
-
     if (spellCaster)
         spellCaster->CastSpell(user, spellInfo, triggered);
     else
@@ -1848,8 +1826,6 @@ void GameObject::CastSpell(Unit* target, uint32 spellId)
     {
 		trigger->SetLevel(owner->getLevel(), false);
         trigger->setFaction(owner->getFaction());
-        if (owner->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE))
-            trigger->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
         // needed for GO casts for proper target validation checks
         trigger->SetOwnerGUID(owner->GetGUID());
 		// xinef: fixes some duel bugs with traps]
@@ -2220,7 +2196,7 @@ void GameObject::UpdateModel()
         if (GetMap()->ContainsGameObjectModel(*m_model))
             GetMap()->RemoveGameObjectModel(*m_model);
     delete m_model;
-    m_model = CreateModel();
+    m_model = GameObjectModel::Create(*this);
     if (m_model)
         GetMap()->InsertGameObjectModel(*m_model);
 }
@@ -2436,28 +2412,4 @@ void GameObject::UpdateModelPosition()
         m_model->UpdatePosition();
         GetMap()->InsertGameObjectModel(*m_model);
     }
-}
-
-class GameObjectModelOwnerImpl : public GameObjectModelOwnerBase
-{
-public:
-    explicit GameObjectModelOwnerImpl(GameObject const* owner) : _owner(owner) { }
-
-    virtual bool IsSpawned() const override { return _owner->isSpawned(); }
-    virtual uint32 GetDisplayId() const override { return _owner->GetDisplayId(); }
-    virtual uint32 GetPhaseMask() const override { return _owner->GetPhaseMask(); }
-    virtual G3D::Vector3 GetPosition() const override { return G3D::Vector3(_owner->GetPositionX(), _owner->GetPositionY(), _owner->GetPositionZ()); }
-    virtual float GetOrientation() const override { return _owner->GetOrientation(); }
-    virtual float GetScale() const override { return _owner->GetObjectScale(); }
-    virtual bool IsReady() const override { return _owner->GetGoState() == GO_STATE_READY; }
-    virtual bool IsTransport() const override { return _owner->IsTransport(); }
-    virtual void DebugVisualizeCorner(G3D::Vector3 const& corner) const override { const_cast<GameObject*>(_owner)->SummonCreature(1, corner.x, corner.y, corner.z, 0, TEMPSUMMON_MANUAL_DESPAWN); }
-
-private:
-    GameObject const* _owner;
-};
-
-GameObjectModel* GameObject::CreateModel()
-{
-    return GameObjectModel::Create(Trinity::make_unique<GameObjectModelOwnerImpl>(this), sWorld->GetDataPath());
 }

@@ -5,7 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "karazhan.h"
-#include "SpellScript.h"
 
 enum Yells
 {
@@ -251,7 +250,8 @@ class spell_moroes_vanish : public SpellScriptLoader
 				PreventHitDefaultEffect(effIndex);
 				if (Unit* target = GetHitUnit())
 				{
-					Position pos = target->GetFirstCollisionPosition(5.0f, M_PI);
+					Position pos;
+					target->GetFirstCollisionPosition(pos, 5.0f, M_PI);
 					GetCaster()->CastSpell(target, SPELL_GARROTE_DUMMY, true);
 					GetCaster()->RemoveAurasDueToSpell(SPELL_VANISH);
 					GetCaster()->NearTeleportTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), target->GetOrientation());

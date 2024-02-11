@@ -16,7 +16,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "GridNotifiersImpl.h"
 #include "CreatureTextMgr.h"
 #include "icecrown_citadel.h"
-#include "PassiveAI.h"
 
 enum Texts
 {

@@ -4,10 +4,6 @@ REWRITTEN BY XINEF
 
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
-#include "PetDefines.h"
-#include "PassiveAI.h"
-#include "Player.h"
-#include "SpellScript.h"
 
 class instance_gnomeregan : public InstanceMapScript
 {

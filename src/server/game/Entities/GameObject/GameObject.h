@@ -546,7 +546,7 @@ struct GameObjectTemplate
 };
 
 // Benchmarked: Faster than std::map (insert/find)
-typedef std::unordered_map<uint32, GameObjectTemplate> GameObjectTemplateContainer;
+typedef UNORDERED_MAP<uint32, GameObjectTemplate> GameObjectTemplateContainer;
 
 class OPvPCapturePoint;
 struct TransportAnimation;
@@ -590,7 +590,7 @@ struct GameObjectAddon
     uint32 InvisibilityValue;
 };
 
-typedef std::unordered_map<uint32, GameObjectAddon> GameObjectAddonContainer;
+typedef UNORDERED_MAP<uint32, GameObjectAddon> GameObjectAddonContainer;
 
 // client side GO show states
 enum GOState
@@ -712,7 +712,7 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Mov
         void SetRespawnTime(int32 respawn)
         {
             m_respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
-            m_baseRespawnDelayTime = m_respawnDelayTime = respawn > 0 ? respawn : 0;
+            m_respawnDelayTime = respawn > 0 ? respawn : 0;
         }
         void Respawn();
         bool isSpawned() const
@@ -865,12 +865,10 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Mov
 
     protected:
         bool AIM_Initialize();
-        GameObjectModel* CreateModel();
         void UpdateModel();                                 // updates model in case displayId were changed
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
         uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
-        uint32      m_baseRespawnDelayTime;                 // (secs) base if 0 then current GO state no dependent from timer
         LootState   m_lootState;
         bool        m_spawnedByDefault;
         uint32       m_cooldownTime;                         // used as internal reaction delay time store (not state change reaction).

@@ -17,8 +17,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "GridNotifiers.h"
 #include "Player.h"
 #include "Opcodes.h"
-#include "Chat.h"
-#include "CellImpl.h"
 
 enum LeviathanSpells 
 {

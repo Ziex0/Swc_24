@@ -30,7 +30,7 @@
 typedef std::list<AchievementCriteriaEntry const*> AchievementCriteriaEntryList;
 typedef std::list<AchievementEntry const*>         AchievementEntryList;
 
-typedef std::unordered_map<uint32, AchievementCriteriaEntryList> AchievementCriteriaListByAchievement;
+typedef UNORDERED_MAP<uint32, AchievementCriteriaEntryList> AchievementCriteriaListByAchievement;
 typedef std::map<uint32, AchievementEntryList>         AchievementListByReferencedId;
 
 struct CriteriaProgress
@@ -250,8 +250,8 @@ struct CompletedAchievementData
     bool changed;
 };
 
-typedef std::unordered_map<uint32, CriteriaProgress> CriteriaProgressMap;
-typedef std::unordered_map<uint32, CompletedAchievementData> CompletedAchievementMap;
+typedef UNORDERED_MAP<uint32, CriteriaProgress> CriteriaProgressMap;
+typedef UNORDERED_MAP<uint32, CompletedAchievementData> CompletedAchievementMap;
 
 class Unit;
 class Player;
@@ -274,9 +274,7 @@ class AchievementMgr
         void SendAllAchievementData() const;
         void SendRespondInspectAchievements(Player* player) const;
         bool HasAchieved(uint32 achievementId) const;
-        uint32 CalculateAchievementPoints() const;
-
-    Player* GetPlayer() const { return m_player; }
+        Player* GetPlayer() const { return m_player; }
         void UpdateTimedAchievements(uint32 timeDiff);
         void StartTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry, uint32 timeLost = 0);
         void RemoveTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry);   // used for quest and scripted timed achievements

@@ -35,21 +35,23 @@ class reset_commandscript : public CommandScript
 public:
     reset_commandscript() : CommandScript("reset_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> resetCommandTable =
+        static ChatCommand resetCommandTable[] =
         {
-            { "achievements",   SEC_ADMINISTRATOR,  true,  &HandleResetAchievementsCommand,     "" },
-            { "honor",          SEC_ADMINISTRATOR,  true,  &HandleResetHonorCommand,            "" },
-            { "level",          SEC_ADMINISTRATOR,  true,  &HandleResetLevelCommand,            "" },
-            { "spells",         SEC_ADMINISTRATOR,  true,  &HandleResetSpellsCommand,           "" },
-            { "stats",          SEC_ADMINISTRATOR,  true,  &HandleResetStatsCommand,            "" },
-            { "talents",        SEC_ADMINISTRATOR,  true,  &HandleResetTalentsCommand,          "" },
-            { "all",            SEC_ADMINISTRATOR,  true,  &HandleResetAllCommand,              "" }
+            { "achievements",   SEC_ADMINISTRATOR,  true,  &HandleResetAchievementsCommand,     "", NULL },
+            { "honor",          SEC_ADMINISTRATOR,  true,  &HandleResetHonorCommand,            "", NULL },
+            { "level",          SEC_ADMINISTRATOR,  true,  &HandleResetLevelCommand,            "", NULL },
+            { "spells",         SEC_ADMINISTRATOR,  true,  &HandleResetSpellsCommand,           "", NULL },
+            { "stats",          SEC_ADMINISTRATOR,  true,  &HandleResetStatsCommand,            "", NULL },
+            { "talents",        SEC_ADMINISTRATOR,  true,  &HandleResetTalentsCommand,          "", NULL },
+            { "all",            SEC_ADMINISTRATOR,  true,  &HandleResetAllCommand,              "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "reset",          SEC_ADMINISTRATOR,  true, NULL,                                 "", resetCommandTable }
+            { "reset",          SEC_ADMINISTRATOR,  true, NULL,                                 "", resetCommandTable },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
         return commandTable;
     }

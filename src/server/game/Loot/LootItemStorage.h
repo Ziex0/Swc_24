@@ -7,10 +7,6 @@ Xinef
 
 #include <map>
 #include <list>
-#include <ace/Singleton.h>
-#include "LinkedList.h"
-#include "LootMgr.h"
-#include "Item.h"
 
 struct StoredLootItem
 {
@@ -25,7 +21,7 @@ struct StoredLootItem
 };
 
 typedef std::list<StoredLootItem> StoredLootItemList;
-typedef std::unordered_map<uint32, StoredLootItemList> LootItemContainer;
+typedef UNORDERED_MAP<uint32, StoredLootItemList> LootItemContainer;
 
 class LootItemStorage
 {

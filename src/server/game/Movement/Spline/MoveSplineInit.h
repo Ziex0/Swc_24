@@ -21,7 +21,6 @@
 
 #include "MoveSplineInitArgs.h"
 #include "PathGenerator.h"
-#include "Unit.h"
 
 class Unit;
 

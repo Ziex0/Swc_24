@@ -353,7 +353,7 @@ public:
             InfernalPoint *point = NULL;
             Position pos;
             if ((me->GetMapId() != 532) || positions.empty())
-                pos = me->GetRandomNearPosition(60);
+                me->GetRandomNearPosition(pos, 60);
             else
             {
                 point = Trinity::Containers::SelectRandomContainerElement(positions);

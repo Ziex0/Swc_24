@@ -392,8 +392,6 @@ class BossAI : public ScriptedAI
         void JustDied(Unit* /*killer*/) { _JustDied(); }
         void JustReachedHome() { _JustReachedHome(); }
 
-        bool CanRespawn() override;
-
     protected:
         void _Reset();
         void _EnterCombat();

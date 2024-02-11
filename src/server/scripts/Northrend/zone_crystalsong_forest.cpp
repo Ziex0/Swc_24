@@ -29,7 +29,6 @@ Script Data End */
 #include "SmartScriptMgr.h"
 #include "Transport.h"
 #include "Vehicle.h"
-#include "PassiveAI.h"
 
 enum ePreparationsForWar
 {

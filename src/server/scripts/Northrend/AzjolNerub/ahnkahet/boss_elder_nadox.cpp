@@ -7,7 +7,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "ahnkahet.h"
 #include "SpellAuras.h"
 #include "SpellScript.h"
-#include "World.h"
 
 enum misc
 {
@@ -70,14 +69,11 @@ public:
         boss_elder_nadoxAI(Creature *c) : ScriptedAI(c), summons(me)
         {
             pInstance = c->GetInstanceScript();
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
         }
 
 		EventMap events;
         InstanceScript *pInstance;
 		SummonList summons;
-        uint8 guardianCount;
-        bool preNerf;
 
 		void SummonHelpers(bool swarm)
 		{
@@ -100,7 +96,6 @@ public:
         {
 			events.Reset();
 			summons.DespawnAll();
-            guardianCount = 0;
 
             if (pInstance)
 			{
@@ -128,7 +123,6 @@ public:
 		{
 			if (param == ACTION_GUARDIAN_DIED)
 			{
-                events.ScheduleEvent(EVENT_CHECK_HEALTH, 1000);
 				if (pInstance)
 					pInstance->SetData(DATA_NADOX_ACHIEVEMENT, false);
 			}
@@ -162,7 +156,7 @@ public:
 			summons.DespawnAll();
 			
 			me->MonsterYell("Master, is my service complete?", LANG_UNIVERSAL, 0);
-            me->PlayDirectSound(SOUND_DEATH);
+			 me->PlayDirectSound(SOUND_DEATH);
             if (pInstance)
                 pInstance->SetData(DATA_ELDER_NADOX_EVENT, DONE);
         }
@@ -189,7 +183,6 @@ public:
 				summons.Summon(cr);
 			}
 		}
-
         void UpdateAI(uint32 diff)
         {
             if (!UpdateVictim())
@@ -205,22 +198,8 @@ public:
 				case EVENT_CHECK_HEALTH:
 				{
 					events.RepeatEvent(1000);
-                    bool healthCheck = false;
-
-                    if (preNerf)
-                    {
-                        healthCheck = (me->HealthBelowPct(75) && guardianCount == 0) ||
-                            (me->HealthBelowPct(50) && guardianCount == 1) ||
-                            (me->HealthBelowPct(25) && guardianCount == 2);
-                    }
-                    else
-                    {
-                        healthCheck = (me->HealthBelowPct(51) && guardianCount == 0);
-                    }
-
-                    if (healthCheck)
+					if (HealthBelowPct(50))
 					{
-                        guardianCount++;
 						events.CancelEvent(EVENT_CHECK_HEALTH);
 						events.ScheduleEvent(EVENT_SUMMON_GUARD, 100);
 					}

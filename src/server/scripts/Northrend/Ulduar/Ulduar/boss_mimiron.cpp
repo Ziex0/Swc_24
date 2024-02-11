@@ -797,7 +797,8 @@ public:
 						ACU->DespawnOrUnsummon(7000);
 						ACU->SetReactState(REACT_PASSIVE);
 
-						Position exitPos = me->GetPosition();
+						Position exitPos;
+						me->GetPosition(&exitPos);
 						me->_ExitVehicle(&exitPos);
 						me->AttackStop();
 						me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_TALK);
@@ -1482,7 +1483,8 @@ public:
 								{
 									if( Creature* trigger = me->SummonCreature(NPC_ROCKET_STRIKE_N, temp->GetPositionX(), temp->GetPositionY(), temp->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 6000) )
 										trigger->CastSpell(trigger, SPELL_ROCKET_STRIKE_AURA, true);
-									Position exitPos = r->GetPosition();
+									Position exitPos;
+									r->GetPosition(&exitPos);
 									exitPos.m_positionX += cos(me->GetOrientation())*2.35f;
 									exitPos.m_positionY += sin(me->GetOrientation())*2.35f;
 									exitPos.m_positionZ += 2.0f*Phase;

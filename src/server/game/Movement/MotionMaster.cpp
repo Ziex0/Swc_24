@@ -449,7 +449,7 @@ void MotionMaster::MoveKnockbackFrom(float srcX, float srcY, float speedXY, floa
     // xinef: check LoS!
     if (!_owner->IsWithinLOS(pos.m_positionX, pos.m_positionY, pos.m_positionZ))
     {
-        pos = _owner->GetPosition();
+        _owner->GetPosition(&pos);
         _owner->MovePositionToFirstCollision(pos, dist, _owner->GetAngle(srcX, srcY) + M_PI);
     }
 
@@ -515,14 +515,13 @@ void MotionMaster::MoveFall(uint32 id /*=0*/, bool addFlagForNPC)
     if (fabs(_owner->GetPositionZ() - tz) < 0.1f)
         return;
 
-    _owner->AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
-    _owner->m_movementInfo.SetFallTime(0);
-
-    // don't run spline movement for players
     if (_owner->GetTypeId() == TYPEID_PLAYER)
-        return;
-
-	if (_owner->GetTypeId() == TYPEID_UNIT && addFlagForNPC) // pussywizard
+    {
+        _owner->AddUnitMovementFlag(MOVEMENTFLAG_FALLING);
+        _owner->m_movementInfo.SetFallTime(0);
+		_owner->ToPlayer()->SetFallInformation(time(NULL), _owner->GetPositionZ());
+    }
+	else if (_owner->GetTypeId() == TYPEID_UNIT && addFlagForNPC) // pussywizard
 	{
 		_owner->RemoveUnitMovementFlag(MOVEMENTFLAG_MASK_MOVING);
 		_owner->RemoveUnitMovementFlag(MOVEMENTFLAG_FLYING|MOVEMENTFLAG_CAN_FLY);

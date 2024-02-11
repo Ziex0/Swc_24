@@ -6,10 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "ScriptedEscortAI.h"
 #include "black_temple.h"
-#include "SpellAuraEffects.h"
-#include "Player.h"
-#include "SpellScript.h"
-#include "ScriptedGossip.h"
 
 enum Says
 {

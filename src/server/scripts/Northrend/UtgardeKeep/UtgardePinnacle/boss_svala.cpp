@@ -8,7 +8,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "SpellScript.h"
 #include "Player.h"
 #include "PassiveAI.h"
-#include "Opcodes.h"
 
 enum Misc
 {
@@ -103,7 +102,6 @@ public:
     		instance = creature->GetInstanceScript();
 			Started = false;
 			ArthasGUID = 0;
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
 		}
 
 		uint64 ArthasGUID;
@@ -112,8 +110,6 @@ public:
 		EventMap events;
 		EventMap events2;
 		SummonList summons;
-        uint8 ritualCount;
-        bool preNerf;
 
 		void Reset()
 		{
@@ -347,9 +343,6 @@ public:
 					AttackStart(me->GetVictim());
 					me->GetMotionMaster()->MoveFall(0, true);
 					summons.DespawnAll();
-
-                    if (preNerf)
-                        events.ScheduleEvent(EVENT_SORROWGRAVE_RITUAL, 25000);
 					break;
 			}
 

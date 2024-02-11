@@ -333,11 +333,6 @@ public:
             CastTimer = 5000;
         }
 
-        void JustReachedHome()
-        {
-            me->GetMotionMaster()->MovePath(me->GetDBTableGUIDLow() * 10, true);
-        }
-
         void SpellHit(Unit* pCaster, SpellInfo const* spell)
         {
             if (bCanEat || bIsEating)
@@ -373,7 +368,7 @@ public:
                     {
                         if (Unit* unit = ObjectAccessor::GetUnit(*me, uiPlayerGUID))
                         {
-                            if (GameObject* go = unit->FindNearestGameObject(GO_CARCASS, 40))
+                            if (GameObject* go = unit->FindNearestGameObject(GO_CARCASS, 10))
                             {
                                 if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
                                     me->GetMotionMaster()->MovementExpired();
@@ -395,12 +390,12 @@ public:
                         {
                             player->KilledMonsterCredit(NPC_EVENT_PINGER, 0);
 
-                            if (GameObject* go = player->FindNearestGameObject(GO_CARCASS, 40))
+                            if (GameObject* go = player->FindNearestGameObject(GO_CARCASS, 10))
                                 go->Delete();
                         }
 
                         Reset();
-                        me->GetMotionMaster()->MoveTargetedHome();
+                        me->GetMotionMaster()->Clear();
                     }
                 }
                 else
@@ -549,10 +544,10 @@ public:
 
                                 Position pos;
                                 if (Unit* EscapeDummy = me->FindNearestCreature(NPC_ESCAPE_DUMMY, 30))
-                                    pos = EscapeDummy->GetPosition();
+                                    EscapeDummy->GetPosition(&pos);
                                 else
                                 {
-                                    pos = me->GetRandomNearPosition(20);
+                                    me->GetRandomNearPosition(pos, 20);
                                     pos.m_positionZ += 25;
                                 }
 
@@ -631,9 +626,6 @@ public:
 
         void UpdateAI(uint32 diff)
         {
-            if (!UpdateVictim())
-                return;
-
             if (PoisonTimer)
             {
                 if (PoisonTimer <= diff)
@@ -648,8 +640,6 @@ public:
                     Unit::DealDamage(me, me, me->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                 } else PoisonTimer -= diff;
             }
-
-            DoMeleeAttackIfReady();
         }
     };
 };

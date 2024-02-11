@@ -5,9 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "black_temple.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
-#include "CreatureAI.h"
 
 DoorData const doorData[] =
 {

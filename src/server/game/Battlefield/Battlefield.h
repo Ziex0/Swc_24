@@ -78,7 +78,7 @@ class Unit;
 class Battlefield;
 class BfGraveyard;
 
-typedef std::unordered_set<uint64> GuidSet;
+typedef UNORDERED_SET<uint64> GuidSet;
 typedef std::vector<BfGraveyard*> GraveyardVect;
 typedef std::map<uint64, time_t> PlayerTimerMap;
 

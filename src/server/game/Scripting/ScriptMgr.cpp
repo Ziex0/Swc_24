@@ -22,17 +22,16 @@
 #include "DBCStores.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "ScriptLoader.h"
 #include "ScriptSystem.h"
 #include "Transport.h"
 #include "Vehicle.h"
-#include "SmartAI.h"
 #include "SpellInfo.h"
 #include "SpellScript.h"
 #include "GossipDef.h"
 #include "CreatureAI.h"
 #include "Player.h"
 #include "WorldPacket.h"
-#include "Chat.h"
 
 // This is the global static registry of scripts.
 /*template<class TScript>
@@ -162,7 +161,7 @@ class ScriptRegistry
         return R;
 
 ScriptMgr::ScriptMgr()
-  : _scriptCount(0), _scheduledScripts(0), _script_loader_callback(nullptr)
+    : _scriptCount(0), _scheduledScripts(0)
 {
 }
 
@@ -179,49 +178,8 @@ void ScriptMgr::Initialize()
     sLog->outString("Loading C++ scripts");
 
     FillSpellSummary();
-
-    // SmartAI
-    AddSC_SmartScripts();
-
-    ASSERT(_script_loader_callback);
-
-    _script_loader_callback();
-
-    // Print unused script names.
-    ObjectMgr::ScriptNameContainer& sn = sObjectMgr->GetScriptNames();
-
-    // Remove the used scripts from the given container.
-    for (ObjectMgr::ScriptNameContainer::iterator itr = sn.begin(); itr != sn.end(); ++itr)
-    {
-        if (uint32 sid = sObjectMgr->GetScriptId((*itr).c_str()))
-        {
-            if (!ScriptRegistry<SpellScriptLoader>::GetScriptById(sid) &&
-                !ScriptRegistry<ServerScript>::GetScriptById(sid) &&
-                !ScriptRegistry<WorldScript>::GetScriptById(sid) &&
-                !ScriptRegistry<FormulaScript>::GetScriptById(sid) &&
-                !ScriptRegistry<WorldMapScript>::GetScriptById(sid) &&
-                !ScriptRegistry<InstanceMapScript>::GetScriptById(sid) &&
-                !ScriptRegistry<BattlegroundMapScript>::GetScriptById(sid) &&
-                !ScriptRegistry<ItemScript>::GetScriptById(sid) &&
-                !ScriptRegistry<CreatureScript>::GetScriptById(sid) &&
-                !ScriptRegistry<GameObjectScript>::GetScriptById(sid) &&
-                !ScriptRegistry<AreaTriggerScript>::GetScriptById(sid) &&
-                !ScriptRegistry<BattlegroundScript>::GetScriptById(sid) &&
-                !ScriptRegistry<OutdoorPvPScript>::GetScriptById(sid) &&
-                !ScriptRegistry<CommandScript>::GetScriptById(sid) &&
-                !ScriptRegistry<WeatherScript>::GetScriptById(sid) &&
-                !ScriptRegistry<AuctionHouseScript>::GetScriptById(sid) &&
-                !ScriptRegistry<ConditionScript>::GetScriptById(sid) &&
-                !ScriptRegistry<VehicleScript>::GetScriptById(sid) &&
-                !ScriptRegistry<DynamicObjectScript>::GetScriptById(sid) &&
-                !ScriptRegistry<TransportScript>::GetScriptById(sid) &&
-                !ScriptRegistry<AchievementCriteriaScript>::GetScriptById(sid) &&
-                !ScriptRegistry<PlayerScript>::GetScriptById(sid) &&
-                !ScriptRegistry<GuildScript>::GetScriptById(sid) &&
-                !ScriptRegistry<GroupScript>::GetScriptById(sid))
-                sLog->outErrorDb("Script named '%s' is assigned in database, but has no code!", (*itr).c_str());
-        }
-    }
+    AddScripts();
+    CheckIfScriptsInDatabaseExist();
 
     sLog->outString(">> Loaded %u C++ scripts in %u ms", GetScriptCount(), GetMSTimeDiffToNow(oldMSTime));
     sLog->outString();
@@ -922,15 +880,12 @@ OutdoorPvP* ScriptMgr::CreateOutdoorPvP(OutdoorPvPData const* data)
     return tmpscript->GetOutdoorPvP();
 }
 
-std::vector<ChatCommand> ScriptMgr::GetChatCommands()
+std::vector<ChatCommand*> ScriptMgr::GetChatCommands()
 {
-    std::vector<ChatCommand> table;
+    std::vector<ChatCommand*> table;
 
     FOR_SCRIPTS_RET(CommandScript, itr, end, table)
-    {
-        std::vector<ChatCommand> cmds = itr->second->GetCommands();
-        table.insert(table.end(), cmds.begin(), cmds.end());
-    }
+        table.push_back(itr->second->GetCommands());
 
     return table;
 }

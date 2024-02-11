@@ -660,7 +660,7 @@ public:
 				caster->ApplySpellImmune(SPELL_COLOSSUS_GROUND_SLAM, IMMUNITY_ID, SPELL_COLOSSUS_GROUND_SLAM, true);
 				caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
 				caster->SetControlled(false, UNIT_STATE_ROOT);
-				for (uint8 i = 0; i < MAX_CREATURE_SPELLS; ++i)
+				for (uint8 i = 0; i < CREATURE_MAX_SPELLS; ++i)
 					caster->m_spells[i] = 0;
 
 				caster->m_spells[0] = SPELL_JORMUNGAR_EMERGE;
@@ -673,7 +673,7 @@ public:
 				caster->SetControlled(true, UNIT_STATE_ROOT);
 
 				if (CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(caster->GetEntry()))
-					for (uint8 i = 0; i < MAX_CREATURE_SPELLS; ++i)
+					for (uint8 i = 0; i < CREATURE_MAX_SPELLS; ++i)
 						caster->m_spells[i] = ct->spells[i];
 			}
 
@@ -693,53 +693,6 @@ public:
     };
 };
 
-class npc_jotunheim_protodrake : public CreatureScript
-{
-    enum NPCs
-    {
-        NPC_JOTUNHEIM_PROTO_DRAKE = 30330
-    };
-
-public:
-    npc_jotunheim_protodrake() : CreatureScript("npc_jotunheim_protodrake") { }
-
-    class npc_jotunheim_protodrakeAI : public CreatureAI
-    {
-    public:
-        npc_jotunheim_protodrakeAI(Creature* creature) : CreatureAI(creature) { }
-
-        void Reset()
-        {
-            me->setActive(true);
-        }
-
-        void JustDied(Unit* killer)
-        {
-            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
-            {
-                std::list<Unit*> PartyMembers;
-                player->GetPartyMembers(PartyMembers);
-                for (std::list<Unit*>::iterator itr = PartyMembers.begin(); itr != PartyMembers.end(); ++itr)
-                {
-                    if (Player* ptPlr = (*itr)->ToPlayer())
-                        ptPlr->KilledMonsterCredit(NPC_JOTUNHEIM_PROTO_DRAKE, me->GetGUID());
-                }
-            }
-        }
-
-        void UpdateAI(uint32 uiDiff)
-        {
-            
-        }
-
-
-    };
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new npc_jotunheim_protodrakeAI(creature);
-    }
-};
 
 // Theirs
 /////////////////////
@@ -1187,7 +1140,6 @@ void AddSC_storm_peaks()
 	new npc_wild_wyrm();
 	new spell_q13003_thursting_hodirs_spear();
 	new spell_q13007_iron_colossus();
-    new npc_jotunheim_protodrake();
 
 	// Theirs
     new npc_injured_goblin();

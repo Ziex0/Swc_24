@@ -23,7 +23,7 @@
 #include "Common.h"
 #include "DatabaseEnv.h"
 #include "Config.h"
-#include "GitRevision.h"
+#include "SystemConfig.h"
 #include "Log.h"
 #include "Opcodes.h"
 #include "WorldSession.h"
@@ -87,8 +87,6 @@
 #include "WhoListCache.h"
 #include "AsyncAuctionListing.h"
 #include "SavingSystem.h"
-#include "CharacterMgr.h"
-#include <VMapManager2.h>
 
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
@@ -656,8 +654,9 @@ void World::LoadConfigSettings(bool reload)
     m_float_configs[CONFIG_GROUP_XP_DISTANCE] = sConfigMgr->GetFloatDefault("MaxGroupXPDistance", 74.0f);
     m_float_configs[CONFIG_MAX_RECRUIT_A_FRIEND_DISTANCE] = sConfigMgr->GetFloatDefault("MaxRecruitAFriendBonusDistance", 100.0f);
 
-    /// \todo Add MonsterSight in worldserver.conf or put them as define
+    /// \todo Add MonsterSight and GuarderSight (with meaning) in worldserver.conf or put them as define
     m_float_configs[CONFIG_SIGHT_MONSTER] = sConfigMgr->GetFloatDefault("MonsterSight", 50);
+    m_float_configs[CONFIG_SIGHT_GUARDER] = sConfigMgr->GetFloatDefault("GuarderSight", 50);
 
     if (reload)
     {
@@ -965,7 +964,7 @@ void World::LoadConfigSettings(bool reload)
     m_int_configs[CONFIG_CHATFLOOD_MESSAGE_DELAY] = sConfigMgr->GetIntDefault("ChatFlood.MessageDelay", 1);
     m_int_configs[CONFIG_CHATFLOOD_MUTE_TIME]     = sConfigMgr->GetIntDefault("ChatFlood.MuteTime", 10);
 
-    m_bool_configs[CONFIG_EVENT_ANNOUNCE] = sConfigMgr->GetBoolDefault("Event.Announce", false);
+    m_int_configs[CONFIG_EVENT_ANNOUNCE] = sConfigMgr->GetIntDefault("Event.Announce", 0);
 
     m_float_configs[CONFIG_CREATURE_FAMILY_FLEE_ASSISTANCE_RADIUS] = sConfigMgr->GetFloatDefault("CreatureFamilyFleeAssistanceRadius", 30.0f);
     m_float_configs[CONFIG_CREATURE_FAMILY_ASSISTANCE_RADIUS] = sConfigMgr->GetFloatDefault("CreatureFamilyAssistanceRadius", 10.0f);
@@ -1003,8 +1002,8 @@ void World::LoadConfigSettings(bool reload)
 
     m_bool_configs[CONFIG_RESTRICTED_LFG_CHANNEL]      = sConfigMgr->GetBoolDefault("Channel.RestrictedLfg", true);
     m_bool_configs[CONFIG_SILENTLY_GM_JOIN_TO_CHANNEL] = sConfigMgr->GetBoolDefault("Channel.SilentlyGMJoin", false);
-    
-    m_int_configs[CONFIG_TALENTS_INSPECTING]            = sConfigMgr->GetIntDefault("TalentsInspecting", 1);
+
+    m_bool_configs[CONFIG_TALENTS_INSPECTING]           = sConfigMgr->GetBoolDefault("TalentsInspecting", true);
     m_bool_configs[CONFIG_CHAT_FAKE_MESSAGE_PREVENTING] = sConfigMgr->GetBoolDefault("ChatFakeMessagePreventing", false);
     m_int_configs[CONFIG_CHAT_STRICT_LINK_CHECKING_SEVERITY] = sConfigMgr->GetIntDefault("ChatStrictLinkChecking.Severity", 0);
     m_int_configs[CONFIG_CHAT_STRICT_LINK_CHECKING_KICK] = sConfigMgr->GetIntDefault("ChatStrictLinkChecking.Kick", 0);
@@ -1113,11 +1112,6 @@ void World::LoadConfigSettings(bool reload)
     m_int_configs[CONFIG_CHARDELETE_MIN_LEVEL] = sConfigMgr->GetIntDefault("CharDelete.MinLevel", 0);
     m_int_configs[CONFIG_CHARDELETE_KEEP_DAYS] = sConfigMgr->GetIntDefault("CharDelete.KeepDays", 30);
 
-    // Maczuga - Premium service
-    rate_values[RATE_VIP_XP_KILL] = sConfigMgr->GetFloatDefault("Rate.VIP.XP.Kill", 1.0f);
-    rate_values[RATE_VIP_XP_QUEST] = sConfigMgr->GetFloatDefault("Rate.VIP.XP.Quest", 1.0f);
-    rate_values[RATE_VIP_XP_EXPLORE] = sConfigMgr->GetFloatDefault("Rate.VIP.XP.Explore", 1.0f);
-
     ///- Read the "Data" directory from the config file
     std::string dataPath = sConfigMgr->GetStringDefault("DataDir", "./");
     if (dataPath.empty() || (dataPath.at(dataPath.length()-1) != '/' && dataPath.at(dataPath.length()-1) != '\\'))
@@ -1214,6 +1208,7 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_PDUMP_NO_OVERWRITE] = sConfigMgr->GetBoolDefault("PlayerDump.DisallowOverwrite", true);
     m_bool_configs[CONFIG_FREE_DUAL_SPEC] = sConfigMgr->GetBoolDefault("FreeDualTalentSpecialization", false);
     m_bool_configs[CONFIG_ENABLE_MMAPS] = sConfigMgr->GetBoolDefault("MoveMaps.Enable", true);
+    MMAP::MMapFactory::InitializeDisabledMaps();
 
     // Wintergrasp
     m_bool_configs[CONFIG_WINTERGRASP_ENABLE] = sConfigMgr->GetBoolDefault("Wintergrasp.Enable", false);
@@ -1226,25 +1221,12 @@ void World::LoadConfigSettings(bool reload)
 
     m_int_configs[CONFIG_BIRTHDAY_TIME] = sConfigMgr->GetIntDefault("BirthdayTime", 1222964635);
 
-    m_bool_configs[CONFIG_CALCULATE_CREATURE_ZONE_AREA_DATA] = sConfigMgr->GetBoolDefault("Calculate.Creature.Zone.Area.Data", false);
-    m_bool_configs[CONFIG_CALCULATE_GAMEOBJECT_ZONE_AREA_DATA] = sConfigMgr->GetBoolDefault("Calculate.Gameoject.Zone.Area.Data", false);
-
-    m_int_configs[CONFIG_CURRENT_BUILD] = sConfigMgr->GetIntDefault("CurrentBuild", 12340); // Maczuga
-
-    m_bool_configs[CONFIG_DYNAMIC_SPAWN_ENABLED] = sConfigMgr->GetBoolDefault("DynamicRespawn.Enabled", true);
-    m_int_configs[CONFIG_DYNAMIC_SPAWN_PLAYERS_TO_DECREASE] = sConfigMgr->GetIntDefault("DynamicRespawn.PlayersToDecrease", 6); // Maczuga
-    m_float_configs[CONFIG_DYNAMIC_SPAWN_RESPAWN_DECREASE] = sConfigMgr->GetFloatDefault("DynamicRespawn.RespawnPctDecrease", 25.0f); // Maczuga
-    m_int_configs[CONFIG_DYNAMIC_SPAWN_CREATURE_MIN_RESPAWN_TIME] = sConfigMgr->GetIntDefault("DynamicRespawn.CreatureMinRespawn", 60); // Maczuga
-    m_int_configs[CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MIN_RESPAWN_TIME] = sConfigMgr->GetIntDefault("DynamicRespawn.GameObjectMinRespawn", 60); // Maczuga
-    m_int_configs[CONFIG_DYNAMIC_SPAWN_CREATURE_MAX_MIN_RESPAWN_TIME] = sConfigMgr->GetIntDefault("DynamicRespawn.CreatureMaxMinRespawn", 15); // Maczuga
-    m_int_configs[CONFIG_DYNAMIC_SPAWN_GAMEOBJECT_MAX_MIN_RESPAWN_TIME] = sConfigMgr->GetIntDefault("DynamicRespawn.GameObjectMaxMinRespawn", 15); // Maczuga
-
     // call ScriptMgr if we're reloading the configuration
     if (reload)
         sScriptMgr->OnConfigLoad(reload);
 }
 
-extern void LoadGameObjectModelList(std::string const& dataPath);
+extern void LoadGameObjectModelList();
 
 /// Initialize the World
 void World::SetInitialWorldSettings()
@@ -1257,12 +1239,6 @@ void World::SetInitialWorldSettings()
 
 	///- Initialize detour memory management
 	dtAllocSetCustom(dtCustomAlloc, dtCustomFree);
-
-    ///- Initialize VMapManager function pointers (to untangle game/collision circular deps)
-    if (VMAP::VMapManager2* vmmgr2 = dynamic_cast<VMAP::VMapManager2*>(VMAP::VMapFactory::createOrGetVMapManager()))
-    {
-        vmmgr2->GetLiquidFlagsPtr = &GetLiquidFlags;
-    }
 
     ///- Initialize config settings
     LoadConfigSettings();
@@ -1342,7 +1318,7 @@ void World::SetInitialWorldSettings()
     sSpellMgr->LoadSpellCustomAttr();
 
     sLog->outString("Loading GameObject models...");
-    LoadGameObjectModelList(m_dataPath);
+    LoadGameObjectModelList();
 
     sLog->outString("Loading Script Names...");
     sObjectMgr->LoadScriptNames();
@@ -1560,9 +1536,6 @@ void World::SetInitialWorldSettings()
     sLog->outString("Loading Pet Name Parts...");
     sObjectMgr->LoadPetNames();
 
-    sLog->outString("Loading Character Templates...");                         // must be after LoadItemTemplate
-    sCharacterMgr->LoadFromDB();
-
     CharacterDatabaseCleaner::CleanDatabase();
 
     sLog->outString("Loading the max pet number...");
@@ -1585,9 +1558,6 @@ void World::SetInitialWorldSettings()
 
     sLog->outString("Loading Skill Extra Item Table...");
     LoadSkillExtraItemTable();
-
-    sLog->outString("Loading Skill Perfection Data Table...");
-    LoadSkillPerfectItemTable();
 
     sLog->outString("Loading Skill Fishing base level requirements...");
     sObjectMgr->LoadFishingBaseSkillLevel();
@@ -1695,9 +1665,6 @@ void World::SetInitialWorldSettings()
     sLog->outString("Returning old mails...");
     sObjectMgr->ReturnOrDeleteOldMails(false);
 
-    sLog->outString("Loading Autobroadcasts...");
-    LoadAutobroadcasts();
-
     ///- Load and initialize scripts
     sObjectMgr->LoadSpellScripts();                              // must be after load Creature/Gameobject(Template/Data)
     sObjectMgr->LoadEventScripts();                              // must be after load Creature/Gameobject(Template/Data)
@@ -1736,14 +1703,12 @@ void World::SetInitialWorldSettings()
     m_gameTime = time(NULL);
     m_startTime = m_gameTime;
 
-    LoginDatabase.PExecute("INSERT INTO uptime (realmid, starttime, uptime, revision) VALUES(%u, %u, 0, '%s')",
-        realmID, uint32(m_startTime), GitRevision::GetFullVersion());       // One-time query
+
 
     m_timers[WUPDATE_WEATHERS].SetInterval(1*IN_MILLISECONDS);
     m_timers[WUPDATE_AUCTIONS].SetInterval(MINUTE*IN_MILLISECONDS);
     m_timers[WUPDATE_AUCTIONS].SetCurrent(MINUTE*IN_MILLISECONDS);
-    m_timers[WUPDATE_UPTIME].SetInterval(m_int_configs[CONFIG_UPTIME_UPDATE]*MINUTE*IN_MILLISECONDS);
-                                                            //Update "uptime" table based on configuration entry in minutes.
+
     m_timers[WUPDATE_CORPSES].SetInterval(20 * MINUTE * IN_MILLISECONDS);
                                                             //erase corpses every 20 minutes
     m_timers[WUPDATE_CLEANDB].SetInterval(m_int_configs[CONFIG_LOGDB_CLEARINTERVAL]*MINUTE*IN_MILLISECONDS);
@@ -1877,42 +1842,6 @@ void World::DetectDBCLang()
     sLog->outString();
 }
 
-void World::LoadAutobroadcasts()
-{
-    uint32 oldMSTime = getMSTime();
-
-    m_Autobroadcasts.clear();
-    m_AutobroadcastsWeights.clear();
-
-    uint32 realmId = sConfigMgr->GetIntDefault("RealmID", 0);
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_AUTOBROADCAST);
-    stmt->setInt32(0, realmId);
-    PreparedQueryResult result = LoginDatabase.Query(stmt);
-
-    if (!result)
-    {
-        sLog->outString(">> Loaded 0 autobroadcasts definitions. DB table `autobroadcast` is empty for this realm!");
-        sLog->outString();
-        return;
-    }
-
-    uint32 count = 0;
-
-    do
-    {
-        Field* fields = result->Fetch();
-        uint8 id = fields[0].GetUInt8();
-
-        m_Autobroadcasts[id] = fields[2].GetString();
-        m_AutobroadcastsWeights[id] = fields[1].GetUInt8();
-
-        ++count;
-    } while (result->NextRow());
-
-    sLog->outString(">> Loaded %u autobroadcast definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
-    sLog->outString();
-}
-
 /// Update the World !
 void World::Update(uint32 diff)
 {
@@ -2007,24 +1936,6 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_WEATHERS].Reset();
         WeatherMgr::Update(uint32(m_timers[WUPDATE_WEATHERS].GetInterval()));
-    }
-
-    /// <li> Update uptime table
-    if (m_timers[WUPDATE_UPTIME].Passed())
-    {
-        uint32 tmpDiff = uint32(m_gameTime - m_startTime);
-        uint32 maxOnlinePlayers = GetMaxPlayerCount();
-
-        m_timers[WUPDATE_UPTIME].Reset();
-
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_UPTIME_PLAYERS);
-
-        stmt->setUInt32(0, tmpDiff);
-        stmt->setUInt16(1, uint16(maxOnlinePlayers));
-        stmt->setUInt32(2, realmID);
-        stmt->setUInt32(3, uint32(m_startTime));
-
-        LoginDatabase.Execute(stmt);
     }
 
 	sLFGMgr->Update(diff, 0); // pussywizard: remove obsolete stuff before finding compatibility during map update
@@ -2463,11 +2374,6 @@ bool World::RemoveBanCharacter(std::string const& name)
     return true;
 }
 
-bool World::IsInCurrentContent(ContentPatches patchSince, ContentPatches patchTo) const
-{
-    return getIntConfig(CONFIG_CURRENT_BUILD) >= uint32(patchSince) && getIntConfig(CONFIG_CURRENT_BUILD) <= uint32(patchTo);
-}
-
 /// Update the game time
 void World::_UpdateGameTime()
 {
@@ -2674,35 +2580,9 @@ void World::SendAutoBroadcast()
     if (m_Autobroadcasts.empty())
         return;
 
-    uint32 weight = 0;
-    AutobroadcastsWeightMap selectionWeights;
     std::string msg;
 
-    for (AutobroadcastsWeightMap::const_iterator it = m_AutobroadcastsWeights.begin(); it != m_AutobroadcastsWeights.end(); ++it)
-    {
-        if (it->second)
-        {
-            weight += it->second;
-            selectionWeights[it->first] = it->second;
-        }
-    }
-
-    if (weight)
-    {
-        uint32 selectedWeight = urand(0, weight - 1);
-        weight = 0;
-        for (AutobroadcastsWeightMap::const_iterator it = selectionWeights.begin(); it != selectionWeights.end(); ++it)
-        {
-            weight += it->second;
-            if (selectedWeight < weight)
-            {
-                msg = m_Autobroadcasts[it->first];
-                break;
-            }
-        }
-    }
-    else
-        msg = m_Autobroadcasts[urand(0, m_Autobroadcasts.size())];
+    msg = Trinity::Containers::SelectRandomContainerElement(m_Autobroadcasts);
 
     uint32 abcenter = sWorld->getIntConfig(CONFIG_AUTOBROADCAST_CENTER);
 
@@ -2725,7 +2605,7 @@ void World::SendAutoBroadcast()
         sWorld->SendGlobalMessage(&data);
     }
 
-    sLog->outDetail("AutoBroadcast: '%s'", msg.c_str());
+    ;//sLog->outDetail("AutoBroadcast: '%s'", msg.c_str());
 }
 
 void World::UpdateRealmCharCount(uint32 accountId)

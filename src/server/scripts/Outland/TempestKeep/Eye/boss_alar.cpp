@@ -7,10 +7,6 @@ REWRITTEN BY XINEF
 #include "the_eye.h"
 #include "WaypointManager.h"
 #include "MoveSplineInit.h"
-#include "SpellScript.h"
-#include "MapReference.h"
-#include "SpellAuraEffects.h"
-#include "Player.h"
 
 enum Spells
 {

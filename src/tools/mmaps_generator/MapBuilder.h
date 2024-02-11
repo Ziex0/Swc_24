@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 
+ * Copyright (C) 
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -33,6 +33,8 @@
 #include <ace/Activation_Queue.h>
 #include <ace/Method_Request.h>
 
+#include "Database/DatabaseEnv.h"
+
 using namespace VMAP;
 
 // G3D namespace typedefs conflicts with ACE typedefs
@@ -61,7 +63,7 @@ namespace MMAP
     class MapBuilder
     {
         public:
-            MapBuilder(float maxWalkableAngle   = 70.f,
+            MapBuilder(float maxWalkableAngle   = 55.f,
                 bool skipLiquid          = false,
                 bool skipContinents      = false,
                 bool skipJunkMaps        = true,
@@ -103,7 +105,7 @@ namespace MMAP
             void getTileBounds(uint32 tileX, uint32 tileY,
                 float* verts, int vertCount,
                 float* bmin, float* bmax);
-            void getGridBounds(uint32 mapID, uint32 &minX, uint32 &minY, uint32 &maxX, uint32 &maxY) const;
+            void getGridBounds(uint32 mapID, uint32 &minX, uint32 &minY, uint32 &maxX, uint32 &maxY);
 
             bool shouldSkipMap(uint32 mapID);
             bool isTransportMap(uint32 mapID);
@@ -124,7 +126,6 @@ namespace MMAP
 
             // build performance - not really used for now
             rcContext* m_rcContext;
-            std::atomic<bool> _cancelationToken;
     };
 
     class MapBuildRequest : public ACE_Method_Request

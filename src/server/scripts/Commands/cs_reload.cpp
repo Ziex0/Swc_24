@@ -45,115 +45,118 @@ class reload_commandscript : public CommandScript
 public:
     reload_commandscript() : CommandScript("reload_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> reloadAllCommandTable =
+        static ChatCommand reloadAllCommandTable[] =
         {
-            { "achievement", SEC_ADMINISTRATOR,  true,  &HandleReloadAllAchievementCommand, "" },
-            { "area",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllAreaCommand,       "" },
-            { "gossips",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllGossipsCommand,    "" },
-            { "item",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllItemCommand,       "" },
-            { "locales",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllLocalesCommand,    "" },
-            { "loot",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllLootCommand,       "" },
-            { "npc",        SEC_ADMINISTRATOR,  true,  &HandleReloadAllNpcCommand,        "" },
-            { "quest",      SEC_ADMINISTRATOR,  true,  &HandleReloadAllQuestCommand,      "" },
-            { "scripts",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllScriptsCommand,    "" },
-            { "spell",      SEC_ADMINISTRATOR,  true,  &HandleReloadAllSpellCommand,      "" },
-            { "",           SEC_ADMINISTRATOR,  true,  &HandleReloadAllCommand,           "" }
+            { "achievement", SEC_ADMINISTRATOR,  true,  &HandleReloadAllAchievementCommand, "", NULL },
+            { "area",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllAreaCommand,       "", NULL },
+            { "gossips",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllGossipsCommand,    "", NULL },
+            { "item",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllItemCommand,       "", NULL },
+            { "locales",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllLocalesCommand,    "", NULL },
+            { "loot",       SEC_ADMINISTRATOR,  true,  &HandleReloadAllLootCommand,       "", NULL },
+            { "npc",        SEC_ADMINISTRATOR,  true,  &HandleReloadAllNpcCommand,        "", NULL },
+            { "quest",      SEC_ADMINISTRATOR,  true,  &HandleReloadAllQuestCommand,      "", NULL },
+            { "scripts",    SEC_ADMINISTRATOR,  true,  &HandleReloadAllScriptsCommand,    "", NULL },
+            { "spell",      SEC_ADMINISTRATOR,  true,  &HandleReloadAllSpellCommand,      "", NULL },
+            { "",           SEC_ADMINISTRATOR,  true,  &HandleReloadAllCommand,           "", NULL },
+            { NULL,         0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> reloadCommandTable =
+        static ChatCommand reloadCommandTable[] =
         {
-            { "auctions",                     SEC_ADMINISTRATOR, true,  &HandleReloadAuctionsCommand,                   "" },
-            { "access_requirement",           SEC_ADMINISTRATOR, true,  &HandleReloadAccessRequirementCommand,          "" },
-            { "achievement_criteria_data",    SEC_ADMINISTRATOR, true,  &HandleReloadAchievementCriteriaDataCommand,    "" },
-            { "achievement_reward",           SEC_ADMINISTRATOR, true,  &HandleReloadAchievementRewardCommand,          "" },
+            { "auctions",                     SEC_ADMINISTRATOR, true,  &HandleReloadAuctionsCommand,                   "", NULL },
+            { "access_requirement",           SEC_ADMINISTRATOR, true,  &HandleReloadAccessRequirementCommand,          "", NULL },
+            { "achievement_criteria_data",    SEC_ADMINISTRATOR, true,  &HandleReloadAchievementCriteriaDataCommand,    "", NULL },
+            { "achievement_reward",           SEC_ADMINISTRATOR, true,  &HandleReloadAchievementRewardCommand,          "", NULL },
             { "all",                          SEC_ADMINISTRATOR, true,  NULL,                          "", reloadAllCommandTable },
-            { "areatrigger_involvedrelation", SEC_ADMINISTRATOR, true,  &HandleReloadQuestAreaTriggersCommand,          "" },
-            { "areatrigger_tavern",           SEC_ADMINISTRATOR, true,  &HandleReloadAreaTriggerTavernCommand,          "" },
-            { "areatrigger_teleport",         SEC_ADMINISTRATOR, true,  &HandleReloadAreaTriggerTeleportCommand,        "" },
-            { "autobroadcast",                SEC_ADMINISTRATOR, true,  &HandleReloadAutobroadcastCommand,              "" },
-            { "command",                      SEC_ADMINISTRATOR, true,  &HandleReloadCommandCommand,                    "" },
-            { "conditions",                   SEC_ADMINISTRATOR, true,  &HandleReloadConditions,                        "" },
-            { "config",                       SEC_ADMINISTRATOR, true,  &HandleReloadConfigCommand,                     "" },
-            { "creature_text",                SEC_ADMINISTRATOR, true,  &HandleReloadCreatureText,                      "" },
-            { "creature_questender",          SEC_ADMINISTRATOR, true,  &HandleReloadCreatureQuestEnderCommand,         "" },
-            { "creature_linked_respawn",      SEC_GAMEMASTER,    true,  &HandleReloadLinkedRespawnCommand,              "" },
-            { "creature_loot_template",       SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesCreatureCommand,      "" },
-            { "creature_onkill_reputation",   SEC_ADMINISTRATOR, true,  &HandleReloadOnKillReputationCommand,           "" },
-            { "creature_queststarter",        SEC_ADMINISTRATOR, true,  &HandleReloadCreatureQuestStarterCommand,       "" },
-            { "creature_template",            SEC_ADMINISTRATOR, true,  &HandleReloadCreatureTemplateCommand,           "" },
-            //{ "db_script_string",             SEC_ADMINISTRATOR, true,  &HandleReloadDbScriptStringCommand,            "" },
-            { "disables",                     SEC_ADMINISTRATOR, true,  &HandleReloadDisablesCommand,                   "" },
-            { "disenchant_loot_template",     SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesDisenchantCommand,    "" },
-            { "event_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadEventScriptsCommand,               "" },
-            { "fishing_loot_template",        SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesFishingCommand,       "" },
-            { "game_graveyard_zone",          SEC_ADMINISTRATOR, true,  &HandleReloadGameGraveyardZoneCommand,          "" },
-            { "game_tele",                    SEC_ADMINISTRATOR, true,  &HandleReloadGameTeleCommand,                   "" },
-            { "gameobject_questender",        SEC_ADMINISTRATOR, true,  &HandleReloadGOQuestEnderCommand,               "" },
-            { "gameobject_loot_template",     SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesGameobjectCommand,    "" },
-            { "gameobject_queststarter",      SEC_ADMINISTRATOR, true,  &HandleReloadGOQuestStarterCommand,             "" },
-            { "gm_tickets",                   SEC_ADMINISTRATOR, true,  &HandleReloadGMTicketsCommand,                  "" },
-            { "gossip_menu",                  SEC_ADMINISTRATOR, true,  &HandleReloadGossipMenuCommand,                 "" },
-            { "gossip_menu_option",           SEC_ADMINISTRATOR, true,  &HandleReloadGossipMenuOptionCommand,           "" },
-            { "item_enchantment_template",    SEC_ADMINISTRATOR, true,  &HandleReloadItemEnchantementsCommand,          "" },
-            { "item_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesItemCommand,          "" },
-            { "item_set_names",               SEC_ADMINISTRATOR, true,  &HandleReloadItemSetNamesCommand,               "" },
-            { "lfg_dungeon_rewards",          SEC_ADMINISTRATOR, true,  &HandleReloadLfgRewardsCommand,                 "" },
-            { "locales_achievement_reward",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesAchievementRewardCommand,   "" },
-            { "locales_creature",             SEC_ADMINISTRATOR, true,  &HandleReloadLocalesCreatureCommand,            "" },
-            { "locales_creature_text",        SEC_ADMINISTRATOR, true,  &HandleReloadLocalesCreatureTextCommand,        "" },
-            { "locales_gameobject",           SEC_ADMINISTRATOR, true,  &HandleReloadLocalesGameobjectCommand,          "" },
-            { "locales_gossip_menu_option",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesGossipMenuOptionCommand,    "" },
-            { "locales_item",                 SEC_ADMINISTRATOR, true,  &HandleReloadLocalesItemCommand,                "" },
-            { "locales_item_set_name",        SEC_ADMINISTRATOR, true,  &HandleReloadLocalesItemSetNameCommand,         "" },
-            { "locales_npc_text",             SEC_ADMINISTRATOR, true,  &HandleReloadLocalesNpcTextCommand,             "" },
-            { "locales_page_text",            SEC_ADMINISTRATOR, true,  &HandleReloadLocalesPageTextCommand,            "" },
-            { "locales_points_of_interest",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesPointsOfInterestCommand,    "" },
-            { "locales_quest",                SEC_ADMINISTRATOR, true,  &HandleReloadLocalesQuestCommand,               "" },
-            { "mail_level_reward",            SEC_ADMINISTRATOR, true,  &HandleReloadMailLevelRewardCommand,            "" },
-            { "mail_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesMailCommand,          "" },
-            { "milling_loot_template",        SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesMillingCommand,       "" },
-            { "npc_spellclick_spells",        SEC_ADMINISTRATOR, true,  &HandleReloadSpellClickSpellsCommand,           "" },
-            { "npc_trainer",                  SEC_ADMINISTRATOR, true,  &HandleReloadNpcTrainerCommand,                 "" },
-            { "npc_vendor",                   SEC_ADMINISTRATOR, true,  &HandleReloadNpcVendorCommand,                  "" },
-            { "page_text",                    SEC_ADMINISTRATOR, true,  &HandleReloadPageTextsCommand,                  "" },
-            { "pickpocketing_loot_template",  SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesPickpocketingCommand, "" },
-            { "points_of_interest",           SEC_ADMINISTRATOR, true,  &HandleReloadPointsOfInterestCommand,           "" },
-            { "prospecting_loot_template",    SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesProspectingCommand,   "" },
-            { "quest_poi",                    SEC_ADMINISTRATOR, true,  &HandleReloadQuestPOICommand,                   "" },
-            { "quest_template",               SEC_ADMINISTRATOR, true,  &HandleReloadQuestTemplateCommand,              "" },
-            { "reference_loot_template",      SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesReferenceCommand,     "" },
-            { "reserved_name",                SEC_ADMINISTRATOR, true,  &HandleReloadReservedNameCommand,               "" },
-            { "reputation_reward_rate",       SEC_ADMINISTRATOR, true,  &HandleReloadReputationRewardRateCommand,       "" },
-            { "reputation_spillover_template", SEC_ADMINISTRATOR, true,  &HandleReloadReputationRewardRateCommand,      "" },
-            { "skill_discovery_template",     SEC_ADMINISTRATOR, true,  &HandleReloadSkillDiscoveryTemplateCommand,     "" },
-            { "skill_extra_item_template",    SEC_ADMINISTRATOR, true,  &HandleReloadSkillExtraItemTemplateCommand,     "" },
-            { "skill_fishing_base_level",     SEC_ADMINISTRATOR, true,  &HandleReloadSkillFishingBaseLevelCommand,      "" },
-            { "skinning_loot_template",       SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesSkinningCommand,      "" },
-            { "smart_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadSmartScripts,                      "" },
-            { "spell_required",               SEC_ADMINISTRATOR, true,  &HandleReloadSpellRequiredCommand,              "" },
-            { "spell_area",                   SEC_ADMINISTRATOR, true,  &HandleReloadSpellAreaCommand,                  "" },
-            { "spell_bonus_data",             SEC_ADMINISTRATOR, true,  &HandleReloadSpellBonusesCommand,               "" },
-            { "spell_group",                  SEC_ADMINISTRATOR, true,  &HandleReloadSpellGroupsCommand,                "" },
-            { "spell_loot_template",          SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesSpellCommand,         "" },
-            { "spell_linked_spell",           SEC_ADMINISTRATOR, true,  &HandleReloadSpellLinkedSpellCommand,           "" },
-            { "spell_pet_auras",              SEC_ADMINISTRATOR, true,  &HandleReloadSpellPetAurasCommand,              "" },
-            { "spell_proc_event",             SEC_ADMINISTRATOR, true,  &HandleReloadSpellProcEventCommand,             "" },
-            { "spell_proc",                   SEC_ADMINISTRATOR, true,  &HandleReloadSpellProcsCommand,                 "" },
-            { "spell_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadSpellScriptsCommand,               "" },
-            { "spell_target_position",        SEC_ADMINISTRATOR, true,  &HandleReloadSpellTargetPositionCommand,        "" },
-            { "spell_threats",                SEC_ADMINISTRATOR, true,  &HandleReloadSpellThreatsCommand,               "" },
-            { "spell_group_stack_rules",      SEC_ADMINISTRATOR, true,  &HandleReloadSpellGroupStackRulesCommand,       "" },
-            { "trinity_string",               SEC_ADMINISTRATOR, true,  &HandleReloadTrinityStringCommand,              "" },
-            { "warden_action",                SEC_ADMINISTRATOR, true,  &HandleReloadWardenactionCommand,               "" },
-            { "waypoint_scripts",             SEC_ADMINISTRATOR, true,  &HandleReloadWpScriptsCommand,                  "" },
-            { "waypoint_data",                SEC_ADMINISTRATOR, true,  &HandleReloadWpCommand,                         "" },
-            { "vehicle_accessory",            SEC_ADMINISTRATOR, true,  &HandleReloadVehicleAccessoryCommand,           "" },
-            { "vehicle_template_accessory",   SEC_ADMINISTRATOR, true,  &HandleReloadVehicleTemplateAccessoryCommand,   "" }
+            { "areatrigger_involvedrelation", SEC_ADMINISTRATOR, true,  &HandleReloadQuestAreaTriggersCommand,          "", NULL },
+            { "areatrigger_tavern",           SEC_ADMINISTRATOR, true,  &HandleReloadAreaTriggerTavernCommand,          "", NULL },
+            { "areatrigger_teleport",         SEC_ADMINISTRATOR, true,  &HandleReloadAreaTriggerTeleportCommand,        "", NULL },
+            { "autobroadcast",                SEC_ADMINISTRATOR, true,  &HandleReloadAutobroadcastCommand,              "", NULL },
+            { "command",                      SEC_ADMINISTRATOR, true,  &HandleReloadCommandCommand,                    "", NULL },
+            { "conditions",                   SEC_ADMINISTRATOR, true,  &HandleReloadConditions,                        "", NULL },
+            { "config",                       SEC_ADMINISTRATOR, true,  &HandleReloadConfigCommand,                     "", NULL },
+            { "creature_text",                SEC_ADMINISTRATOR, true,  &HandleReloadCreatureText,                      "", NULL },
+            { "creature_questender",          SEC_ADMINISTRATOR, true,  &HandleReloadCreatureQuestEnderCommand,         "", NULL },
+            { "creature_linked_respawn",      SEC_GAMEMASTER,    true,  &HandleReloadLinkedRespawnCommand,              "", NULL },
+            { "creature_loot_template",       SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesCreatureCommand,      "", NULL },
+            { "creature_onkill_reputation",   SEC_ADMINISTRATOR, true,  &HandleReloadOnKillReputationCommand,           "", NULL },
+            { "creature_queststarter",        SEC_ADMINISTRATOR, true,  &HandleReloadCreatureQuestStarterCommand,       "", NULL },
+            { "creature_template",            SEC_ADMINISTRATOR, true,  &HandleReloadCreatureTemplateCommand,           "", NULL },
+            //{ "db_script_string",             SEC_ADMINISTRATOR, true,  &HandleReloadDbScriptStringCommand,            "", NULL },
+            { "disables",                     SEC_ADMINISTRATOR, true,  &HandleReloadDisablesCommand,                   "", NULL },
+            { "disenchant_loot_template",     SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesDisenchantCommand,    "", NULL },
+            { "event_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadEventScriptsCommand,               "", NULL },
+            { "fishing_loot_template",        SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesFishingCommand,       "", NULL },
+            { "game_graveyard_zone",          SEC_ADMINISTRATOR, true,  &HandleReloadGameGraveyardZoneCommand,          "", NULL },
+            { "game_tele",                    SEC_ADMINISTRATOR, true,  &HandleReloadGameTeleCommand,                   "", NULL },
+            { "gameobject_questender",        SEC_ADMINISTRATOR, true,  &HandleReloadGOQuestEnderCommand,               "", NULL },
+            { "gameobject_loot_template",     SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesGameobjectCommand,    "", NULL },
+            { "gameobject_queststarter",      SEC_ADMINISTRATOR, true,  &HandleReloadGOQuestStarterCommand,             "", NULL },
+            { "gm_tickets",                   SEC_ADMINISTRATOR, true,  &HandleReloadGMTicketsCommand,                  "", NULL },
+            { "gossip_menu",                  SEC_ADMINISTRATOR, true,  &HandleReloadGossipMenuCommand,                 "", NULL },
+            { "gossip_menu_option",           SEC_ADMINISTRATOR, true,  &HandleReloadGossipMenuOptionCommand,           "", NULL },
+            { "item_enchantment_template",    SEC_ADMINISTRATOR, true,  &HandleReloadItemEnchantementsCommand,          "", NULL },
+            { "item_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesItemCommand,          "", NULL },
+            { "item_set_names",               SEC_ADMINISTRATOR, true,  &HandleReloadItemSetNamesCommand,               "", NULL },
+            { "lfg_dungeon_rewards",          SEC_ADMINISTRATOR, true,  &HandleReloadLfgRewardsCommand,                 "", NULL },
+            { "locales_achievement_reward",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesAchievementRewardCommand,   "", NULL },
+            { "locales_creature",             SEC_ADMINISTRATOR, true,  &HandleReloadLocalesCreatureCommand,            "", NULL },
+            { "locales_creature_text",        SEC_ADMINISTRATOR, true,  &HandleReloadLocalesCreatureTextCommand,        "", NULL },
+            { "locales_gameobject",           SEC_ADMINISTRATOR, true,  &HandleReloadLocalesGameobjectCommand,          "", NULL },
+            { "locales_gossip_menu_option",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesGossipMenuOptionCommand,    "", NULL },
+            { "locales_item",                 SEC_ADMINISTRATOR, true,  &HandleReloadLocalesItemCommand,                "", NULL },
+            { "locales_item_set_name",        SEC_ADMINISTRATOR, true,  &HandleReloadLocalesItemSetNameCommand,         "", NULL },
+            { "locales_npc_text",             SEC_ADMINISTRATOR, true,  &HandleReloadLocalesNpcTextCommand,             "", NULL },
+            { "locales_page_text",            SEC_ADMINISTRATOR, true,  &HandleReloadLocalesPageTextCommand,            "", NULL },
+            { "locales_points_of_interest",   SEC_ADMINISTRATOR, true,  &HandleReloadLocalesPointsOfInterestCommand,    "", NULL },
+            { "locales_quest",                SEC_ADMINISTRATOR, true,  &HandleReloadLocalesQuestCommand,               "", NULL },
+            { "mail_level_reward",            SEC_ADMINISTRATOR, true,  &HandleReloadMailLevelRewardCommand,            "", NULL },
+            { "mail_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesMailCommand,          "", NULL },
+            { "milling_loot_template",        SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesMillingCommand,       "", NULL },
+            { "npc_spellclick_spells",        SEC_ADMINISTRATOR, true,  &HandleReloadSpellClickSpellsCommand,           "", NULL},
+            { "npc_trainer",                  SEC_ADMINISTRATOR, true,  &HandleReloadNpcTrainerCommand,                 "", NULL },
+            { "npc_vendor",                   SEC_ADMINISTRATOR, true,  &HandleReloadNpcVendorCommand,                  "", NULL },
+            { "page_text",                    SEC_ADMINISTRATOR, true,  &HandleReloadPageTextsCommand,                  "", NULL },
+            { "pickpocketing_loot_template",  SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesPickpocketingCommand, "", NULL},
+            { "points_of_interest",           SEC_ADMINISTRATOR, true,  &HandleReloadPointsOfInterestCommand,           "", NULL },
+            { "prospecting_loot_template",    SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesProspectingCommand,   "", NULL },
+            { "quest_poi",                    SEC_ADMINISTRATOR, true,  &HandleReloadQuestPOICommand,                   "", NULL },
+            { "quest_template",               SEC_ADMINISTRATOR, true,  &HandleReloadQuestTemplateCommand,              "", NULL },
+            { "reference_loot_template",      SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesReferenceCommand,     "", NULL },
+            { "reserved_name",                SEC_ADMINISTRATOR, true,  &HandleReloadReservedNameCommand,               "", NULL },
+            { "reputation_reward_rate",       SEC_ADMINISTRATOR, true,  &HandleReloadReputationRewardRateCommand,       "", NULL },
+            { "reputation_spillover_template", SEC_ADMINISTRATOR, true,  &HandleReloadReputationRewardRateCommand,       "", NULL },
+            { "skill_discovery_template",     SEC_ADMINISTRATOR, true,  &HandleReloadSkillDiscoveryTemplateCommand,     "", NULL },
+            { "skill_extra_item_template",    SEC_ADMINISTRATOR, true,  &HandleReloadSkillExtraItemTemplateCommand,     "", NULL },
+            { "skill_fishing_base_level",     SEC_ADMINISTRATOR, true,  &HandleReloadSkillFishingBaseLevelCommand,      "", NULL },
+            { "skinning_loot_template",       SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesSkinningCommand,      "", NULL },
+            { "smart_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadSmartScripts,                      "", NULL },
+            { "spell_required",               SEC_ADMINISTRATOR, true,  &HandleReloadSpellRequiredCommand,              "", NULL },
+            { "spell_area",                   SEC_ADMINISTRATOR, true,  &HandleReloadSpellAreaCommand,                  "", NULL },
+            { "spell_bonus_data",             SEC_ADMINISTRATOR, true,  &HandleReloadSpellBonusesCommand,               "", NULL },
+            { "spell_group",                  SEC_ADMINISTRATOR, true,  &HandleReloadSpellGroupsCommand,                "", NULL },
+            { "spell_loot_template",          SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesSpellCommand,         "", NULL },
+            { "spell_linked_spell",           SEC_ADMINISTRATOR, true,  &HandleReloadSpellLinkedSpellCommand,           "", NULL },
+            { "spell_pet_auras",              SEC_ADMINISTRATOR, true,  &HandleReloadSpellPetAurasCommand,              "", NULL },
+            { "spell_proc_event",             SEC_ADMINISTRATOR, true,  &HandleReloadSpellProcEventCommand,             "", NULL },
+            { "spell_proc",                   SEC_ADMINISTRATOR, true,  &HandleReloadSpellProcsCommand,                 "", NULL },
+            { "spell_scripts",                SEC_ADMINISTRATOR, true,  &HandleReloadSpellScriptsCommand,               "", NULL },
+            { "spell_target_position",        SEC_ADMINISTRATOR, true,  &HandleReloadSpellTargetPositionCommand,        "", NULL },
+            { "spell_threats",                SEC_ADMINISTRATOR, true,  &HandleReloadSpellThreatsCommand,               "", NULL },
+            { "spell_group_stack_rules",      SEC_ADMINISTRATOR, true,  &HandleReloadSpellGroupStackRulesCommand,       "", NULL },
+            { "trinity_string",               SEC_ADMINISTRATOR, true,  &HandleReloadTrinityStringCommand,              "", NULL },
+            { "warden_action",                SEC_ADMINISTRATOR, true,  &HandleReloadWardenactionCommand,               "", NULL },
+            { "waypoint_scripts",             SEC_ADMINISTRATOR, true,  &HandleReloadWpScriptsCommand,                  "", NULL },
+            { "waypoint_data",                SEC_ADMINISTRATOR, true,  &HandleReloadWpCommand,                         "", NULL },
+            { "vehicle_accessory",            SEC_ADMINISTRATOR, true,  &HandleReloadVehicleAccessoryCommand,           "", NULL },
+            { "vehicle_template_accessory",   SEC_ADMINISTRATOR, true,  &HandleReloadVehicleTemplateAccessoryCommand,   "", NULL },
+            { NULL,                           0,                 false, NULL,                                           "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "reload",         SEC_ADMINISTRATOR,  true,  NULL,                 "", reloadCommandTable }
+            { "reload",         SEC_ADMINISTRATOR,  true,  NULL,                 "", reloadCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -360,7 +363,7 @@ public:
     static bool HandleReloadAutobroadcastCommand(ChatHandler* handler, const char* /*args*/)
     {
         sLog->outString("Re-Loading Autobroadcasts...");
-        sWorld->LoadAutobroadcasts();
+        //sWorld->LoadAutobroadcasts();
         handler->SendGlobalGMSysMessage("DB table `autobroadcast` reloaded.");
         return true;
     }
@@ -401,7 +404,7 @@ public:
                 continue;
             }
 
-            CreatureTemplate const* cInfo = sObjectMgr->GetCreatureTemplate(entry);
+            CreatureTemplate* cInfo = const_cast<CreatureTemplate*>(sObjectMgr->GetCreatureTemplate(entry));
             if (!cInfo)
             {
                 handler->PSendSysMessage(LANG_COMMAND_CREATURESTORAGE_NOTFOUND, entry);
@@ -412,7 +415,88 @@ public:
 
             Field* fields = result->Fetch();
 
-            sObjectMgr->LoadCreatureTemplate(fields);
+            cInfo->DifficultyEntry[0] = fields[0].GetUInt32();
+            cInfo->DifficultyEntry[1] = fields[1].GetUInt32();
+            cInfo->DifficultyEntry[2] = fields[2].GetUInt32();
+            cInfo->KillCredit[0]      = fields[3].GetUInt32();
+            cInfo->KillCredit[1]      = fields[4].GetUInt32();
+            cInfo->Modelid1           = fields[5].GetUInt32();
+            cInfo->Modelid2           = fields[6].GetUInt32();
+            cInfo->Modelid3           = fields[7].GetUInt32();
+            cInfo->Modelid4           = fields[8].GetUInt32();
+            cInfo->Name               = fields[9].GetString();
+            cInfo->SubName            = fields[10].GetString();
+            cInfo->IconName           = fields[11].GetString();
+            cInfo->GossipMenuId       = fields[12].GetUInt32();
+            cInfo->minlevel           = fields[13].GetUInt8();
+            cInfo->maxlevel           = fields[14].GetUInt8();
+            cInfo->expansion          = fields[15].GetUInt16();
+            cInfo->faction            = fields[16].GetUInt16();
+            cInfo->npcflag            = fields[17].GetUInt32();
+            cInfo->speed_walk         = fields[18].GetFloat();
+            cInfo->speed_run          = fields[29].GetFloat();
+            cInfo->scale              = fields[20].GetFloat();
+            cInfo->rank               = fields[21].GetUInt8();
+            cInfo->mindmg             = fields[22].GetFloat();
+            cInfo->maxdmg             = fields[23].GetFloat();
+            cInfo->dmgschool          = fields[24].GetUInt8();
+            cInfo->attackpower        = fields[25].GetUInt32();
+            cInfo->dmg_multiplier     = fields[26].GetFloat();
+            cInfo->baseattacktime     = fields[27].GetUInt32();
+            cInfo->rangeattacktime    = fields[28].GetUInt32();
+            cInfo->unit_class         = fields[29].GetUInt8();
+            cInfo->unit_flags         = fields[30].GetUInt32();
+            cInfo->unit_flags2        = fields[31].GetUInt32();
+            cInfo->dynamicflags       = fields[32].GetUInt32();
+            cInfo->family             = fields[33].GetUInt8();
+            cInfo->trainer_type       = fields[34].GetUInt8();
+            cInfo->trainer_spell      = fields[35].GetUInt32();
+            cInfo->trainer_class      = fields[36].GetUInt8();
+            cInfo->trainer_race       = fields[37].GetUInt8();
+            cInfo->minrangedmg        = fields[38].GetFloat();
+            cInfo->maxrangedmg        = fields[39].GetFloat();
+            cInfo->rangedattackpower  = fields[40].GetUInt16();
+            cInfo->type               = fields[41].GetUInt8();
+            cInfo->type_flags         = fields[42].GetUInt32();
+            cInfo->lootid             = fields[43].GetUInt32();
+            cInfo->pickpocketLootId   = fields[44].GetUInt32();
+            cInfo->SkinLootId         = fields[45].GetUInt32();
+
+            for (uint8 i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
+                cInfo->resistance[i] = fields[46 + i -1].GetUInt16();
+
+            cInfo->spells[0]          = fields[52].GetUInt32();
+            cInfo->spells[1]          = fields[53].GetUInt32();
+            cInfo->spells[2]          = fields[54].GetUInt32();
+            cInfo->spells[3]          = fields[55].GetUInt32();
+            cInfo->spells[4]          = fields[56].GetUInt32();
+            cInfo->spells[5]          = fields[57].GetUInt32();
+            cInfo->spells[6]          = fields[58].GetUInt32();
+            cInfo->spells[7]          = fields[59].GetUInt32();
+            cInfo->PetSpellDataId     = fields[60].GetUInt32();
+            cInfo->VehicleId          = fields[61].GetUInt32();
+            cInfo->mingold            = fields[62].GetUInt32();
+            cInfo->maxgold            = fields[63].GetUInt32();
+            cInfo->AIName             = fields[64].GetString();
+            cInfo->MovementType       = fields[65].GetUInt8();
+            cInfo->InhabitType        = fields[66].GetUInt8();
+            cInfo->HoverHeight        = fields[67].GetFloat();
+            cInfo->ModHealth          = fields[68].GetFloat();
+            cInfo->ModMana            = fields[69].GetFloat();
+            cInfo->ModArmor           = fields[70].GetFloat();
+            cInfo->RacialLeader       = fields[71].GetBool();
+            cInfo->questItems[0]      = fields[72].GetUInt32();
+            cInfo->questItems[1]      = fields[73].GetUInt32();
+            cInfo->questItems[2]      = fields[74].GetUInt32();
+            cInfo->questItems[3]      = fields[75].GetUInt32();
+            cInfo->questItems[4]      = fields[76].GetUInt32();
+            cInfo->questItems[5]      = fields[77].GetUInt32();
+            cInfo->movementId         = fields[78].GetUInt32();
+            cInfo->RegenHealth        = fields[79].GetBool();
+            cInfo->MechanicImmuneMask = fields[80].GetUInt32();
+            cInfo->flags_extra        = fields[81].GetUInt32();
+            cInfo->ScriptID           = sObjectMgr->GetScriptId(fields[82].GetCString());
+
             sObjectMgr->CheckCreatureTemplate(cInfo);
         }
 
@@ -713,20 +797,12 @@ public:
         return true;
     }
 
-    static bool HandleReloadSkillPerfectItemTemplateCommand(ChatHandler* handler, const char* /*args*/)
-    { // latched onto HandleReloadSkillExtraItemTemplateCommand as it's part of that table group (and i don't want to chance all the command IDs)
-        sLog->outString("Re-Loading Skill Perfection Data Table...");
-        LoadSkillPerfectItemTable();
-        handler->SendGlobalGMSysMessage("DB table `skill_perfect_item_template` (perfect item procs when crafting) reloaded.");
-        return true;
-    }
-
-    static bool HandleReloadSkillExtraItemTemplateCommand(ChatHandler* handler, const char* args)
+    static bool HandleReloadSkillExtraItemTemplateCommand(ChatHandler* handler, const char* /*args*/)
     {
         sLog->outString("Re-Loading Skill Extra Item Table...");
         LoadSkillExtraItemTable();
         handler->SendGlobalGMSysMessage("DB table `skill_extra_item_template` (extra item creation when crafting) reloaded.");
-        return HandleReloadSkillPerfectItemTemplateCommand(handler, args);
+        return true;
     }
 
     static bool HandleReloadSkillFishingBaseLevelCommand(ChatHandler* handler, const char* /*args*/)

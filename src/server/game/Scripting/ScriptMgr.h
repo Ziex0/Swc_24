@@ -514,7 +514,7 @@ class CommandScript : public ScriptObject
     public:
 
         // Should return a pointer to a valid command table (ChatCommand array) to be used by ChatHandler.
-        virtual std::vector<ChatCommand> GetCommands() const = 0;
+        virtual ChatCommand* GetCommands() const = 0;
 };
 
 class WeatherScript : public ScriptObject, public UpdatableScript<Weather>
@@ -805,15 +805,6 @@ class ScriptMgr
         void IncrementScriptCount() { ++_scriptCount; }
         uint32 GetScriptCount() const { return _scriptCount; }
 
-        typedef void(*ScriptLoaderCallbackType)();
-
-        /// Sets the script loader callback which is invoked to load scripts
-        /// (Workaround for circular dependency game <-> scripts)
-        void SetScriptLoader(ScriptLoaderCallbackType script_loader_callback)
-        {
-            _script_loader_callback = script_loader_callback;
-        }
-
     public: /* Unloading */
 
         void Unload();
@@ -914,7 +905,7 @@ class ScriptMgr
 
     public: /* CommandScript */
 
-        std::vector<ChatCommand> GetChatCommands();
+        std::vector<ChatCommand*> GetChatCommands();
 
     public: /* WeatherScript */
 
@@ -1022,8 +1013,6 @@ class ScriptMgr
 
         //atomic op counter for active scripts amount
         ACE_Atomic_Op<ACE_Thread_Mutex, long> _scheduledScripts;
-
-        ScriptLoaderCallbackType _script_loader_callback;
 };
 
 template<class TScript>

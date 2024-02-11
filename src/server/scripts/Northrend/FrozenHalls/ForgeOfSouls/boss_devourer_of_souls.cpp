@@ -9,7 +9,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "Player.h"
-#include "World.h"
 
 enum eTexts
 {
@@ -77,15 +76,13 @@ public:
 		boss_devourer_of_soulsAI(Creature* creature) : ScriptedAI(creature), summons(me)
 		{
 			pInstance = creature->GetInstanceScript();
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
 		}
 
 		InstanceScript* pInstance;
 		EventMap events;
 		SummonList summons;
 		bool bAchiev;
-        bool preNerf;
-        
+
 		void Reset()
 		{
 			bAchiev = true;
@@ -208,14 +205,7 @@ public:
 						me->setAttackTimer(BASE_ATTACK, 2500);
 						Talk(EMOTE_MIRRORED_SOUL);
 					}
-                    if (preNerf)
-                    {
-                        events.RepeatEvent(urand(15000, 25000));
-                    }
-                    else
-                    {
-                        events.RepeatEvent(urand(20000, 30000));
-                    }
+					events.RepeatEvent(urand(20000,30000));
 					break;
 				case EVENT_SPELL_WELL_OF_SOULS:
 					if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 40.0f, true))

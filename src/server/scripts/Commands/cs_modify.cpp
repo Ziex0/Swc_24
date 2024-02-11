@@ -35,46 +35,49 @@ class modify_commandscript : public CommandScript
 public:
     modify_commandscript() : CommandScript("modify_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-		static std::vector<ChatCommand> modifyspeedCommandTable =
+		static ChatCommand modifyspeedCommandTable[] =
         {
-            { "fly",            SEC_GAMEMASTER,      false, &HandleModifyFlyCommand,           "" },
-            { "all",            SEC_GAMEMASTER,      false, &HandleModifyASpeedCommand,        "" },
-            { "walk",           SEC_GAMEMASTER,      false, &HandleModifySpeedCommand,         "" },
-            { "backwalk",       SEC_GAMEMASTER,      false, &HandleModifyBWalkCommand,         "" },
-            { "swim",           SEC_GAMEMASTER,      false, &HandleModifySwimCommand,          "" },
-            { "",               SEC_GAMEMASTER,      false, &HandleModifyASpeedCommand,        "" }
+            { "fly",            SEC_GAMEMASTER,      false, &HandleModifyFlyCommand,           "", NULL },
+            { "all",            SEC_GAMEMASTER,      false, &HandleModifyASpeedCommand,        "", NULL },
+            { "walk",           SEC_GAMEMASTER,      false, &HandleModifySpeedCommand,         "", NULL },
+            { "backwalk",       SEC_GAMEMASTER,      false, &HandleModifyBWalkCommand,         "", NULL },
+            { "swim",           SEC_GAMEMASTER,      false, &HandleModifySwimCommand,          "", NULL },
+            { "",               SEC_GAMEMASTER,      false, &HandleModifyASpeedCommand,        "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
 
-        static std::vector<ChatCommand> modifyCommandTable =
+        static ChatCommand modifyCommandTable[] =
         {
-            { "hp",             SEC_GAMEMASTER,      false, &HandleModifyHPCommand,            "" },
-            { "mana",           SEC_GAMEMASTER,      false, &HandleModifyManaCommand,          "" },
-            { "rage",           SEC_GAMEMASTER,      false, &HandleModifyRageCommand,          "" },
-            { "runicpower",     SEC_GAMEMASTER,      false, &HandleModifyRunicPowerCommand,    "" },
-            { "energy",         SEC_GAMEMASTER,      false, &HandleModifyEnergyCommand,        "" },
-            { "money",          SEC_GAMEMASTER,      false, &HandleModifyMoneyCommand,         "" },
-            { "scale",          SEC_GAMEMASTER,      false, &HandleModifyScaleCommand,         "" },
-            { "bit",            SEC_GAMEMASTER,      false, &HandleModifyBitCommand,           "" },
-            { "faction",        SEC_GAMEMASTER,      false, &HandleModifyFactionCommand,       "" },
-            { "spell",          SEC_GAMEMASTER,      false, &HandleModifySpellCommand,         "" },
-            { "talentpoints",   SEC_GAMEMASTER,      false, &HandleModifyTalentCommand,        "" },
-            { "mount",          SEC_GAMEMASTER,      false, &HandleModifyMountCommand,         "" },
-            { "honor",          SEC_GAMEMASTER,      false, &HandleModifyHonorCommand,         "" },
-            { "reputation",     SEC_GAMEMASTER,     false, &HandleModifyRepCommand,           "" },
-            { "arenapoints",    SEC_GAMEMASTER,      false, &HandleModifyArenaCommand,         "" },
-            { "drunk",          SEC_GAMEMASTER,      false, &HandleModifyDrunkCommand,         "" },
-            { "standstate",     SEC_GAMEMASTER,     false, &HandleModifyStandStateCommand,    "" },
-            { "phase",          SEC_ADMINISTRATOR,  false, &HandleModifyPhaseCommand,         "" },
-            { "gender",         SEC_GAMEMASTER,     false, &HandleModifyGenderCommand,        "" },
-			{ "speed",          SEC_GAMEMASTER,      false, NULL,           "", modifyspeedCommandTable }
+            { "hp",             SEC_GAMEMASTER,      false, &HandleModifyHPCommand,            "", NULL },
+            { "mana",           SEC_GAMEMASTER,      false, &HandleModifyManaCommand,          "", NULL },
+            { "rage",           SEC_GAMEMASTER,      false, &HandleModifyRageCommand,          "", NULL },
+            { "runicpower",     SEC_GAMEMASTER,      false, &HandleModifyRunicPowerCommand,    "", NULL },
+            { "energy",         SEC_GAMEMASTER,      false, &HandleModifyEnergyCommand,        "", NULL },
+            { "money",          SEC_GAMEMASTER,      false, &HandleModifyMoneyCommand,         "", NULL },
+            { "scale",          SEC_GAMEMASTER,      false, &HandleModifyScaleCommand,         "", NULL },
+            { "bit",            SEC_GAMEMASTER,      false, &HandleModifyBitCommand,           "", NULL },
+            { "faction",        SEC_GAMEMASTER,      false, &HandleModifyFactionCommand,       "", NULL },
+            { "spell",          SEC_GAMEMASTER,      false, &HandleModifySpellCommand,         "", NULL },
+            { "talentpoints",   SEC_GAMEMASTER,      false, &HandleModifyTalentCommand,        "", NULL },
+            { "mount",          SEC_GAMEMASTER,      false, &HandleModifyMountCommand,         "", NULL },
+            { "honor",          SEC_GAMEMASTER,      false, &HandleModifyHonorCommand,         "", NULL },
+            { "reputation",     SEC_GAMEMASTER,     false, &HandleModifyRepCommand,           "", NULL },
+            { "arenapoints",    SEC_GAMEMASTER,      false, &HandleModifyArenaCommand,         "", NULL },
+            { "drunk",          SEC_GAMEMASTER,      false, &HandleModifyDrunkCommand,         "", NULL },
+            { "standstate",     SEC_GAMEMASTER,     false, &HandleModifyStandStateCommand,    "", NULL },
+            { "phase",          SEC_ADMINISTRATOR,  false, &HandleModifyPhaseCommand,         "", NULL },
+            { "gender",         SEC_GAMEMASTER,     false, &HandleModifyGenderCommand,        "", NULL },
+			{ "speed",          SEC_GAMEMASTER,      false, NULL,           "", modifyspeedCommandTable },
+            { NULL,             0,                  false, NULL,                                           "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-			{ "morph",          SEC_GAMEMASTER,     false, &HandleModifyMorphCommand,          "" },
-            { "demorph",        SEC_GAMEMASTER,     false, &HandleDeMorphCommand,              "" },
-            { "modify",         SEC_GAMEMASTER,      false, NULL,                 "", modifyCommandTable }
+			{ "morph",          SEC_GAMEMASTER,     false, &HandleModifyMorphCommand,          "", NULL },
+            { "demorph",        SEC_GAMEMASTER,     false, &HandleDeMorphCommand,              "", NULL },
+            { "modify",         SEC_GAMEMASTER,      false, NULL,                 "", modifyCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -95,9 +98,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -134,9 +135,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -185,9 +184,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -238,9 +235,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -278,9 +273,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -406,9 +399,7 @@ public:
         else
             mark = atoi(pmark);
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (target == NULL)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -497,11 +488,7 @@ public:
 
         Player* target = handler->getSelectedPlayerOrSelf();
 		if (handler->GetSession()->GetSecurity() < SEC_GAMEMASTER)
-		{
-            target = handler->GetSession()->GetPlayer();
-            if (ASpeed > 10.0f)
-                ASpeed = 10.0f;
-		}
+			target = handler->GetSession()->GetPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -977,9 +964,7 @@ public:
             return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -1020,9 +1005,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -1146,9 +1129,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -1189,9 +1170,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -1345,9 +1324,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);

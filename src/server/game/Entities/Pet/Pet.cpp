@@ -593,8 +593,8 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
     SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(petlevel*50));
 
 	uint32 attackTime = BASE_ATTACK_TIME;
-	if (m_owner->getClass() != CLASS_HUNTER && cinfo->BaseAttackTime >= 1000)
-		attackTime = cinfo->BaseAttackTime;
+	if (m_owner->getClass() != CLASS_HUNTER && cinfo->baseattacktime >= 1000)
+		attackTime = cinfo->baseattacktime;
 
 	SetAttackTime(BASE_ATTACK, attackTime);
     SetAttackTime(OFF_ATTACK, attackTime);
@@ -880,9 +880,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
 	// Can be summon and guardian
 	if (GetEntry() == NPC_RISEN_GHOUL)
 	{
-        // 100% energy after summon
-        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
-
 		// xinef: fixes orc death knight command racial
 		if (m_owner->getRace() == RACE_ORC)
 			CastSpell(this, SPELL_ORC_RACIAL_COMMAND, true, NULL, NULL, m_owner->GetGUID());

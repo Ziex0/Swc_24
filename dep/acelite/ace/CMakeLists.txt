@@ -327,6 +327,12 @@ if (USE_COREPCH)
   set(ace_PCH_SRC PrecompiledHeaders/WinAcePCH.cpp)
 endif()
 
+include_directories(
+  ${CMAKE_SOURCE_DIR}/dep/acelite
+  ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders
+  ${CMAKE_SOURCE_DIR}/dep/zlib
+)
+
 # Needed for PCH support
 set_source_files_properties(Atomic_Op_Sparc.c Rtems_init.c PROPERTIES LANGUAGE CXX)
 
@@ -337,17 +343,13 @@ add_library(ace SHARED
   ${ace_PCH_SRC}
 )
 
-target_include_directories(ace
-PUBLIC
-  zlib
-  ${ACE_INCLUDE_DIR})
+if (MINGW) # GCC ignores "#prama comment"
+  target_link_libraries(ace ws2_32 iphlpapi netapi32 mswsock)
+endif()
 
-set_target_properties(ace
-  PROPERTIES
-    FOLDER
-      "dep")
-      
 # Generate precompiled header
 if( USE_COREPCH )
   add_cxx_pch(ace ${ace_PCH_HDR} ${ace_PCH_SRC})
 endif()
+
+install(TARGETS ace RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")

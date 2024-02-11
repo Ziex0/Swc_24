@@ -93,7 +93,7 @@ WorldObject::~WorldObject()
     {
         if (GetTypeId() == TYPEID_CORPSE)
         {
-            sLog->outCrash("Object::~Object Corpse guid=" UI64FMTD", type=%d, entry=%u deleted but still in map!!", GetGUID(), ((Corpse*)this)->GetType(), GetEntry());
+            sLog->outCrash("Object::~Object Corpse guid="UI64FMTD", type=%d, entry=%u deleted but still in map!!", GetGUID(), ((Corpse*)this)->GetType(), GetEntry());
             ASSERT(false);
         }
         ResetMap();
@@ -104,7 +104,7 @@ Object::~Object()
 {
     if (IsInWorld())
     {
-        sLog->outCrash("Object::~Object - guid=" UI64FMTD", typeid=%d, entry=%u deleted but still in world!!", GetGUID(), GetTypeId(), GetEntry());
+        sLog->outCrash("Object::~Object - guid="UI64FMTD", typeid=%d, entry=%u deleted but still in world!!", GetGUID(), GetTypeId(), GetEntry());
         if (isType(TYPEMASK_ITEM))
             sLog->outCrash("Item slot %u", ((Item*)this)->GetSlot());
         ASSERT(false);
@@ -113,7 +113,7 @@ Object::~Object()
 
     if (m_objectUpdated)
     {
-        sLog->outCrash("Object::~Object - guid=" UI64FMTD", typeid=%d, entry=%u deleted but still in update list!!", GetGUID(), GetTypeId(), GetEntry());
+        sLog->outCrash("Object::~Object - guid="UI64FMTD", typeid=%d, entry=%u deleted but still in update list!!", GetGUID(), GetTypeId(), GetEntry());
         ASSERT(false);
         sObjectAccessor->RemoveUpdateObject(this);
     }
@@ -1104,13 +1104,9 @@ bool WorldObject::IsWithinLOSInMap(const WorldObject* obj) const
     if (!IsInMap(obj))
         return false;
 
-    float x, y, z;
-    if (obj->GetTypeId() == TYPEID_PLAYER)
-        obj->GetPosition(x, y, z);
-    else
-        obj->GetHitSpherePointFor(GetPosition(), x, y, z);
-
-    return IsWithinLOS(x, y, z);
+    float ox, oy, oz;
+    obj->GetPosition(ox, oy, oz);
+    return IsWithinLOS(ox, oy, oz);
 }
 
 bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
@@ -1120,34 +1116,9 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz) const
     VMAP::IVMapManager* vMapManager = VMAP::VMapFactory::createOrGetVMapManager();
     return vMapManager->isInLineOfSight(GetMapId(), x, y, z+2.0f, ox, oy, oz+2.0f);*/
     if (IsInWorld())
-    {
-        float x, y, z;
-        if (GetTypeId() == TYPEID_PLAYER)
-            GetPosition(x, y, z);
-        else
-            GetHitSpherePointFor({ ox, oy, oz }, x, y, z);
-
-        return GetMap()->isInLineOfSight(x, y, z + 2.0f, ox, oy, oz + 2.0f, GetPhaseMask());
-    }
+        return GetMap()->isInLineOfSight(GetPositionX(), GetPositionY(), GetPositionZ()+2.f, ox, oy, oz+2.f, GetPhaseMask());
 
     return true;
-}
-
-Position WorldObject::GetHitSpherePointFor(Position const& dest) const
-{
-    G3D::Vector3 vThis(GetPositionX(), GetPositionY(), GetPositionZ());
-    G3D::Vector3 vObj(dest.GetPositionX(), dest.GetPositionY(), dest.GetPositionZ());
-    G3D::Vector3 contactPoint = vThis + (vObj - vThis).directionOrZero() * GetObjectSize();
-
-    return Position(contactPoint.x, contactPoint.y, contactPoint.z, GetAngle(contactPoint.x, contactPoint.y));
-}
-
-void WorldObject::GetHitSpherePointFor(Position const& dest, float& x, float& y, float& z) const
-{
-    Position pos = GetHitSpherePointFor(dest);
-    x = pos.GetPositionX();
-    y = pos.GetPositionY();
-    z = pos.GetPositionZ();
 }
 
 bool WorldObject::GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D /* = true */) const
@@ -1436,7 +1407,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
                 bool canSwim = ToCreature()->CanSwim();
                 float ground_z = z;
                 float max_z = canSwim
-                    ? GetMap()->GetWaterOrGroundLevel(GetPhaseMask(), x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK))
+                    ? GetMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK))
                     : ((ground_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z, true)));
                 if (max_z > INVALID_HEIGHT)
                 {
@@ -1460,7 +1431,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
             if (!ToPlayer()->CanFly())
             {
                 float ground_z = z;
-                float max_z = GetMap()->GetWaterOrGroundLevel(GetPhaseMask(), x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK));
+                float max_z = GetMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK));
                 if (max_z > INVALID_HEIGHT)
                 {
                     if (z > max_z)
@@ -2564,16 +2535,14 @@ bool WorldObject::GetClosePoint(float &x, float &y, float &z, float size, float 
     // angle calculated from current orientation
     GetNearPoint(forWho, x, y, z, size, distance2d, GetOrientation() + angle);
 
-    if (!forWho) 
-        return true;
-
     if (fabs(this->GetPositionZ()-z) > 3.0f || !IsWithinLOS(x, y, z))
     {
         x = this->GetPositionX();
         y = this->GetPositionY();
         z = this->GetPositionZ();
-        if (const Unit* u = forWho->ToUnit())
-            u->UpdateAllowedPositionZ(x, y, z);
+        if (forWho)
+            if (const Unit* u = forWho->ToUnit())
+                u->UpdateAllowedPositionZ(x, y, z);
     }
     float maxDist = GetObjectSize() + size + distance2d + 1.0f;
     if (GetExactDistSq(x, y, z) >= maxDist*maxDist)

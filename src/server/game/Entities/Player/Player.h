@@ -129,8 +129,8 @@ struct SpellModifier
     Aura* const ownerAura;
 };
 
-typedef std::unordered_map<uint32, PlayerTalent*> PlayerTalentMap;
-typedef std::unordered_map<uint32, PlayerSpell*> PlayerSpellMap;
+typedef UNORDERED_MAP<uint32, PlayerTalent*> PlayerTalentMap;
+typedef UNORDERED_MAP<uint32, PlayerSpell*> PlayerSpellMap;
 typedef std::list<SpellModifier*> SpellModList;
 
 typedef std::list<uint64> WhisperListContainer;
@@ -145,7 +145,7 @@ struct SpellCooldown
 };
 
 typedef std::map<uint32, SpellCooldown> SpellCooldowns;
-typedef std::unordered_map<uint32 /*instanceId*/, time_t/*releaseTime*/> InstanceTimeMap;
+typedef UNORDERED_MAP<uint32 /*instanceId*/, time_t/*releaseTime*/> InstanceTimeMap;
 
 enum TrainerSpellState
 {
@@ -259,14 +259,6 @@ struct PlayerCreateInfoAction
 
 typedef std::list<PlayerCreateInfoAction> PlayerCreateInfoActions;
 
-struct PlayerCreateInfoSkill
-{
-    uint16 SkillId;
-    uint16 Rank;
-};
-
-typedef std::list<PlayerCreateInfoSkill> PlayerCreateInfoSkills;
-
 struct PlayerInfo
 {
                                                             // existence checked by displayId != 0
@@ -281,10 +273,8 @@ struct PlayerInfo
     uint16 displayId_m;
     uint16 displayId_f;
     PlayerCreateInfoItems item;
-    PlayerCreateInfoSpells customSpells;
-    PlayerCreateInfoSpells castSpells;
+    PlayerCreateInfoSpells spell;
     PlayerCreateInfoActions action;
-    PlayerCreateInfoSkills skills;
 
     PlayerLevelInfo* levelInfo;                             //[level-1] 0..MaxPlayerLevel-1
 };
@@ -302,7 +292,7 @@ struct PvPInfo
 
 struct DuelInfo
 {
-    DuelInfo() : initiator(NULL), opponent(NULL), startTimer(0), startTime(0), outOfBound(0), isMounted(false), isCompleted(false) {}
+    DuelInfo() : initiator(NULL), opponent(NULL), startTimer(0), startTime(0), outOfBound(0), isMounted(false) {}
 
     Player* initiator;
     Player* opponent;
@@ -310,7 +300,6 @@ struct DuelInfo
     time_t startTime;
     time_t outOfBound;
     bool isMounted;
-    bool isCompleted;
 };
 
 struct Areas
@@ -535,12 +524,11 @@ enum AtLoginFlags
     AT_LOGIN_CHANGE_RACE       = 0x80,
     AT_LOGIN_RESET_AP          = 0x100,
     AT_LOGIN_RESET_ARENA       = 0x200,
-    AT_LOGIN_CHECK_ACHIEVS     = 0x400,
-    AT_LOGIN_APPLY_TEMPLATE    = 0x800,
+    AT_LOGIN_CHECK_ACHIEVS     = 0x400
 };
 
 typedef std::map<uint32, QuestStatusData> QuestStatusMap;
-typedef std::unordered_set<uint32> RewardedQuestSet;
+typedef UNORDERED_SET<uint32> RewardedQuestSet;
 
 //               quest,  keep
 typedef std::map<uint32, bool> QuestStatusSaveMap;
@@ -579,7 +567,7 @@ struct SkillStatusData
     SkillUpdateState uState;
 };
 
-typedef std::unordered_map<uint32, SkillStatusData> SkillStatusMap;
+typedef UNORDERED_MAP<uint32, SkillStatusData> SkillStatusMap;
 
 class Quest;
 class Spell;
@@ -1502,7 +1490,7 @@ class Player : public Unit, public GridObject<Player>
         void ItemAddedQuestCheck(uint32 entry, uint32 count);
         void ItemRemovedQuestCheck(uint32 entry, uint32 count);
         void KilledMonster(CreatureTemplate const* cInfo, uint64 guid);
-        void KilledMonsterCredit(uint32 entry, uint64 guid = 0);
+        void KilledMonsterCredit(uint32 entry, uint64 guid);
         void KilledPlayerCredit();
         void KillCreditGO(uint32 entry, uint64 guid = 0);
         void TalkedToCreature(uint32 entry, uint64 guid);
@@ -1524,7 +1512,6 @@ class Player : public Unit, public GridObject<Player>
         void SendQuestUpdateAddItem(Quest const* quest, uint32 item_idx, uint16 count);
         void SendQuestUpdateAddCreatureOrGo(Quest const* quest, uint64 guid, uint32 creatureOrGO_idx, uint16 old_count, uint16 add_count);
         void SendQuestUpdateAddPlayer(Quest const* quest, uint16 old_count, uint16 add_count);
-        void SendQuestGiverStatusMultiple();
 
         uint64 GetDivider() { return m_divider; }
         void SetDivider(uint64 guid) { m_divider = guid; }
@@ -1645,7 +1632,7 @@ class Player : public Unit, public GridObject<Player>
         uint8 unReadMails;
         time_t m_nextMailDelivereTime;
 
-        typedef std::unordered_map<uint32, Item*> ItemMap;
+        typedef UNORDERED_MAP<uint32, Item*> ItemMap;
 
         ItemMap mMitems;                                    //template defined in objectmgr.cpp
 
@@ -1686,9 +1673,7 @@ class Player : public Unit, public GridObject<Player>
         void learnSpell(uint32 spellId);
         void removeSpell(uint32 spellId, uint8 removeSpecMask, bool onlyTemporary);
         void resetSpells();
-        void LearnCustomSpells();
-        void LearnDefaultSkills();
-        void LearnDefaultSkill(uint32 skillId, uint16 rank);
+        void learnDefaultSpells();
         void learnQuestRewardedSpells();
         void learnQuestRewardedSpells(Quest const* quest);
         void learnSpellHighRank(uint32 spellid);
@@ -2365,7 +2350,7 @@ class Player : public Unit, public GridObject<Player>
         void SetEntryPoint();
 
         // currently visible objects at player client
-        typedef std::unordered_set<uint64> ClientGUIDs;
+        typedef UNORDERED_SET<uint64> ClientGUIDs;
         ClientGUIDs m_clientGUIDs;
         std::vector<Unit*> m_newVisible; // pussywizard
 
@@ -2651,7 +2636,7 @@ class Player : public Unit, public GridObject<Player>
         //We allow only one timed quest active at the same time. Below can then be simple value instead of set.
         typedef std::set<uint32> QuestSet;
         typedef std::set<uint32> SeasonalQuestSet;
-        typedef std::unordered_map<uint32,SeasonalQuestSet> SeasonalEventQuestMap;
+        typedef UNORDERED_MAP<uint32,SeasonalQuestSet> SeasonalEventQuestMap;
         QuestSet m_timedquests;
         QuestSet m_weeklyquests;
         QuestSet m_monthlyquests;

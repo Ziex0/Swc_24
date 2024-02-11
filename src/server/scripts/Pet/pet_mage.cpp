@@ -24,9 +24,6 @@
 #include "ScriptedCreature.h"
 #include "CombatAI.h"
 #include "Pet.h"
-#include "Unit.h"
-#include "SpellAuras.h"
-#include "Player.h"
 
 enum MageSpells
 {

@@ -21,7 +21,6 @@
 #include "SpellScript.h"
 #include "hyjal.h"
 #include "hyjal_trash.h"
-#include "GridNotifiers.h"
 
 enum Spells
 {

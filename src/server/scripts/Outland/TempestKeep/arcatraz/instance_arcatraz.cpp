@@ -5,7 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "arcatraz.h"
-#include "CreatureAI.h"
 
 DoorData const doorData[] =
 {

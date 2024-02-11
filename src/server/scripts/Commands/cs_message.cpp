@@ -33,17 +33,18 @@ class message_commandscript : public CommandScript
 public:
     message_commandscript() : CommandScript("message_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "nameannounce",   SEC_GAMEMASTER,      true,   &HandleNameAnnounceCommand,         "" },
-            { "gmnameannounce", SEC_GAMEMASTER,      true,   &HandleGMNameAnnounceCommand,       "" },
-            { "announce",       SEC_GAMEMASTER,      true,   &HandleAnnounceCommand,             "" },
-            { "gmannounce",     SEC_GAMEMASTER,      true,   &HandleGMAnnounceCommand,           "" },
-            { "notify",         SEC_GAMEMASTER,      true,   &HandleNotifyCommand,               "" },
-            { "gmnotify",       SEC_GAMEMASTER,      true,   &HandleGMNotifyCommand,             "" },
-            { "whispers",       SEC_GAMEMASTER,      false,  &HandleWhispersCommand,             "" }
+            { "nameannounce",   SEC_GAMEMASTER,      true,   &HandleNameAnnounceCommand,         "", NULL },
+            { "gmnameannounce", SEC_GAMEMASTER,      true,   &HandleGMNameAnnounceCommand,       "", NULL },
+            { "announce",       SEC_GAMEMASTER,      true,   &HandleAnnounceCommand,             "", NULL },
+            { "gmannounce",     SEC_GAMEMASTER,      true,   &HandleGMAnnounceCommand,           "", NULL },
+            { "notify",         SEC_GAMEMASTER,      true,   &HandleNotifyCommand,               "", NULL },
+            { "gmnotify",       SEC_GAMEMASTER,      true,   &HandleGMNotifyCommand,             "", NULL },
+            { "whispers",       SEC_GAMEMASTER,      false,  &HandleWhispersCommand,             "", NULL },
+            { NULL,             0,                  false,  NULL,                               "", NULL }
         };
         return commandTable;
     }

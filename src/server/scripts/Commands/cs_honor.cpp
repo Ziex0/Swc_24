@@ -33,23 +33,26 @@ class honor_commandscript : public CommandScript
 public:
     honor_commandscript() : CommandScript("honor_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> honorAddCommandTable =
+        static ChatCommand honorAddCommandTable[] =
         {
-            { "kill",           SEC_GAMEMASTER,     false, &HandleHonorAddKillCommand,         "" },
-            { "",               SEC_GAMEMASTER,     false, &HandleHonorAddCommand,             "" }
+            { "kill",           SEC_GAMEMASTER,     false, &HandleHonorAddKillCommand,         "", NULL },
+            { "",               SEC_GAMEMASTER,     false, &HandleHonorAddCommand,             "", NULL },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
 
-        static std::vector<ChatCommand> honorCommandTable =
+        static ChatCommand honorCommandTable[] =
         {
             { "add",            SEC_GAMEMASTER,     false, NULL,               "", honorAddCommandTable },
-            { "update",         SEC_GAMEMASTER,     false, &HandleHonorUpdateCommand,          "" }
+            { "update",         SEC_GAMEMASTER,     false, &HandleHonorUpdateCommand,          "", NULL },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "honor",          SEC_GAMEMASTER,     false, NULL,                  "", honorCommandTable }
+            { "honor",          SEC_GAMEMASTER,     false, NULL,                  "", honorCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -59,9 +62,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -98,9 +99,7 @@ public:
 
     static bool HandleHonorUpdateCommand(ChatHandler* handler, char const* /*args*/)
     {
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);

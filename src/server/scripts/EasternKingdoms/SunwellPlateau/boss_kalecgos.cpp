@@ -7,8 +7,6 @@ REWRITTEN BY XINEF
 #include "sunwell_plateau.h"
 #include "Player.h"
 #include "WorldSession.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
 
 enum Yells
 {

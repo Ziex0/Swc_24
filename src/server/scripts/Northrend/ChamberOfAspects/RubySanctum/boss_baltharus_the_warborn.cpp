@@ -7,8 +7,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "SpellAuraEffects.h"
 #include "ruby_sanctum.h"
-#include "Player.h"
-#include "GossipDef.h"
 
 enum Texts
 {

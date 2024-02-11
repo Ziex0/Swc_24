@@ -43,7 +43,7 @@
 #include "SocialMgr.h"
 #include "SpellAuras.h"
 #include "SpellAuraEffects.h"
-#include "GitRevision.h"
+#include "SystemConfig.h"
 #include "UpdateMask.h"
 #include "Util.h"
 #include "World.h"
@@ -932,7 +932,7 @@ void WorldSession::HandlePlayerLoginFromDB(LoginQueryHolder* holder)
 
         // send server info
         if (sWorld->getIntConfig(CONFIG_ENABLE_SINFO_LOGIN) == 1)
-            chH.PSendSysMessage(GitRevision::GetFullVersion());
+            chH.PSendSysMessage(_FULLVERSION);
 
         ;//sLog->outStaticDebug("WORLD: Sent server info");
     }
@@ -1084,32 +1084,13 @@ void WorldSession::HandlePlayerLoginFromDB(LoginQueryHolder* holder)
         SendNotification(LANG_RESET_TALENTS);
     }
 
-    bool firstLogin = pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST);
-
-    if (firstLogin)
-    {
+    if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);
-
-        PlayerInfo const* info = sObjectMgr->GetPlayerInfo(pCurrChar->getRace(), pCurrChar->getClass());
-        for (uint32 spellId : info->castSpells)
-            pCurrChar->CastSpell(pCurrChar, spellId, true);
-    }
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_CHECK_ACHIEVS))
     {
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_CHECK_ACHIEVS, true);
         pCurrChar->CheckAllAchievementCriteria();
-    }
-
-    if (pCurrChar->HasAtLoginFlag(AT_LOGIN_APPLY_TEMPLATE))
-    {
-        pCurrChar->RemoveAtLoginFlag(AT_LOGIN_APPLY_TEMPLATE, true);
-        pCurrChar->UpdateSkillsToMaxSkillsForLevel();
-        pCurrChar->SetFullHealth();
-        if (pCurrChar->getPowerType() == POWER_MANA)
-        {
-            pCurrChar->SetPower(POWER_MANA, pCurrChar->GetMaxPower(POWER_MANA));
-        }
     }
 
     // show time before shutdown if shutdown planned.
@@ -1226,7 +1207,7 @@ void WorldSession::HandlePlayerLoginToCharInWorld(Player* pCurrChar)
 
 		// send server info
 		if (sWorld->getIntConfig(CONFIG_ENABLE_SINFO_LOGIN) == 1)
-			chH.PSendSysMessage(GitRevision::GetFullVersion());
+			chH.PSendSysMessage(_FULLVERSION);
 
 		;//sLog->outStaticDebug("WORLD: Sent server info");
 	}
@@ -2459,7 +2440,7 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recvData)
                 {
                     Quest const* quest = iter->second;
                     uint32 newRaceMask = (team == TEAM_ALLIANCE) ? RACEMASK_ALLIANCE : RACEMASK_HORDE;
-                    if (quest->GetAllowableRaces() && !(quest->GetAllowableRaces() & newRaceMask))
+                    if (quest->GetRequiredRaces() && !(quest->GetRequiredRaces() & newRaceMask))
                     {
                         stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_QUESTSTATUS_REWARDED_ACTIVE_BY_QUEST);
                         stmt->setUInt32(0, quest->GetQuestId());

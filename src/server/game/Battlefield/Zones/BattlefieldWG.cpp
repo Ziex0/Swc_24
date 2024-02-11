@@ -94,11 +94,6 @@ bool BattlefieldWG::SetupBattlefield()
         m_Timer = m_RestartAfterCrash;
     }
 
-    SetData(BATTLEFIELD_WG_DATA_WON_A, uint32(sWorld->getWorldState(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_A)));
-    SetData(BATTLEFIELD_WG_DATA_DEF_A, uint32(sWorld->getWorldState(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_A)));
-    SetData(BATTLEFIELD_WG_DATA_WON_H, uint32(sWorld->getWorldState(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_H)));
-    SetData(BATTLEFIELD_WG_DATA_DEF_H, uint32(sWorld->getWorldState(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_H)));
-
     for (uint8 i = 0; i < BATTLEFIELD_WG_GRAVEYARD_MAX; i++)
     {
         BfGraveyardWG* graveyard = new BfGraveyardWG(this);
@@ -163,7 +158,8 @@ bool BattlefieldWG::SetupBattlefield()
     // Spawn turrets and hide them per default
     for (uint8 i = 0; i < WG_MAX_TURRET; i++)
     {
-        Position towerCannonPos = WGTurret[i].GetPosition();
+        Position towerCannonPos;
+        WGTurret[i].GetPosition(&towerCannonPos);
         if (Creature* creature = SpawnCreature(NPC_WINTERGRASP_TOWER_CANNON, towerCannonPos, TEAM_ALLIANCE))
         {
             CanonList.insert(creature->GetGUID());
@@ -200,10 +196,6 @@ bool BattlefieldWG::Update(uint32 diff)
         sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_ACTIVE, m_isActive);
         sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_DEFENDER, m_DefenderTeam);
         sWorld->setWorldState(ClockWorldState[0], m_Timer);
-        sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_A, GetData(BATTLEFIELD_WG_DATA_WON_A));
-        sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_A, GetData(BATTLEFIELD_WG_DATA_DEF_A));
-        sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_H, GetData(BATTLEFIELD_WG_DATA_WON_H));
-        sWorld->setWorldState(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_H, GetData(BATTLEFIELD_WG_DATA_DEF_H));
         m_saveTimer = 60 * IN_MILLISECONDS;
     }
     else
@@ -355,13 +347,6 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
 	if (GameObject* go = GetRelic())
 		go->RemoveFromWorld();
 	m_titansRelic = 0;
-
-    // successful defense
-    if (endByTimer)
-        UpdateData(GetDefenderTeam() == TEAM_HORDE ? BATTLEFIELD_WG_DATA_DEF_H : BATTLEFIELD_WG_DATA_DEF_A, 1);
-    // successful attack (note that teams have already been swapped, so defender team is the one who won)
-    else
-        UpdateData(GetDefenderTeam() == TEAM_HORDE ? BATTLEFIELD_WG_DATA_WON_H : BATTLEFIELD_WG_DATA_WON_A, 1);
 
     // Remove turret
     for (GuidSet::const_iterator itr = CanonList.begin(); itr != CanonList.end(); ++itr)
@@ -910,10 +895,6 @@ uint32 BattlefieldWG::GetData(uint32 data) const
 
 void BattlefieldWG::FillInitialWorldStates(WorldPacket& data)
 {
-    data << uint32(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_A) << uint32(GetData(BATTLEFIELD_WG_DATA_DEF_A));
-    data << uint32(BATTLEFIELD_WG_WORLD_STATE_DEFENDED_H) << uint32(GetData(BATTLEFIELD_WG_DATA_DEF_H));
-    data << uint32(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_A) << uint32(GetData(BATTLEFIELD_WG_DATA_WON_A));
-    data << uint32(BATTLEFIELD_WG_WORLD_STATE_ATTACKED_H) << uint32(GetData(BATTLEFIELD_WG_DATA_WON_H));
     data << uint32(BATTLEFIELD_WG_WORLD_STATE_ATTACKER) << uint32(GetAttackerTeam());
     data << uint32(BATTLEFIELD_WG_WORLD_STATE_DEFENDER) << uint32(GetDefenderTeam());
     data << uint32(BATTLEFIELD_WG_WORLD_STATE_ACTIVE) << uint32(IsWarTime() ? 0 : 1); // Note: cleanup these two, their names look awkward
@@ -937,12 +918,12 @@ void BattlefieldWG::FillInitialWorldStates(WorldPacket& data)
 
 void BattlefieldWG::SendInitWorldStatesTo(Player* player)
 {
-    WorldPacket data(SMSG_INIT_WORLD_STATES, (4 + 4 + 4 + 2 + (14 + WG_MAX_OBJ + WG_MAX_WORKSHOP) * 8));
+    WorldPacket data(SMSG_INIT_WORLD_STATES, (4 + 4 + 4 + 2 + (BuildingsInZone.size() * 8) + (WorkshopsList.size() * 8)));
 	
     data << uint32(m_MapId);
     data << uint32(m_ZoneId);
     data << uint32(0);	
-    data << uint16(14 + BuildingsInZone.size() + WorkshopsList.size()); // Number of fields
+    data << uint16(10 + BuildingsInZone.size() + WorkshopsList.size()); // Number of fields
 	
     FillInitialWorldStates(data);
 	

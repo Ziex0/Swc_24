@@ -123,17 +123,6 @@ enum CharterTypes
     ARENA_TEAM_CHARTER_5v5_TYPE                   = 5
 };
 
-enum PremiumServiceTypes
-{
-    PREMIUM_TELEPORT                    = 0,
-    PREMIUM_NO_RESSURECTION_SICKNESS    = 1,
-    PREMIUM_EXP_BOOST                   = 2,
-    PREMIUM_NO_DURABILITY_LOSS          = 3,
-    PREMIUM_INSTANT_FLIGHT_PATHS        = 4
-};
-
-#define MAX_PREMIUM_SERVICES            5
-
 //class to deal with packet processing
 //allows to determine if next packet is safe to be processed
 class PacketFilter
@@ -208,8 +197,7 @@ class CharacterCreateInfo
 class WorldSession
 {
     public:
-        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter, bool skipQueue,
-            time_t premium_services[MAX_PREMIUM_SERVICES]);
+        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter, bool skipQueue);
         ~WorldSession();
 
         bool PlayerLoading() const { return m_playerLoading; }
@@ -389,14 +377,6 @@ class WorldSession
         uint32 GetRecruiterId() const { return recruiterId; }
         bool IsARecruiter() const { return isRecruiter; }
 
-        // Premium services
-        time_t* GetPremiumServices() { return _premiumServices; }
-        time_t GetPremiumService(PremiumServiceTypes serviceId) { return _premiumServices[serviceId]; }
-        bool IsPremiumServiceActive(PremiumServiceTypes serviceId) const
-        {
-            return _premiumServices[serviceId] > time(NULL);
-        }
-
     public:                                                 // opcodes handlers
 
         void Handle_NULL(WorldPacket& recvPacket);          // not used
@@ -449,6 +429,8 @@ class WorldSession
         void HandleMoveTeleportAck(WorldPacket& recvPacket);
         void HandleForceSpeedChangeAck(WorldPacket& recvData);
 
+        void HandlePingOpcode(WorldPacket& recvPacket);
+        void HandleAuthSessionOpcode(WorldPacket& recvPacket);
         void HandleRepopRequestOpcode(WorldPacket& recvPacket);
         void HandleAutostoreLootItemOpcode(WorldPacket& recvPacket);
         void HandleLootMoneyOpcode(WorldPacket& recvPacket);
@@ -1021,9 +1003,6 @@ class WorldSession
 		uint32 _offlineTime;
 		bool _kicked;
 		bool _shouldSetOfflineInDB;
-        
-        // Premium services
-        time_t _premiumServices[MAX_PREMIUM_SERVICES];
 };
 #endif
 /// @}

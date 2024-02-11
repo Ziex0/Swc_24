@@ -493,21 +493,10 @@ void SmartAI::CheckConditions(const uint32 diff)
 
 void SmartAI::UpdateAI(uint32 diff)
 {
-    // if creature has any fear effect stop casting the spell
-    if(me && me->HasUnitState(UNIT_STATE_FLEEING))
-    {
-        me->AttackStop();
-        return;
-    }
-
 	CheckConditions(diff);
     GetScript()->OnUpdate(diff);
     UpdatePath(diff);
     UpdateDespawn(diff);
-
-    //Silenced so we can't cast - start meele attack
-    if (me->IsInCombat() && me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && me->GetVictim())
-        me->GetMotionMaster()->MoveChase(me->GetVictim());
 
     //TODO move to void
     if (mFollowGuid)
@@ -782,9 +771,6 @@ void SmartAI::EnterCombat(Unit* enemy)
 	// Xinef: Interrupt channeled spells
 	me->InterruptSpell(CURRENT_CHANNELED_SPELL, true, true);
     GetScript()->ProcessEventsFor(SMART_EVENT_AGGRO, enemy);
-
-    if (Guardian* guard = me->GetGuardianPet())
-        guard->AI()->AttackStart(enemy);
 }
 
 void SmartAI::JustDied(Unit* killer)
@@ -1210,7 +1196,7 @@ class SmartTrigger : public AreaTriggerScript
         }
 };
 
-void AddSC_SmartScripts()
+void AddSC_SmartSCripts()
 {
     new SmartTrigger();
 }

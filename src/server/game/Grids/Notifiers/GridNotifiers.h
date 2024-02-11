@@ -33,7 +33,6 @@
 #include "Spell.h"
 #include "WorldSession.h"
 
-class Corpse;
 class Player;
 //class Map;
 
@@ -626,11 +625,8 @@ namespace Trinity
                 if (go->GetGOInfo()->type != GAMEOBJECT_TYPE_SPELL_FOCUS)
                     return false;
 
-                if (!go->isSpawned()) // xinef: dont allow to count deactivated objects
-                    return false;
-
-                if (go->IsInvisibleDueToDespawn()) // Maczuga: don't allow objects that are being despawned
-                    return false;
+				if (!go->isSpawned()) // xinef: dont allow to count deactivated objects
+					return false;
 
                 if (go->GetGOInfo()->spellFocus.focusId != i_focusId)
                     return false;

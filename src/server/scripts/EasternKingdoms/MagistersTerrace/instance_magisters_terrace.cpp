@@ -5,7 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "magisters_terrace.h"
-#include "CreatureAI.h"
 
 class instance_magisters_terrace : public InstanceMapScript
 {

@@ -124,8 +124,8 @@ class Transport;
 class StaticTransport;
 class MotionTransport;
 
-typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
-typedef std::unordered_set<uint32> UpdatePlayerSet;
+typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
+typedef UNORDERED_SET<uint32> UpdatePlayerSet;
 
 class Object
 {
@@ -145,7 +145,6 @@ class Object
         uint32 GetEntry() const { return GetUInt32Value(OBJECT_FIELD_ENTRY); }
         void SetEntry(uint32 entry) { SetUInt32Value(OBJECT_FIELD_ENTRY, entry); }
 
-        float GetObjectScale() const { return GetFloatValue(OBJECT_FIELD_SCALE_X); }
 		virtual void SetObjectScale(float scale) { SetFloatValue(OBJECT_FIELD_SCALE_X, scale); }
 
         TypeID GetTypeId() const { return m_objectTypeId; }
@@ -378,17 +377,6 @@ class Object
 
 struct Position
 {
-    Position(float x = 0, float y = 0, float z = 0, float o = 0)
-        : m_positionX(x), m_positionY(y), m_positionZ(z), m_orientation(NormalizeOrientation(o)) { }
-
-    Position(Position const& loc) { Relocate(loc); }
-
-    struct PositionXYStreamer
-    {
-        explicit PositionXYStreamer(Position& pos) : Pos(&pos) { }
-        Position* Pos;
-    };
-
     struct PositionXYZStreamer
     {
         explicit PositionXYZStreamer(Position& pos) : m_pos(&pos) {}
@@ -405,13 +393,6 @@ struct Position
     float m_positionY;
     float m_positionZ;
     float m_orientation;
-
-    bool operator==(Position const &a);
-
-    inline bool operator!=(Position const &a)
-    {
-        return !(operator==(a));
-    }
 
     void Relocate(float x, float y)
         { m_positionX = x; m_positionY = y;}
@@ -438,9 +419,11 @@ struct Position
         { x = m_positionX; y = m_positionY; z = m_positionZ; }
     void GetPosition(float &x, float &y, float &z, float &o) const
         { x = m_positionX; y = m_positionY; z = m_positionZ; o = m_orientation; }
-
-    Position GetPosition() const { return *this; }
-
+    void GetPosition(Position* pos) const
+    {
+        if (pos)
+            pos->Relocate(m_positionX, m_positionY, m_positionZ, m_orientation);
+    }
 
     Position::PositionXYZStreamer PositionXYZStream()
     {
@@ -508,12 +491,10 @@ struct Position
         return fmod(o, 2.0f * static_cast<float>(M_PI));
     }
 };
-ByteBuffer& operator<<(ByteBuffer& buf, Position::PositionXYStreamer const& streamer);
-ByteBuffer& operator>>(ByteBuffer& buf, Position::PositionXYStreamer const& streamer);
+ByteBuffer& operator>>(ByteBuffer& buf, Position::PositionXYZOStreamer const& streamer);
 ByteBuffer& operator<<(ByteBuffer& buf, Position::PositionXYZStreamer const& streamer);
 ByteBuffer& operator>>(ByteBuffer& buf, Position::PositionXYZStreamer const& streamer);
 ByteBuffer& operator<<(ByteBuffer& buf, Position::PositionXYZOStreamer const& streamer);
-ByteBuffer& operator>>(ByteBuffer& buf, Position::PositionXYZOStreamer const& streamer);
 
 struct MovementInfo
 {
@@ -699,31 +680,27 @@ class WorldObject : public Object, public WorldLocation
         void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_size, float distance2d, float absAngle) const;
         bool GetClosePoint(float &x, float &y, float &z, float size, float distance2d = 0, float angle = 0, const WorldObject* forWho = NULL, bool force = false) const;
         void MovePosition(Position &pos, float dist, float angle);
-        Position GetNearPosition(float dist, float angle)
+        void GetNearPosition(Position &pos, float dist, float angle)
         {
-            Position pos = GetPosition();
+            GetPosition(&pos);
             MovePosition(pos, dist, angle);
-            return pos;
         }
         void MovePositionToFirstCollision(Position &pos, float dist, float angle);
-        Position GetFirstCollisionPosition(float dist, float angle)
+        void GetFirstCollisionPosition(Position &pos, float dist, float angle)
         {
-            Position pos = GetPosition();
+            GetPosition(&pos);
             MovePositionToFirstCollision(pos, dist, angle);
-            return pos;
         }
         void MovePositionToFirstCollisionForTotem(Position &pos, float dist, float angle, bool forGameObject);
-        Position GetFirstCollisionPositionForTotem(float dist, float angle, bool forGameObject)
+        void GetFirstCollisionPositionForTotem(Position &pos, float dist, float angle, bool forGameObject)
         {
-            Position pos = GetPosition();
+            GetPosition(&pos);
             MovePositionToFirstCollisionForTotem(pos, dist, angle, forGameObject);
-            return pos;
         }
-        Position GetRandomNearPosition(float radius)
+        void GetRandomNearPosition(Position &pos, float radius)
         {
-            Position pos = GetPosition();
+            GetPosition(&pos);
             MovePosition(pos, radius * (float)rand_norm(), (float)rand_norm() * static_cast<float>(2 * M_PI));
-            return pos;
         }
 
         void GetContactPoint(const WorldObject* obj, float &x, float &y, float &z, float distance2d = CONTACT_DISTANCE) const;
@@ -737,11 +714,11 @@ class WorldObject : public Object, public WorldLocation
         void UpdateAllowedPositionZ(float x, float y, float &z) const;
 
         void GetRandomPoint(const Position &srcPos, float distance, float &rand_x, float &rand_y, float &rand_z) const;
-        Position GetRandomPoint(const Position &srcPos, float distance) const
+        void GetRandomPoint(const Position &srcPos, float distance, Position &pos) const
         {
             float x, y, z;
             GetRandomPoint(srcPos, distance, x, y, z);
-            return Position(x, y, z, GetOrientation());
+            pos.Relocate(x, y, z, GetOrientation());
         }
 
         uint32 GetInstanceId() const { return m_InstanceId; }
@@ -819,8 +796,6 @@ class WorldObject : public Object, public WorldLocation
             return obj && IsInMap(obj) && InSamePhase(obj) && _IsWithinDist(obj, dist2compare, is3D);
         }
         bool IsWithinLOS(float x, float y, float z) const;
-        Position GetHitSpherePointFor(Position const& dest) const;
-        void GetHitSpherePointFor(Position const& dest, float& x, float& y, float& z) const;
         bool IsWithinLOSInMap(const WorldObject* obj) const;
         bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true) const;
         bool IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D = true) const;

@@ -25,7 +25,6 @@
 #include "Pet.h"
 #include "SpellInfo.h"
 #include "CreatureTextMgr.h"
-#include "SpellScript.h"
 
 // Ours
 enum qRedRocket
@@ -152,12 +151,7 @@ public:
                     if (ObjectAccessor::GetCreature(*me, _mrfloppyGUID))
                     {
                         Talk(SAY_WORGHAGGRO1);
-                        if (Creature* worg = me->SummonCreature(NPC_HUNGRY_WORG, me->GetPositionX() + 5, me->GetPositionY() + 2, me->GetPositionZ() + 1, 3.229f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000))
-                            if (Creature* Mrfloppy = ObjectAccessor::GetCreature(*me, _mrfloppyGUID))
-                            {
-                                worg->SetReactState(REACT_AGGRESSIVE);
-                                worg->GetAI()->AttackStart(Mrfloppy);
-                            }
+                        me->SummonCreature(NPC_HUNGRY_WORG, me->GetPositionX()+5, me->GetPositionY()+2, me->GetPositionZ()+1, 3.229f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000);
                     }
                     break;
                 case 11:
@@ -170,9 +164,7 @@ public:
                     Talk(SAY_WORGRAGGRO3);
                     if (Creature* RWORG = me->SummonCreature(NPC_RAVENOUS_WORG, me->GetPositionX()+10, me->GetPositionY()+8, me->GetPositionZ()+2, 3.229f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000))
                     {
-                        RWORG->SetReactState(REACT_PASSIVE);
-                        RWORG->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        RWORG->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED);
+                        RWORG->setFaction(35);
                         _RavenousworgGUID = RWORG->GetGUID();
                     }
                     break;
@@ -181,7 +173,7 @@ public:
                     {
                         if (Creature* RWORG = ObjectAccessor::GetCreature(*me, _RavenousworgGUID))
                             RWORG->GetMotionMaster()->MovePoint(0, Mrfloppy->GetPositionX(), Mrfloppy->GetPositionY(), Mrfloppy->GetPositionZ());
-                        me->AddAura(SPELL_MRFLOPPY, Mrfloppy);
+                        DoCast(Mrfloppy, SPELL_MRFLOPPY);
                     }
                     break;
                 case 19:
@@ -205,9 +197,8 @@ public:
                         {
                             Unit::Kill(RWORG, Mrfloppy);
                             Mrfloppy->ExitVehicle();
-                            RWORG->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                            RWORG->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED);
-                            RWORG->AI()->AttackStart(player);
+                            RWORG->setFaction(14);
+                            RWORG->GetMotionMaster()->MovePoint(0, RWORG->GetPositionX()+10, RWORG->GetPositionY()+80, RWORG->GetPositionZ());
                             Talk(SAY_VICTORY2);
                         }
                     }
@@ -217,6 +208,8 @@ public:
                     {
                         if (Mrfloppy->isDead())
                         {
+                            if (Creature* RWORG = ObjectAccessor::GetCreature(*me, _RavenousworgGUID))
+                                RWORG->DisappearAndDie();
                             me->GetMotionMaster()->MovePoint(0, Mrfloppy->GetPositionX(), Mrfloppy->GetPositionY(), Mrfloppy->GetPositionZ());
                             Mrfloppy->setDeathState(ALIVE);
                             Mrfloppy->GetMotionMaster()->MoveFollow(me, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
@@ -309,11 +302,7 @@ public:
             }
         }
 
-        void EnterEvadeMode()
-        {
-            if (Creature* Emily = GetClosestCreatureWithEntry(me, NPC_EMILY, 50.0f))
-                me->GetMotionMaster()->MoveFollow(Emily, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
-        }
+        void EnterEvadeMode() { }
 
         void MoveInLineOfSight(Unit* /*who*/) { }
 

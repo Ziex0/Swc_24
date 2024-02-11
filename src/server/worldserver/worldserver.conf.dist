@@ -179,7 +179,7 @@ Compression = 1
 #                     1+  - (Enabled)
 #                     0   - (Disabled, No limit)
 
-PlayerLimit = 4000
+PlayerLimit = 100
 
 #
 #    SaveRespawnTimeImmediately
@@ -199,6 +199,15 @@ SaveRespawnTimeImmediately = 1
 MaxOverspeedPings = 2
 
 #
+#    GridUnload
+#        Description: Unload grids to save memory. Can be disabled if enough memory is available
+#                     to speed up moving players to new grids.
+#        Default:     1 - (enable, Unload grids)
+#                     0 - (disable, Do not unload grids)
+
+GridUnload = 1
+
+#
 #    SocketTimeOutTime
 #        Description: Time (in milliseconds) after which a connection being idle on the character
 #                     selection screen is disconnected.
@@ -215,11 +224,18 @@ SocketTimeOutTime = 900000
 SessionAddDelay = 10000
 
 #
+#    GridCleanUpDelay
+#        Description: Time (in milliseconds) grid clean up delay.
+#        Default:     300000 - (5 minutes)
+
+GridCleanUpDelay = 300000
+
+#
 #    MapUpdateInterval
 #        Description: Time (milliseconds) for map update interval.
 #        Default:     100 - (0.1 second)
 
-MapUpdateInterval = 10
+MapUpdateInterval = 100
 
 #
 #    ChangeWeatherInterval
@@ -227,6 +243,13 @@ MapUpdateInterval = 10
 #        Default:     600000 - (10 min)
 
 ChangeWeatherInterval = 600000
+
+#
+#    PlayerSaveInterval
+#        Description: Time (in milliseconds) for player save interval.
+#        Default:     900000 - (15 min)
+
+PlayerSaveInterval = 900000
 
 #
 #    PlayerSave.Stats.MinLevel
@@ -254,6 +277,7 @@ PlayerSave.Stats.SaveOnlyOnLogout = 1
 
 vmap.enableLOS    = 1
 vmap.enableHeight = 1
+
 
 #
 #    vmap.petLOS
@@ -322,7 +346,7 @@ LogDB.Opt.ClearTime = 1209600
 #        Default:     0   - (Disabled)
 #                     10+ - (Enabled, Recommended 10+)
 
-MaxCoreStuckTime = 900
+MaxCoreStuckTime = 0
 
 #
 #    AddonChannel
@@ -775,7 +799,7 @@ ChatLogs.BattleGround = 0
 #                     16 - (FFA_PVP, Free for all pvp mode like arena PvP in all zones except rest
 #                          activated places and sanctuaries)
 
-GameType = 1
+GameType = 0
 
 #
 #    RealmZone
@@ -1246,24 +1270,6 @@ Quests.IgnoreAutoComplete = 0
 Guild.EventLogRecordsCount = 100
 
 #
-#    Guild.BankEventLogRecordsCount
-#        Description: Number of log entries for guild bank events that are stored per guild. Old
-#                     entries will be overwritten if the number of log entries exceed the
-#                     configured value. High numbers prevent this behavior but may have performance
-#                     impacts.
-#        Default:     25 - (Minimum)
-
-Guild.BankEventLogRecordsCount = 25
-
-#
-#    MaxPrimaryTradeSkill
-#        Description: Maximum number of primary professions a character can learn.
-#        Range:       0-10
-#        Default:     2
-
-MaxPrimaryTradeSkill = 2
-
-#
 #    Guild.ResetHour
 #        Description: Hour of the day when the daily cap resets occur.
 #        Range:       0-23
@@ -1430,21 +1436,12 @@ AccountInstancesPerHour = 5
 
 #
 #   BirthdayTime
-#        Description: Set to date of project's birth in UNIX time. By default the date when SunwellCore was started (Thu Nov. 13, 2016)
-#        Default:     1479049200
+#        Description: Set to date of project's birth in UNIX time. By default the date when SunwellCore was started (Thu Oct 2, 2008)
+#        Default:     1222964635
 #
 #
 
-BirthdayTime = 1479049200
-
-#
-#   CurrentBuild
-#        Description: Client build number of currently supported patch. Used to filter out currently not supported spawns. For example: 3.3.5a is 12340.
-#        Default:     12340
-#
-#
-
-CurrentBuild = 9551
+BirthdayTime = 1222964635
 
 #
 ###################################################################################################
@@ -1511,7 +1508,7 @@ Warden.ClientCheckHoldOff = 30
 #                     1 - (Kick)
 #                     2 - (Ban)
 
-Warden.ClientCheckFailAction = 1
+Warden.ClientCheckFailAction = 2
 
 #
 #    Warden.BanDuration
@@ -1520,7 +1517,7 @@ Warden.ClientCheckFailAction = 1
 #        Default:     86400 - (24 hours)
 #                     0     - (Permanent ban)
 
-Warden.BanDuration = 86400
+Warden.BanDuration = 259200
 
 #
 ###################################################################################################
@@ -1533,7 +1530,7 @@ Warden.BanDuration = 86400
 #        Default:     1 - (Enabled)
 #                     0 - (Disabled)
 
-AllowTwoSide.Accounts = 0
+AllowTwoSide.Accounts = 1
 
 #
 #    AllowTwoSide.Interaction.Calendar
@@ -1807,7 +1804,7 @@ ListenRange.Yell = 300
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-ChatFakeMessagePreventing = 1
+ChatFakeMessagePreventing = 0
 
 #
 #    ChatStrictLinkChecking.Severity
@@ -1820,7 +1817,7 @@ ChatFakeMessagePreventing = 1
 #                         work correctly, please assure that you have extracted locale DBCs of
 #                         every language specific client playing on this server)
 
-ChatStrictLinkChecking.Severity = 3
+ChatStrictLinkChecking.Severity = 0
 
 #
 #    ChatStrictLinkChecking.Kick
@@ -1837,21 +1834,21 @@ ChatStrictLinkChecking.Kick = 0
 #        Default:     10 - (Enabled)
 #                     0  - (Disabled)
 
-ChatFlood.MessageCount = 5
+ChatFlood.MessageCount = 10
 
 #
 #    ChatFlood.MessageDelay
 #        Description: Time (in seconds) between messages to be counted into ChatFlood.MessageCount.
 #        Default:     1
 
-ChatFlood.MessageDelay = 3
+ChatFlood.MessageDelay = 1
 
 #
 #    ChatFlood.MuteTime
 #        Description: Time (in seconds) characters get muted for violating ChatFlood.MessageCount.
 #        Default:     10
 
-ChatFlood.MuteTime = 20
+ChatFlood.MuteTime = 10
 
 #
 #    Channel.RestrictedLfg
@@ -1875,7 +1872,7 @@ Channel.SilentlyGMJoin = 0
 #        Description: Level requirement for characters to be able to write in chat channels.
 #        Default:     1
 
-ChatLevelReq.Channel = 10
+ChatLevelReq.Channel = 1
 
 #
 #    ChatLevelReq.Whisper
@@ -2057,9 +2054,9 @@ Visibility.GroupMode = 1
 #                     120 - (Visibility.Distance.Instances)
 #                     180 - (Visibility.Distance.BGArenas)
 
-Visibility.Distance.Continents = 100
+Visibility.Distance.Continents = 90
 Visibility.Distance.Instances = 120
-Visibility.Distance.BGArenas = 200
+Visibility.Distance.BGArenas = 180
 
 #
 #    Visibility.Notify.Period.OnContinents
@@ -2448,7 +2445,7 @@ Battleground.CastDeserter = 1
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-Battleground.QueueAnnouncer.Enable = 1
+Battleground.QueueAnnouncer.Enable = 0
 
 #
 #    Battleground.QueueAnnouncer.PlayerOnly
@@ -2456,7 +2453,7 @@ Battleground.QueueAnnouncer.Enable = 1
 #        Default:     0 - (System message, Anyone can see it)
 #                     1 - (Private, Only queued players can see it)
 
-Battleground.QueueAnnouncer.PlayerOnly = 1
+Battleground.QueueAnnouncer.PlayerOnly = 0
 
 #
 #    Battleground.InvitationType
@@ -2466,7 +2463,7 @@ Battleground.QueueAnnouncer.PlayerOnly = 1
 #                     1 - (Experimental, Don't allow to invite much more players
 #                          of one faction)
 
-Battleground.InvitationType = 1
+Battleground.InvitationType = 0
 
 #
 #    Battleground.PrematureFinishTimer
@@ -2578,7 +2575,7 @@ Arena.MaxRatingDifference = 150
 #        Default:     600000 - (Enabled, 10 minutes)
 #                     0      - (Disabled)
 
-Arena.RatingDiscardTimer = 180000
+Arena.RatingDiscardTimer = 600000
 
 #
 #    Arena.AutoDistributePoints
@@ -2586,7 +2583,7 @@ Arena.RatingDiscardTimer = 180000
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-Arena.AutoDistributePoints = 1
+Arena.AutoDistributePoints = 0
 
 #
 #    Arena.AutoDistributeInterval
@@ -2609,7 +2606,7 @@ Arena.QueueAnnouncer.Enable = 0
 #        Description: Current arena season id shown in clients.
 #        Default:     8
 
-Arena.ArenaSeason.ID = 5
+Arena.ArenaSeason.ID = 8
 
 #
 #    Arena.ArenaSeason.InProgress
@@ -2624,21 +2621,21 @@ Arena.ArenaSeason.InProgress = 1
 #        Description: Start rating for new arena teams.
 #        Default:     0
 
-Arena.ArenaStartRating = 1500
+Arena.ArenaStartRating = 0
 
 #
 #    Arena.ArenaStartPersonalRating
 #        Description: Start personal rating when joining a team.
 #        Default:     0
 
-Arena.ArenaStartPersonalRating = 1500
+Arena.ArenaStartPersonalRating = 0
 
 #
 #    Arena.ArenaStartMatchmakerRating
 #        Description: Start matchmaker rating for players.
 #        Default:     1500
 
-Arena.ArenaStartMatchmakerRating = 0
+Arena.ArenaStartMatchmakerRating = 1500
 
 #
 ###################################################################################################
@@ -2650,7 +2647,7 @@ Arena.ArenaStartMatchmakerRating = 0
 #        Description: Number of threads for network.
 #         Default:    1 - (Recommended 1 thread per 1000 connections)
 
-Network.Threads = 4
+Network.Threads = 1
 
 #
 #    Network.OutKBuff
@@ -2752,7 +2749,7 @@ SOAP.Port = 7878
 #                     1 - (Unlink the character from account and free up the name, Appears as
 #                         deleted ingame)
 
-CharDelete.Method = 1
+CharDelete.Method = 0
 
 #
 #    CharDelete.MinLevel
@@ -2760,7 +2757,7 @@ CharDelete.Method = 1
 #        Default:     0  - (Same method for every level)
 #                     1+ - (Only characters with the specified level will use the unlinking method)
 
-CharDelete.MinLevel = 70
+CharDelete.MinLevel = 0
 
 #
 #    CharDelete.KeepDays
@@ -2915,7 +2912,7 @@ LevelReq.Trade = 1
 #        Description: Level requirement for characters to be able to write tickets.
 #        Default:     1
 
-LevelReq.Ticket = 10
+LevelReq.Ticket = 1
 
 #
 #     LevelReq.Auction
@@ -2946,150 +2943,4 @@ PlayerDump.DisallowPaths = 1
 PlayerDump.DisallowOverwrite = 1
 
 #
-#     Calculate.Creature.Zone.Area.Data
-#        Description: Calculate at loading creature zoneId / areaId and save in creature table (WARNING: SLOW WORLD SERVER STARTUP)
-#        Default:     0  - (Do not show)
-
-Calculate.Creature.Zone.Area.Data = 0
-
-#
-#     Calculate.Gameoject.Zone.Area.Data
-#        Description: Calculate at loading gameobject zoneId / areaId and save in gameobject table (WARNING: SLOW WORLD SERVER STARTUP)
-#        Default:     0  - (Do not show)
-
-Calculate.Gameoject.Zone.Area.Data = 0
-
-#
-###################################################################################################
-
-
-####################
-### SOME CUSTOM: ###
-####################
-
-#
-#     DontCacheRandomMovementPaths
-#        Description: Random movement paths (calculated using MoveMaps) can be cached to save cpu time, 
-#                     but this may use up considerable amount of memory and can be prevented by setting this option to 1.
-#                     Recommended setting for populated servers is having enough RAM and setting this to 0.
-#        Default:     0 - (cache paths, uses more memory)
-#                     1 - (don't cache, uses more cpu)
-
-DontCacheRandomMovementPaths = 0
-
-#
-#     MaxAllowedMMRDrop
-#        Description: Some players continuously lose arena matches to lower their MMR and then fight with weaker opponents.
-#                     This setting prevents lowering MMR too much from max achieved MMR.
-#                     Eg. if max achieved MMR for a character was 2400, with default setting (MaxAllowedMMRDrop = 500) the character can't get below 1900 MMR no matter what.
-#        Default:     500
-
-MaxAllowedMMRDrop = 500
-
-#
-#     DisconnectToleranceInterval
-#        Description: Allows to skip queue after being disconnected for a given number of seconds.
-#        Default:     0
-
-DisconnectToleranceInterval = 300
-
-#
-#     EnableLoginAfterDC
-#        Description: After not logging out properly (clicking Logout and waiting 20 seconds),
-#                     characters stay in game world for a full minute, even if the client connection was closed.
-#                     Such behaviour prevents for example exploiting boss encounters by alt+f4
-#                     and skipping crucial boss abilities, or escaping opponents in PvP.
-#                     This setting is used to allow/disallow players to log back into characters that are left in world.
-#        Default:     1 - (by clicking "Enter World" player will log back into a character that is already in world)
-#                     0 - (by clicking "Enter World" player will get an error message when trying to log into a character
-#                          that is left in world, and has to wait a minute for the character to be removed from world)
-
-EnableLoginAfterDC = 1
-
-#
-#     Instance.ResetTimeRelativeTimestamp
-#        Description: Needed for displaying valid instance reset times in ingame calendar.
-#                     This timestamp should be set to a date in the past (midnight) on which
-#                     both 3-day and 7-day raids were reset.
-#        Default:     1135814400 - (Thu, 29 Dec 2005 00:00:00 GMT - meaning that 7-day raid reset falls on Thursdays,
-#                                   while 3-day reset falls on "Thu 29 Dec 2005", "Sun 01 Jan 2006", "Wed 04 Jan 2006", and so on)
-
-Instance.ResetTimeRelativeTimestamp = 1135814400
-
-#
-#     RealmName
-#        Description: Realm Name for ".server info" command
-#        Default:     "X"
-
-RealmName = "Sunwell"
-
-###################################################################################################
-
-####################
-###      VIP     ###
-####################
-
-#
-#    Rate.VIP.XP.Kill
-#    Rate.VIP.XP.Quest
-#    Rate.VIP.XP.Explore
-#        Description: Experience bonus rates for VIP accounts.
-#        Default:     3 - (Rate.VIP.XP.Kill)
-#                     3 - (Rate.VIP.XP.Quest)
-#                     3 - (Rate.VIP.XP.Explore)
-
-Rate.VIP.XP.Kill    = 3
-Rate.VIP.XP.Quest   = 3
-Rate.VIP.XP.Explore = 3
-
-
-###################################################################################################
-
-###########################
-###   DYNAMIC RESPAWN   ###
-###########################
-
-#
-#    DynamicRespawn.Enabled
-#        Description: Enables the dynamic respawn system.
-#        Default:     1 - true
-
-DynamicRespawn.Enabled = 1
-
-#    DynamicRespawn.PlayersToDecrease
-#        Description: Required player amount in area to decrease spawn time for creatures.
-#        Default:     6  - to avoid 5-man party abusing on launch.
-
-DynamicRespawn.PlayersToDecrease = 6
-
-#    DynamicRespawn.RespawnPctDecrease
-#        Description: Percentage amount of time that will be decreased then X players appears in same zone.
-#        Default:     25 (%)
-
-DynamicRespawn.RespawnPctDecrease = 25
-
-#    DynamicRespawn.CreatureMinRespawn
-#        Description: Creatures below this spawn time won't be included.
-#        Default:     30 (seconds)
-
-DynamicRespawn.CreatureMinRespawn = 30
-
-#    DynamicRespawn.GameObjectMinRespawn
-#        Description: Creatures below this spawn time won't be included.
-#        Default:     30 (seconds)
-
-DynamicRespawn.GameObjectMinRespawn = 30
-
-#    DynamicRespawn.CreatureMaxMinRespawn
-#        Description: Maximum minimum spawn time, that can be set for creature.
-#        Default:     15 (seconds)
-
-DynamicRespawn.CreatureMaxMinRespawn    = 15
-
-#    DynamicRespawn.GameObjectMaxMinRespawn
-#        Description: Maximum minimum spawn time, that can be set for gameobject.
-#        Default:     15 (seconds)
-
-DynamicRespawn.GameObjectMaxMinRespawn  = 15
-
 ###################################################################################################

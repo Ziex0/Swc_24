@@ -5,10 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "sunwell_plateau.h"
-#include "PassiveAI.h"
-#include "SpellScript.h"
-#include "MapReference.h"
-#include "Player.h"
 
 enum Quotes
 {

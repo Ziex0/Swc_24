@@ -5,8 +5,6 @@ REWRITTEN BY XINEF
 
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
-#include "Creature.h"
-#include "Player.h"
 
 enum ePrince
 {
@@ -93,7 +91,7 @@ class boss_nexusprince_shaffar : public CreatureScript
 				if (me->IsInCombat() && summon->GetEntry() == NPC_BEACON)
 				{
 					summon->CastSpell(summon, SPELL_ETHEREAL_BEACON_VISUAL, false);
-					if (Player* target = SelectTargetFromPlayerList(50.0f))
+					if (Unit* target = SelectTargetFromPlayerList(50.0f))
 						summon->AI()->AttackStart(target);
 				}
 

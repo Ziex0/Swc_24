@@ -47,7 +47,6 @@ enum NXData
 	DATA_HUNDRED_CLUB				= 117,
 	DATA_DANCE_FAIL					= 118,
 	DATA_IMMORTAL_FAIL				= 119,
-    DATA_KELTHUZAD_GATE             = 120,
 };
 
 enum NXGOs
@@ -74,7 +73,6 @@ enum NXGOs
 
 	GO_SAPPHIRON_BIRTH				= 181356,
 	GO_KELTHUZAD_FLOOR				= 181444,
-    GO_KELTHUZAD_GATE               = 181228,
 
 	GO_DEATHKNIGHT_WING				= 181577, //Loatheb portal
 	GO_THADDIUS_PORTAL				= 181576, //Thadius portal
@@ -128,10 +126,5 @@ enum NXSays
     SAY_CAT_DIED                    = 0
 };
 
-enum NXSounds
-{
-    // Background screams in Instance if Thaddius still alive, four of them from 8873 to 8876
-    SOUND_SCREAM = 8873
-};
 #endif
 

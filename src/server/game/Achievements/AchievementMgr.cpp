@@ -670,20 +670,13 @@ void AchievementMgr::SendAchievementEarned(AchievementEntry const* achievement) 
 
     if (achievement->flags & (ACHIEVEMENT_FLAG_REALM_FIRST_KILL | ACHIEVEMENT_FLAG_REALM_FIRST_REACH))
     {
-        TeamId teamId = GetPlayer()->GetTeamId();
-
         // broadcast realm first reached
         WorldPacket data(SMSG_SERVER_FIRST_ACHIEVEMENT, GetPlayer()->GetName().size() + 1 + 8 + 4 + 4);
         data << GetPlayer()->GetName();
         data << uint64(GetPlayer()->GetGUID());
         data << uint32(achievement->ID);
-
-        std::size_t linkTypePos = data.wpos();
-        data << uint32(1);                                  // display name as clickable link in chat
-        sWorld->SendGlobalMessage(&data, nullptr, teamId);
-
-        data.put<uint32>(linkTypePos, 0);                   // display name as plain string in chat
-        sWorld->SendGlobalMessage(&data, nullptr, teamId == TEAM_ALLIANCE ? TEAM_HORDE : TEAM_ALLIANCE);
+        data << uint32(0);                                  // 1=link supplied string as player name, 0=display plain string
+        sWorld->SendGlobalMessage(&data);
     }
     // if player is in world he can tell his friends about new achievement
     else if (GetPlayer()->IsInWorld())
@@ -2271,16 +2264,6 @@ void AchievementMgr::BuildAllDataPacket(WorldPacket* data, bool inspect) const
 bool AchievementMgr::HasAchieved(uint32 achievementId) const
 {
     return m_completedAchievements.find(achievementId) != m_completedAchievements.end();
-}
-
-uint32 AchievementMgr::CalculateAchievementPoints() const
-{
-    uint32 points = 0;
-    for (CompletedAchievementMap::const_iterator iter = m_completedAchievements.begin(); iter != m_completedAchievements.end(); ++iter)
-        if (AchievementEntry const* pAchievement = sAchievementStore.LookupEntry(iter->first))
-            points += pAchievement->points;
-
-    return points;
 }
 
 bool AchievementMgr::CanUpdateCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement)

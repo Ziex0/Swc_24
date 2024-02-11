@@ -27,27 +27,28 @@ EndScriptData */
 #include "Creature.h"
 #include "Language.h"
 #include "Player.h"
-#include "SpellInfo.h"
 
 class cast_commandscript : public CommandScript
 {
 public:
     cast_commandscript() : CommandScript("cast_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> castCommandTable =
+        static ChatCommand castCommandTable[] =
         {   
-            { "back",           SEC_ADMINISTRATOR,  false, &HandleCastBackCommand,              "" },
-            { "dist",           SEC_ADMINISTRATOR,  false, &HandleCastDistCommand,              "" },
-            { "self",           SEC_ADMINISTRATOR,  false, &HandleCastSelfCommand,              "" },
-            { "target",         SEC_ADMINISTRATOR,  false, &HandleCastTargetCommad,             "" },
-            { "dest",           SEC_ADMINISTRATOR,  false, &HandleCastDestCommand,              "" },
-            { "",               SEC_ADMINISTRATOR,  false, &HandleCastCommand,                  "" }
+            { "back",           SEC_ADMINISTRATOR,  false, &HandleCastBackCommand,              "", NULL },
+            { "dist",           SEC_ADMINISTRATOR,  false, &HandleCastDistCommand,              "", NULL },
+            { "self",           SEC_ADMINISTRATOR,  false, &HandleCastSelfCommand,              "", NULL },
+            { "target",         SEC_ADMINISTRATOR,  false, &HandleCastTargetCommad,             "", NULL },
+            { "dest",           SEC_ADMINISTRATOR,  false, &HandleCastDestCommand,              "", NULL },
+            { "",               SEC_ADMINISTRATOR,  false, &HandleCastCommand,                  "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "cast",           SEC_ADMINISTRATOR,  false, NULL,                                "", castCommandTable }
+            { "cast",           SEC_ADMINISTRATOR,  false, NULL,                                "", castCommandTable },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
         return commandTable;
     }

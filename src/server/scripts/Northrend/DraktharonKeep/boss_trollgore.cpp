@@ -6,8 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "drak_tharon_keep.h"
 #include "SpellAuras.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
 
 enum Yells
 {

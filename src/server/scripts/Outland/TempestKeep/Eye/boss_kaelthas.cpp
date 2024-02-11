@@ -7,8 +7,6 @@ REWRITTEN BY XINEF
 #include "the_eye.h"
 #include "WorldPacket.h"
 #include "Opcodes.h"
-#include "SpellScript.h"
-#include "GridNotifiers.h"
 
 enum Yells
 {

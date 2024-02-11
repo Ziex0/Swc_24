@@ -6,8 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "sunwell_plateau.h"
 #include "SpellInfo.h"
-#include "SpellScript.h"
-#include "Player.h"
 
 enum Quotes
 {

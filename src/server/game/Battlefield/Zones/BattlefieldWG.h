@@ -99,10 +99,6 @@ enum WintergraspData
     BATTLEFIELD_WG_DATA_MAX_VEHICLE_H,
     BATTLEFIELD_WG_DATA_VEHICLE_A,
     BATTLEFIELD_WG_DATA_VEHICLE_H,
-    BATTLEFIELD_WG_DATA_WON_A,
-    BATTLEFIELD_WG_DATA_DEF_A,
-    BATTLEFIELD_WG_DATA_WON_H,
-    BATTLEFIELD_WG_DATA_DEF_H,
     BATTLEFIELD_WG_DATA_MAX,
 };
 
@@ -116,10 +112,6 @@ enum WintergraspWorldStates
     BATTLEFIELD_WG_WORLD_STATE_DEFENDER          = 3802,
     BATTLEFIELD_WG_WORLD_STATE_ATTACKER          = 3803,
     BATTLEFIELD_WG_WORLD_STATE_SHOW_WORLDSTATE   = 3710,
-    BATTLEFIELD_WG_WORLD_STATE_ATTACKED_H        = 4022,
-    BATTLEFIELD_WG_WORLD_STATE_ATTACKED_A        = 4023,
-    BATTLEFIELD_WG_WORLD_STATE_DEFENDED_H        = 4024,
-    BATTLEFIELD_WG_WORLD_STATE_DEFENDED_A        = 4025
 };
 
 enum WintergraspAreaIds
@@ -1341,7 +1333,8 @@ struct BfWGGameObjectBuilding
             // Spawn Turret bottom
             for (uint8 i = 0; i < TowerCannon[towerid].nbTowerCannonBottom; i++)
             {
-                Position turretPos = TowerCannon[towerid].TowerCannonBottom[i].GetPosition();
+                Position turretPos;
+                TowerCannon[towerid].TowerCannonBottom[i].GetPosition(&turretPos);
                 if (Creature* turret = m_WG->SpawnCreature(NPC_WINTERGRASP_TOWER_CANNON, turretPos, TEAM_ALLIANCE))
                 {
                     m_TowerCannonBottomList.insert(turret->GetGUID());
@@ -1352,7 +1345,8 @@ struct BfWGGameObjectBuilding
             // Spawn Turret top
             for (uint8 i = 0; i < TowerCannon[towerid].nbTurretTop; i++)
             {
-                Position towerCannonPos = TowerCannon[towerid].TurretTop[i].GetPosition();
+                Position towerCannonPos;
+                TowerCannon[towerid].TurretTop[i].GetPosition(&towerCannonPos);
                 if (Creature *turret = m_WG->SpawnCreature(NPC_WINTERGRASP_TOWER_CANNON, towerCannonPos, TEAM_ALLIANCE))
                 {
                     m_TurretTopList.insert(turret->GetGUID());

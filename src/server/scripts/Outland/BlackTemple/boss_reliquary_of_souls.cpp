@@ -6,9 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "black_temple.h"
 #include "Spell.h"
-#include "SpellAuraEffects.h"
-#include "SpellScript.h"
-#include "Player.h"
 
 enum Says
 {

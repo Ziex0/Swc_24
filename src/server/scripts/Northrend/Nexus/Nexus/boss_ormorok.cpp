@@ -6,7 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "nexus.h"
 #include "Player.h"
-#include "PassiveAI.h"
 
 enum eEnums
 {

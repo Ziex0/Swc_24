@@ -41,7 +41,6 @@ EndContentData */
 #include "Group.h"
 #include "Player.h"
 #include "WorldSession.h"
-#include "SpellAuras.h"
 
 // Ours
 enum fumping

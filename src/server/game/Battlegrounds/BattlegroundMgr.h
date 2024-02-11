@@ -27,7 +27,9 @@
 #include <ace/Singleton.h>
 
 typedef std::map<uint32, Battleground*> BattlegroundContainer;
-typedef std::unordered_map<uint32, BattlegroundTypeId> BattleMastersMap;
+typedef UNORDERED_MAP<uint32, BattlegroundTypeId> BattleMastersMap;
+
+#define WS_ARENA_DISTRIBUTION_TIME 20001 // Custom worldstate
 
 struct CreateBattlegroundData
 {

@@ -75,7 +75,6 @@ enum SpellAuraInterruptFlags
     AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT    = 0x00800000,   // 23   removed by entering pvp combat
     AURA_INTERRUPT_FLAG_DIRECT_DAMAGE       = 0x01000000,   // 24   removed by any direct damage
     AURA_INTERRUPT_FLAG_LANDING             = 0x02000000,   // 25   removed by hitting the ground
-    AURA_INTERRUPT_FLAG_LEAVE_COMBAT        = 0x80000000,   // 31   removed by leaving combat
 
     AURA_INTERRUPT_FLAG_NOT_VICTIM = (AURA_INTERRUPT_FLAG_HITBYSPELL | AURA_INTERRUPT_FLAG_TAKE_DAMAGE | AURA_INTERRUPT_FLAG_DIRECT_DAMAGE),
 };
@@ -248,6 +247,7 @@ enum UnitRename
     UNIT_CAN_BE_ABANDONED   = 0x02,
 };
 
+#define CREATURE_MAX_SPELLS     8
 #define MAX_SPELL_CHARM         4
 #define MAX_SPELL_VEHICLE       6
 #define MAX_SPELL_POSSESS       8
@@ -707,13 +707,14 @@ enum MovementFlags
     MOVEMENTFLAG_FALLING_SLOW          = 0x20000000,               // active rogue safe fall spell (passive)
     MOVEMENTFLAG_HOVER                 = 0x40000000,               // hover, cannot jump
 
+    // TODO: Check if PITCH_UP and PITCH_DOWN really belong here..
     MOVEMENTFLAG_MASK_MOVING =
         MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD | MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT |
-        MOVEMENTFLAG_FALLING | MOVEMENTFLAG_FALLING_FAR | MOVEMENTFLAG_ASCENDING | MOVEMENTFLAG_DESCENDING |
+        MOVEMENTFLAG_PITCH_UP | MOVEMENTFLAG_PITCH_DOWN | MOVEMENTFLAG_FALLING | MOVEMENTFLAG_FALLING_FAR | MOVEMENTFLAG_ASCENDING | MOVEMENTFLAG_DESCENDING |
         MOVEMENTFLAG_SPLINE_ELEVATION,
 
     MOVEMENTFLAG_MASK_TURNING =
-        MOVEMENTFLAG_LEFT | MOVEMENTFLAG_RIGHT | MOVEMENTFLAG_PITCH_UP | MOVEMENTFLAG_PITCH_DOWN,
+        MOVEMENTFLAG_LEFT | MOVEMENTFLAG_RIGHT,
 
     MOVEMENTFLAG_MASK_MOVING_FLY =
         MOVEMENTFLAG_FLYING | MOVEMENTFLAG_ASCENDING | MOVEMENTFLAG_DESCENDING,
@@ -1077,7 +1078,7 @@ struct GlobalCooldown
     uint32 cast_time;
 };
 
-typedef std::unordered_map<uint32 /*category*/, GlobalCooldown> GlobalCooldownList;
+typedef UNORDERED_MAP<uint32 /*category*/, GlobalCooldown> GlobalCooldownList;
 
 class GlobalCooldownMgr                                     // Shared by Player and CharmInfo
 {
@@ -1295,7 +1296,7 @@ enum SpellCooldownFlags
     SPELL_COOLDOWN_FLAG_INCLUDE_EVENT_COOLDOWNS = 0x2   ///< Starts GCD for spells that should start their cooldown on events, requires SPELL_COOLDOWN_FLAG_INCLUDE_GCD set
 };
 
-typedef std::unordered_map<uint32, uint32> PacketCooldowns;
+typedef UNORDERED_MAP<uint32, uint32> PacketCooldowns;
 
 // delay time next attack to prevent client attack animation problems
 #define ATTACK_DISPLAY_DELAY 200
@@ -1349,7 +1350,7 @@ private:
 class Unit : public WorldObject
 {
     public:
-        typedef std::unordered_set<Unit*> AttackerSet;
+        typedef UNORDERED_SET<Unit*> AttackerSet;
         typedef std::set<Unit*> ControlSet;
 
         typedef std::multimap<uint32,  Aura*> AuraMap;
@@ -1367,7 +1368,7 @@ class Unit : public WorldObject
         typedef std::list<Aura*> AuraList;
         typedef std::list<AuraApplication *> AuraApplicationList;
         typedef std::list<DiminishingReturn> Diminishing;
-        typedef std::unordered_set<uint32> ComboPointHolderSet;
+        typedef UNORDERED_SET<uint32> ComboPointHolderSet;
 
         typedef std::map<uint8, AuraApplication*> VisibleAuraMap;
 
@@ -2056,9 +2057,6 @@ class Unit : public WorldObject
         Spell* GetCurrentSpell(uint32 spellType) const { return m_currentSpells[spellType]; }
         Spell* FindCurrentSpellBySpellId(uint32 spell_id) const;
         int32 GetCurrentSpellCastTime(uint32 spell_id) const;
-
-        // Check if our current channel spell has attribute SPELL_ATTR5_CAN_CHANNEL_WHEN_MOVING
-        bool CanMoveDuringChannel() const;
 
         uint64 m_SummonSlot[MAX_SUMMON_SLOT];
         uint64 m_ObjectSlot[MAX_GAMEOBJECT_SLOT];

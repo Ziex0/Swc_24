@@ -42,9 +42,6 @@ EndContentData */
 #include "Player.h"
 #include "SpellInfo.h"
 #include "WorldSession.h"
-#include "SpellScript.h"
-#include "PassiveAI.h"
-#include "SpellAuras.h"
 
 // Ours
 enum eDrakeHunt

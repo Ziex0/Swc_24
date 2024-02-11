@@ -80,7 +80,7 @@ void WaypointMovementGenerator<Creature>::OnArrived(Creature* creature)
 
     if (i_path->at(i_currentNode)->event_id && urand(0, 99) < i_path->at(i_currentNode)->event_chance)
     {
-        ;//sLog->outDebug(LOG_FILTER_MAPSCRIPTS, "Creature movement start script %u at point %u for " UI64FMTD".", i_path->at(i_currentNode)->event_id, i_currentNode, creature->GetGUID());
+        ;//sLog->outDebug(LOG_FILTER_MAPSCRIPTS, "Creature movement start script %u at point %u for "UI64FMTD".", i_path->at(i_currentNode)->event_id, i_currentNode, creature->GetGUID());
         creature->ClearUnitState(UNIT_STATE_ROAMING_MOVE);
         creature->GetMap()->ScriptsStart(sWaypointScripts, i_path->at(i_currentNode)->event_id, creature, NULL);
     }
@@ -374,14 +374,14 @@ bool FlightPathMovementGenerator::DoUpdate(Player* player, uint32 /*diff*/)
         {
 			if (i_currentNode >= i_path.size())
 			{
-				sLog->outMisc("TAXI NODE WAS GREATER THAN PATH SIZE, GUID: %u, POINTID: %u, NODESIZE: %lu, CURRENT: %u", player->GetGUIDLow(), pointId, i_path.size(), i_currentNode);
+				sLog->outMisc("TAXI NODE WAS GREATER THAN PATH SIZE, GUID: %u, POINTID: %u, NODESIZE: %u, CURRENT: %u", player->GetGUIDLow(), pointId, i_path.size(), i_currentNode);
 				player->CleanupAfterTaxiFlight();
 				return false;
 			}
 
 			if (i_path[i_currentNode]->mapid != player->GetMapId())
 			{
-				sLog->outMisc("Player on different map, curmap: %u, pointmap: %u, nodesize: %lu, currentnode: %u", player->GetMapId(), i_path[i_currentNode]->mapid, i_path.size(), i_currentNode);
+				sLog->outMisc("Player on different map, curmap: %u, pointmap: %u, nodesize: %u, currentnode: %u", player->GetMapId(), i_path[i_currentNode]->mapid, i_path.size(), i_currentNode);
 				player->CleanupAfterTaxiFlight();
 				return false;
 			}

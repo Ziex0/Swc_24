@@ -8,8 +8,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "GridNotifiers.h"
 #include "icecrown_citadel.h"
 #include "Player.h"
-#include "SpellAuraEffects.h"
-#include "PassiveAI.h"
 
 enum Texts
 {
@@ -203,7 +201,8 @@ class IceTombSummonEvent : public BasicEvent
 			{
 				if (!sindragosa->IsAlive())
 					return true;
-				Position pos = _owner->GetPosition();
+				Position pos;
+				_owner->GetPosition(&pos);
 				_owner->m_positionZ -= 1.0f; // +2.0f in UpdateGroundPositionZ, prevent going over GO model of another ice block, because new would be spawned on top of the old one xd
 				_owner->UpdateGroundPositionZ(pos.m_positionX, pos.m_positionY, pos.m_positionZ);
 				if (pos.GetPositionZ() < 203.0f)

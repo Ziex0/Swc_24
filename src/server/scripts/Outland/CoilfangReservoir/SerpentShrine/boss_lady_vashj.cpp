@@ -8,7 +8,6 @@ REWRITTEN BY XINEF
 #include "Spell.h"
 #include "Player.h"
 #include "WorldSession.h"
-#include "SpellScript.h"
 
 enum Says
 {

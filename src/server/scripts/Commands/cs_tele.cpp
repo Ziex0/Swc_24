@@ -35,19 +35,21 @@ class tele_commandscript : public CommandScript
 public:
     tele_commandscript() : CommandScript("tele_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> teleCommandTable =
+        static ChatCommand teleCommandTable[] =
         {
-            { "add",            SEC_ADMINISTRATOR,  false, &HandleTeleAddCommand,             "" },
-            { "del",            SEC_ADMINISTRATOR,  true,  &HandleTeleDelCommand,             "" },
-            { "name",           SEC_GAMEMASTER,      true,  &HandleTeleNameCommand,            "" },
-            { "group",          SEC_GAMEMASTER,      false, &HandleTeleGroupCommand,           "" },
-            { "",               SEC_GAMEMASTER,      false, &HandleTeleCommand,                "" }
+            { "add",            SEC_ADMINISTRATOR,  false, &HandleTeleAddCommand,             "", NULL },
+            { "del",            SEC_ADMINISTRATOR,  true,  &HandleTeleDelCommand,             "", NULL },
+            { "name",           SEC_GAMEMASTER,      true,  &HandleTeleNameCommand,            "", NULL },
+            { "group",          SEC_GAMEMASTER,      false, &HandleTeleGroupCommand,           "", NULL },
+            { "",               SEC_GAMEMASTER,      false, &HandleTeleCommand,                "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "tele",           SEC_GAMEMASTER,      false, NULL,                   "", teleCommandTable }
+            { "tele",           SEC_GAMEMASTER,      false, NULL,                   "", teleCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }

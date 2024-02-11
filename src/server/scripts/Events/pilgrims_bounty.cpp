@@ -7,7 +7,6 @@
 #include "SpellScript.h"
 #include "Player.h"
 #include "Vehicle.h"
-#include "PassiveAI.h"
 
 ///////////////////////////////////////
 ////// TABLE EVENT

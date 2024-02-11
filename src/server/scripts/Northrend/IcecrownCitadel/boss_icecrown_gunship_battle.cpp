@@ -11,10 +11,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "TransportMgr.h"
 #include "Vehicle.h"
 #include "icecrown_citadel.h"
-#include "PassiveAI.h"
-#include "InstanceScript.h"
-#include "SpellAuraEffects.h"
-#include "ScriptedCreature.h"
 
 enum Texts
 {
@@ -1763,11 +1759,6 @@ class npc_gunship_mage : public CreatureScript
                     switch (Index)
                     {
                         case SLOT_FREEZE_MAGE:
-                            if (Player* player = me->SelectNearestPlayer(50.0f))
-                            {
-                                me->SetInCombatWithZone();
-                                me->AddThreat(player, 1.0f);
-                            }
                             me->CastSpell((Unit*)NULL, SPELL_BELOW_ZERO, false);
                             break;
                         case SLOT_MAGE_1:
@@ -2415,7 +2406,8 @@ class spell_igb_incinerating_blast : public SpellScriptLoader
 				if (!si)
 					return;
 				SpellCastTargets targets;
-				Position dest = GetExplTargetDest()->GetPosition();
+				Position dest;
+				GetExplTargetDest()->GetPosition(&dest);
 				targets.SetDst(dest);
 				CustomSpellValues values;
 				int32 damage = si->Effects[0].CalcValue() + _energyLeft * _energyLeft * 8;

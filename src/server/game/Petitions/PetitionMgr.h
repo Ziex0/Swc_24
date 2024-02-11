@@ -4,9 +4,6 @@ Xinef
 
 #ifndef _PETITIONMGR_H
 #define _PETITIONMGR_H
-#include <map>
-#include "LinkedList.h"
-#include <ace/Singleton.h>
 
 typedef std::map<uint32, uint32> SignatureMap;
 

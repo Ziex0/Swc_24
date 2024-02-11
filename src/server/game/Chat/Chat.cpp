@@ -39,16 +39,52 @@
 bool ChatHandler::load_command_table = true;
 
 // get number of commands in table
-std::vector<ChatCommand> const& ChatHandler::getCommandTable()
+static size_t getCommandTableSize(const ChatCommand* commands)
 {
-    static std::vector<ChatCommand> commandTableCache;
+    if (!commands)
+        return 0;
+    size_t count = 0;
+    while (commands[count].Name != NULL)
+        count++;
+    return count;
+}
+
+// append source command table to target, return number of appended commands
+static size_t appendCommandTable(ChatCommand* target, const ChatCommand* source)
+{
+    const size_t count = getCommandTableSize(source);
+    if (count)
+        memcpy(target, source, count * sizeof(ChatCommand));
+    return count;
+}
+
+ChatCommand* ChatHandler::getCommandTable()
+{
+    // cache for commands, needed because some commands are loaded dynamically through ScriptMgr
+    // cache is never freed and will show as a memory leak in diagnostic tools
+    // can't use vector as vector storage is implementation-dependent, eg, there can be alignment gaps between elements
+    static ChatCommand* commandTableCache = NULL;
 
     if (LoadCommandTable())
     {
         SetLoadCommandTable(false);
 
-        std::vector<ChatCommand> cmds = sScriptMgr->GetChatCommands();
-        commandTableCache.swap(cmds);
+        {
+            // count total number of top-level commands
+            size_t total = 0;
+            std::vector<ChatCommand*> const& dynamic = sScriptMgr->GetChatCommands();
+            for (std::vector<ChatCommand*>::const_iterator it = dynamic.begin(); it != dynamic.end(); ++it)
+                total += getCommandTableSize(*it);
+            total += 1; // ending zero
+
+            // cache top-level commands
+            size_t added = 0;
+            commandTableCache = (ChatCommand*)malloc(sizeof(ChatCommand) * total);
+            memset(commandTableCache, 0, sizeof(ChatCommand) * total);
+            ACE_ASSERT(commandTableCache);
+            for (std::vector<ChatCommand*>::const_iterator it = dynamic.begin(); it != dynamic.end(); ++it)
+                added += appendCommandTable(commandTableCache + added, *it);
+        }
 
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_COMMANDS);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
@@ -244,7 +280,7 @@ void ChatHandler::PSendSysMessage(const char *format, ...)
     SendSysMessage(str);
 }
 
-bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, const char* text, std::string& fullcmd)
+bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, std::string& fullcmd)
 {
     char const* oldtext = text;
     std::string cmd = "";
@@ -257,7 +293,7 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
 
     while (*text == ' ') ++text;
 
-    for (uint32 i = 0; i < table.size(); ++i)
+    for (uint32 i = 0; table[i].Name != NULL; ++i)
     {
         if (!hasStringAbbr(table[i].Name, cmd.c_str()))
             continue;
@@ -265,7 +301,7 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
         bool match = false;
         if (strlen(table[i].Name) > cmd.length())
         {
-            for (uint32 j = 0; j < table.size(); ++j)
+            for (uint32 j = 0; table[j].Name != NULL; ++j)
             {
                 if (!hasStringAbbr(table[j].Name, cmd.c_str()))
                     continue;
@@ -289,7 +325,7 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
         }
 
         // select subcommand from child commands list
-        if (!table[i].ChildCommands.empty())
+        if (table[i].ChildCommands != NULL)
         {
             if (!ExecuteCommandInTable(table[i].ChildCommands, text, fullcmd))
             {
@@ -349,7 +385,7 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
     return false;
 }
 
-bool ChatHandler::SetDataForCommandInTable(std::vector<ChatCommand>& table, char const* text, uint32 security, std::string const& help, std::string const& fullcommand)
+bool ChatHandler::SetDataForCommandInTable(ChatCommand* table, char const* text, uint32 security, std::string const& help, std::string const& fullcommand)
 {
     std::string cmd = "";
 
@@ -361,14 +397,14 @@ bool ChatHandler::SetDataForCommandInTable(std::vector<ChatCommand>& table, char
 
     while (*text == ' ') ++text;
 
-    for (uint32 i = 0; i < table.size(); i++)
+    for (uint32 i = 0; table[i].Name != NULL; i++)
     {
         // for data fill use full explicit command names
         if (table[i].Name != cmd)
             continue;
 
         // select subcommand from child commands list (including "")
-        if (!table[i].ChildCommands.empty())
+        if (table[i].ChildCommands != NULL)
         {
             if (SetDataForCommandInTable(table[i].ChildCommands, text, security, help, fullcommand))
                 return true;
@@ -395,7 +431,7 @@ bool ChatHandler::SetDataForCommandInTable(std::vector<ChatCommand>& table, char
     // in case "" command let process by caller
     if (!cmd.empty())
     {
-        if (&table == &getCommandTable())
+        if (table == getCommandTable())
             sLog->outError("Table `command` have not existed command '%s', skip.", cmd.c_str());
         else
             sLog->outError("Table `command` have not existed subcommand '%s' in command '%s', skip.", cmd.c_str(), fullcommand.c_str());
@@ -504,10 +540,10 @@ Valid examples:
     return LinkExtractor(message).IsValidMessage();
 }
 
-bool ChatHandler::ShowHelpForSubCommands(std::vector<ChatCommand> const& table, char const* cmd, char const* subcmd)
+bool ChatHandler::ShowHelpForSubCommands(ChatCommand* table, char const* cmd, char const* subcmd)
 {
     std::string list;
-    for (uint32 i = 0; i < table.size(); ++i)
+    for (uint32 i = 0; table[i].Name != NULL; ++i)
     {
         // must be available (ignore handler existence for show command with possible available subcommands)
         if (!isAvailable(table[i]))
@@ -524,14 +560,14 @@ bool ChatHandler::ShowHelpForSubCommands(std::vector<ChatCommand> const& table, 
 
         list += table[i].Name;
 
-        if (!table[i].ChildCommands.empty())
+        if (table[i].ChildCommands)
             list += " ...";
     }
 
     if (list.empty())
         return false;
 
-    if (&table == &getCommandTable())
+    if (table == getCommandTable())
     {
         SendSysMessage(LANG_AVIABLE_CMD);
         PSendSysMessage("%s", list.c_str());
@@ -542,11 +578,11 @@ bool ChatHandler::ShowHelpForSubCommands(std::vector<ChatCommand> const& table, 
     return true;
 }
 
-bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, const char* cmd)
+bool ChatHandler::ShowHelpForCommand(ChatCommand* table, const char* cmd)
 {
     if (*cmd)
     {
-        for (uint32 i = 0; i < table.size(); ++i)
+        for (uint32 i = 0; table[i].Name != NULL; ++i)
         {
             // must be available (ignore handler existence for show command with possible available subcommands)
             if (!isAvailable(table[i]))
@@ -558,7 +594,7 @@ bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, cons
             // have subcommand
             char const* subcmd = (*cmd) ? strtok(NULL, " ") : "";
 
-            if (!table[i].ChildCommands.empty() && subcmd && *subcmd)
+            if (table[i].ChildCommands && subcmd && *subcmd)
             {
                 if (ShowHelpForCommand(table[i].ChildCommands, subcmd))
                     return true;
@@ -567,7 +603,7 @@ bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, cons
             if (!table[i].Help.empty())
                 SendSysMessage(table[i].Help.c_str());
 
-            if (!table[i].ChildCommands.empty())
+            if (table[i].ChildCommands)
                 if (ShowHelpForSubCommands(table[i].ChildCommands, table[i].Name, subcmd ? subcmd : ""))
                     return true;
 
@@ -576,7 +612,7 @@ bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, cons
     }
     else
     {
-        for (uint32 i = 0; i < table.size(); ++i)
+        for (uint32 i = 0; table[i].Name != NULL; ++i)
         {
             // must be available (ignore handler existence for show command with possible available subcommands)
             if (!isAvailable(table[i]))
@@ -588,7 +624,7 @@ bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, cons
             if (!table[i].Help.empty())
                 SendSysMessage(table[i].Help.c_str());
 
-            if (!table[i].ChildCommands.empty())
+            if (table[i].ChildCommands)
                 if (ShowHelpForSubCommands(table[i].ChildCommands, "", ""))
                     return true;
 

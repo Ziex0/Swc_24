@@ -5,8 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "shattered_halls.h"
-#include <SpellScript.h>
-#include "Player.h"
 
 enum eGrandWarlockNethekurse
 {
@@ -177,7 +175,7 @@ class boss_grand_warlock_nethekurse : public CreatureScript
 						Talk(SAY_AGGRO);
 						EventStage = EVENT_STAGE_MAIN;
                         me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-						if (Player* target = me->SelectNearestPlayer(50.0f))
+						if (Unit* target = me->SelectNearestPlayer(50.0f))
 							AttackStart(target);
 
 						events.ScheduleEvent(EVENT_SPELL_DEATH_COIL, 20000);

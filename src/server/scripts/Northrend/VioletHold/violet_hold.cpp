@@ -10,7 +10,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "PassiveAI.h"
 #include "SpellScript.h"
 #include "Player.h"
-#include "World.h"
 
 /***********
 ** DEFENSE SYSTEM CRYSTAL
@@ -129,9 +128,6 @@ public:
 				else
 					events.RescheduleEvent(EVENT_SUMMON_SABOTEOUR, 3000);
 			}
-
-            preNerf = sWorld->IsInCurrentContent(PATCH_MIN, PATCH_332);
-            respawnTimer = preNerf ? 30000 : 20000;
 		}
 
 		InstanceScript *pInstance;
@@ -141,8 +137,6 @@ public:
 		uint8 addValue;
 		bool bKorG;
 		bool spawned;
-        bool preNerf;
-        uint32 respawnTimer;
 
 		void UpdateAI(uint32 diff)
 		{
@@ -161,22 +155,22 @@ public:
 					if (Creature *c = DoSummon(RAND(NPC_PORTAL_GUARDIAN, NPC_PORTAL_KEEPER), me, 2.0f, 0, TEMPSUMMON_DEAD_DESPAWN))
 						me->CastSpell(c, SPELL_PORTAL_CHANNEL, false);
 					events.PopEvent();
-					events.RescheduleEvent(EVENT_SUMMON_KEEPER_TRASH, respawnTimer);
+					events.RescheduleEvent(EVENT_SUMMON_KEEPER_TRASH, 20000);
 					break;
 				case EVENT_SUMMON_KEEPER_TRASH:
 					for (uint8 i=0; i<3+addValue; ++i)
 					{
 						uint32 entry = RAND(NPC_AZURE_INVADER_1, NPC_AZURE_INVADER_2, NPC_AZURE_SPELLBREAKER_1, NPC_AZURE_SPELLBREAKER_2, NPC_AZURE_MAGE_SLAYER_1, NPC_AZURE_MAGE_SLAYER_2, NPC_AZURE_BINDER_1, NPC_AZURE_BINDER_2);
-						DoSummon(entry, me, 2.0f, respawnTimer, TEMPSUMMON_DEAD_DESPAWN);
+						DoSummon(entry, me, 2.0f, 20000, TEMPSUMMON_DEAD_DESPAWN);
 					}
-					events.RepeatEvent(respawnTimer);
+					events.RepeatEvent(20000);
 					break;
 				case EVENT_SUMMON_ELITES:
 					spawned = true;
 					for (uint8 i=0; i<2+addValue; ++i)
 					{
 						uint32 entry = RAND(NPC_AZURE_CAPTAIN, NPC_AZURE_RAIDER, NPC_AZURE_STALKER, NPC_AZURE_SORCEROR);
-						DoSummon(entry, me, 2.0f, respawnTimer, TEMPSUMMON_DEAD_DESPAWN);
+						DoSummon(entry, me, 2.0f, 20000, TEMPSUMMON_DEAD_DESPAWN);
 					}
 					me->SetVisible(false);
 					events.PopEvent();

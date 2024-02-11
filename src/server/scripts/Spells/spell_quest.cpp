@@ -26,11 +26,9 @@
 #include "SpellScript.h"
 #include "Vehicle.h"
 #include "SpellAuras.h"
-#include "SpellAuraEffects.h"
 #include "GridNotifiers.h"
 #include "MapManager.h"
 #include "CreatureTextMgr.h"
-#include "CellImpl.h"
 
 // Ours
 class spell_q11065_wrangle_some_aether_rays : public SpellScriptLoader
@@ -75,9 +73,13 @@ class spell_q11065_wrangle_some_aether_rays : public SpellScriptLoader
 					{
 						Player* player = GetCaster()->ToPlayer();
 
-                        ar->ToCreature()->DespawnOrUnsummon(500);
-                        player->CastSpell(player, 40917);
 						player->KilledMonsterCredit(23343, 0);
+						if (Creature *cr = GetCaster()->SummonCreature(23343, ar->GetPositionX(), ar->GetPositionY(), ar->GetPositionZ(), ar->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 180000))
+						{
+							cr->CastSpell(player, 40926, true);
+							cr->GetMotionMaster()->MoveFollow(player, 5.0f, 2*M_PI*rand_norm());
+							ar->ToCreature()->DespawnOrUnsummon(500);
+						}
 					}
 				}
 			}
@@ -1013,39 +1015,6 @@ class spell_q10985_light_of_the_naaru : public SpellScriptLoader
         AuraScript* GetAuraScript() const
         {
             return new spell_q10985_light_of_the_naaru_AuraScript();
-        }
-};
-
-class spell_q12634_some_make_lemonade : public SpellScriptLoader
-{
-    public:
-        spell_q12634_some_make_lemonade() : SpellScriptLoader("spell_q12634_some_make_lemonade") { }
-
-        class spell_q12634_some_make_lemonade_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_q12634_some_make_lemonade_SpellScript);
-
-			bool CheckProc(ProcEventInfo& eventInfo)
-            {
-				Unit* target = eventInfo.GetActionTarget();
-				return target && target->getFaction() == 1843; // Xinef: Illidari demons faction
-            }
-
-            void DespawnObject()
-			{
-                if (GameObject* go = GetCaster()->FindNearestGameObject(190622, 20.0f))
-                    go->Delete();
-			}
-
-            void Register()
-            {
-                OnCast += SpellCastFn(spell_q12634_some_make_lemonade_SpellScript::DespawnObject);
-            }
-        };
-
-        SpellScript* GetSpellScript() const
-        {
-            return new spell_q12634_some_make_lemonade_SpellScript();
         }
 };
 
@@ -2832,7 +2801,8 @@ class spell_q12308_escape_from_silverbrook_summon_worgen : public SpellScriptLoa
                 float dist = GetSpellInfo()->Effects[EFFECT_0].CalcRadius(GetCaster());
                 float angle = frand(0.75f, 1.25f) * M_PI;
 
-                Position pos = GetCaster()->GetNearPosition(dist, angle);
+                Position pos;
+                GetCaster()->GetNearPosition(pos, dist, angle);
                 dest.Relocate(pos);
             }
 
@@ -3055,63 +3025,6 @@ class spell_q12919_gymers_throw : public SpellScriptLoader
         }
 };
 
-#define QUEST_CROW_TRANSFORM 9718
-
-// spell 38776 
-class spell_q9718_crow_transform : public SpellScriptLoader
-{
-public:
-    spell_q9718_crow_transform() : SpellScriptLoader("spell_q9718_crow_transform") { }
-
-    class spell_q9718_crow_transform_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(spell_q9718_crow_transform_AuraScript)
-
-        void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if(GetOwner())
-                if(Player* player = GetOwner()->ToPlayer())
-                    player->CompleteQuest(QUEST_CROW_TRANSFORM);
-        }
-
-        void Register()
-        {
-            OnEffectRemove += AuraEffectRemoveFn(spell_q9718_crow_transform_AuraScript::HandleEffectRemove, EFFECT_0, SPELL_AURA_TRANSFORM, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
-        }
-    };
-
-    AuraScript* GetAuraScript() const
-    {
-        return new spell_q9718_crow_transform_AuraScript();
-    }
-};
-
-// herald of war and life without regret portal spells
-class spell_59064_59439_portals : public SpellScriptLoader
-{
-public:
-    spell_59064_59439_portals() : SpellScriptLoader("spell_59064_59439_portals") { }
-
-    class spell_59064_59439_portals_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_59064_59439_portals_SpellScript);
-
-        void HandleScript(SpellEffIndex /*effIndex*/)
-        {
-            GetHitUnit()->CastSpell(GetHitUnit(), uint32(GetEffectValue()));
-        }
-
-        void Register()
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_59064_59439_portals_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-        }
-    };
-
-    SpellScript* GetSpellScript() const
-    {
-        return new spell_59064_59439_portals_SpellScript();
-    }
-};
 
 void AddSC_quest_spell_scripts()
 {
@@ -3136,8 +3049,6 @@ void AddSC_quest_spell_scripts()
 	new spell_q11198_take_down_tethyr();
 	new spell_q11653_youre_not_so_big_now();
 	new spell_q10985_light_of_the_naaru();
-    new spell_q9718_crow_transform();
-    new spell_q12634_some_make_lemonade();
 
 	// Theirs
     new spell_q55_sacred_cleansing();
@@ -3185,5 +3096,4 @@ void AddSC_quest_spell_scripts()
     new spell_q12619_emblazon_runeblade_effect();
     new spell_q12919_gymers_grab();
     new spell_q12919_gymers_throw();
-    new spell_59064_59439_portals();
 }

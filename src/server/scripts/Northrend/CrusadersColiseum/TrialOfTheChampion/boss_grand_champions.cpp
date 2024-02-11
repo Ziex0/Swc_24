@@ -10,7 +10,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "PassiveAI.h"
 #include "Player.h"
 #include "SpellInfo.h"
-#include "CombatAI.h"
 
 enum MountSpells
 {

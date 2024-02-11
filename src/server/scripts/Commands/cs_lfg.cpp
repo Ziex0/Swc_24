@@ -41,20 +41,22 @@ class lfg_commandscript : public CommandScript
 public:
     lfg_commandscript() : CommandScript("lfg_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> lfgCommandTable =
+        static ChatCommand lfgCommandTable[] =
         {
-            {  "player",     SEC_GAMEMASTER, false, &HandleLfgPlayerInfoCommand, "" },
-            {   "group",     SEC_GAMEMASTER, false,  &HandleLfgGroupInfoCommand, "" },
-            {   "queue",     SEC_GAMEMASTER, false,  &HandleLfgQueueInfoCommand, "" },
-            {   "clean",  SEC_ADMINISTRATOR, false,      &HandleLfgCleanCommand, "" },
-            { "options",  SEC_ADMINISTRATOR, false,    &HandleLfgOptionsCommand, "" }
+            {  "player",     SEC_GAMEMASTER, false, &HandleLfgPlayerInfoCommand, "", NULL },
+            {   "group",     SEC_GAMEMASTER, false,  &HandleLfgGroupInfoCommand, "", NULL },
+            {   "queue",     SEC_GAMEMASTER, false,  &HandleLfgQueueInfoCommand, "", NULL },
+            {   "clean",  SEC_ADMINISTRATOR, false,      &HandleLfgCleanCommand, "", NULL },
+            { "options",  SEC_ADMINISTRATOR, false,    &HandleLfgOptionsCommand, "", NULL },
+            {      NULL,         SEC_PLAYER, false,                        NULL, "", NULL }
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            {       "lfg",   SEC_GAMEMASTER, false,                        NULL, "", lfgCommandTable }
+            {       "lfg",   SEC_GAMEMASTER, false,                        NULL, "", lfgCommandTable },
+            {  NULL,             SEC_PLAYER, false,                        NULL, "", NULL }
         };
         return commandTable;
     }

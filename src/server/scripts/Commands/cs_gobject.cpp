@@ -39,33 +39,37 @@ class gobject_commandscript : public CommandScript
 public:
     gobject_commandscript() : CommandScript("gobject_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> gobjectAddCommandTable =
+        static ChatCommand gobjectAddCommandTable[] =
         {
-            { "temp",           SEC_GAMEMASTER,     false, &HandleGameObjectAddTempCommand,   "" },
-            { "",               SEC_GAMEMASTER,     false, &HandleGameObjectAddCommand,       "" }
+            { "temp",           SEC_GAMEMASTER,     false, &HandleGameObjectAddTempCommand,   "", NULL },
+            { "",               SEC_GAMEMASTER,     false, &HandleGameObjectAddCommand,       "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> gobjectSetCommandTable =
+        static ChatCommand gobjectSetCommandTable[] =
         {
-            { "phase",          SEC_GAMEMASTER,     false, &HandleGameObjectSetPhaseCommand,  "" },
-            { "state",          SEC_GAMEMASTER,     false, &HandleGameObjectSetStateCommand,  "" }
+            { "phase",          SEC_GAMEMASTER,     false, &HandleGameObjectSetPhaseCommand,  "", NULL },
+            { "state",          SEC_GAMEMASTER,     false, &HandleGameObjectSetStateCommand,  "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> gobjectCommandTable =
+        static ChatCommand gobjectCommandTable[] =
         {
-            { "activate",       SEC_GAMEMASTER,     false, &HandleGameObjectActivateCommand,  "" },
-            { "delete",         SEC_GAMEMASTER,     false, &HandleGameObjectDeleteCommand,    "" },
-            { "info",           SEC_GAMEMASTER,     false, &HandleGameObjectInfoCommand,      "" },
-            { "move",           SEC_GAMEMASTER,     false, &HandleGameObjectMoveCommand,      "" },
-            { "near",           SEC_GAMEMASTER,     false, &HandleGameObjectNearCommand,      "" },
-            { "target",         SEC_GAMEMASTER,     false, &HandleGameObjectTargetCommand,    "" },
-            { "turn",           SEC_GAMEMASTER,     false, &HandleGameObjectTurnCommand,      "" },
+            { "activate",       SEC_GAMEMASTER,     false, &HandleGameObjectActivateCommand,  "", NULL },
+            { "delete",         SEC_GAMEMASTER,     false, &HandleGameObjectDeleteCommand,    "", NULL },
+            { "info",           SEC_GAMEMASTER,     false, &HandleGameObjectInfoCommand,      "", NULL },
+            { "move",           SEC_GAMEMASTER,     false, &HandleGameObjectMoveCommand,      "", NULL },
+            { "near",           SEC_GAMEMASTER,     false, &HandleGameObjectNearCommand,      "", NULL },
+            { "target",         SEC_GAMEMASTER,     false, &HandleGameObjectTargetCommand,    "", NULL },
+            { "turn",           SEC_GAMEMASTER,     false, &HandleGameObjectTurnCommand,      "", NULL },
             { "add",            SEC_GAMEMASTER,     false, NULL,            "", gobjectAddCommandTable },
-            { "set",            SEC_GAMEMASTER,     false, NULL,            "", gobjectSetCommandTable }
+            { "set",            SEC_GAMEMASTER,     false, NULL,            "", gobjectSetCommandTable },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "gobject",        SEC_GAMEMASTER,     false, NULL,                "", gobjectCommandTable }
+            { "gobject",        SEC_GAMEMASTER,     false, NULL,                "", gobjectCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -240,7 +244,7 @@ public:
                 WorldDatabase.EscapeString(name);
                 result = WorldDatabase.PQuery(
                     "SELECT guid, id, position_x, position_y, position_z, orientation, map, phaseMask, (POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ "
-                    "FROM gameobject, gameobject_template WHERE gameobject_template.entry = gameobject.id AND map = %i AND name " _LIKE_" " _CONCAT3_("'%%'", "'%s'", "'%%'")" ORDER BY order_ ASC LIMIT 1",
+                    "FROM gameobject, gameobject_template WHERE gameobject_template.entry = gameobject.id AND map = %i AND name "_LIKE_" "_CONCAT3_("'%%'", "'%s'", "'%%'")" ORDER BY order_ ASC LIMIT 1",
                     player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(), name.c_str());
             }
         }

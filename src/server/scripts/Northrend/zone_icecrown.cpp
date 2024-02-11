@@ -37,8 +37,6 @@ EndContentData */
 #include "ScriptedEscortAI.h"
 #include "Vehicle.h"
 #include "SmartScriptMgr.h"
-#include "SpellScript.h"
-#include "PassiveAI.h"
 
 // Ours
 enum eBKG

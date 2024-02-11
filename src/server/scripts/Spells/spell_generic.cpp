@@ -1275,7 +1275,8 @@ class spell_gen_random_target32 : public SpellScriptLoader
                 float dist = GetSpellInfo()->Effects[EFFECT_0].CalcRadius(GetCaster());
                 float angle = frand(0.0f, 2*M_PI);
 
-                Position pos = GetCaster()->GetNearPosition(dist, angle);
+                Position pos;
+                GetCaster()->GetNearPosition(pos, dist, angle);
                 dest.Relocate(pos);
             }
 
@@ -1418,55 +1419,6 @@ class spell_gen_throw_back : public SpellScriptLoader
         }
 };
 
-enum AnimalBloodDummy
-{
-    SPELL_ANIMAL_BLOOD_DUMMY = 46222,
-    DEHTA_FACTION_ID         = 942,
-};
-// 46222 - Animal Blood
-class spell_animal_blood_dummy : public SpellScriptLoader
-{
-public:
-    spell_animal_blood_dummy() : SpellScriptLoader("spell_animal_blood_dummy") { }
-
-    class spell_animal_blood_dummy_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_animal_blood_dummy_SpellScript);
-
-        bool Load()
-        {
-            return GetHitUnit() && GetHitUnit()->ToCreature();
-        }
-
-        bool Validate(SpellInfo const* /*spellInfo*/)
-        {
-            if (!sSpellMgr->GetSpellInfo(SPELL_ANIMAL_BLOOD_DUMMY))
-                return false;
-
-            return true;
-        }
-
-        void HandleDummy(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            if (Unit* target = GetHitUnit())
-            {
-                if (!target->IsInCombat() && target->GetFactionTemplateEntry()->faction == DEHTA_FACTION_ID)
-                    target->GetAI()->AttackStart(caster);
-            }
-        }
-
-        void Register()
-        {
-            OnEffectHitTarget += SpellEffectFn(spell_animal_blood_dummy_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
-        }
-    };
-
-    SpellScript* GetSpellScript() const
-    {
-        return new spell_animal_blood_dummy_SpellScript();
-    }
-};
 
 // Theirs
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
@@ -2023,7 +1975,7 @@ class spell_gen_pet_summoned : public SpellScriptLoader
             {
                 Player* player = GetCaster()->ToPlayer();
                 if (player->GetLastPetNumber() && player->CanResummonPet(player->GetLastPetSpell()))
-					Pet::LoadPetFromDB(player, PET_LOAD_SUMMON_PET, 0, player->GetLastPetNumber(), true);
+					Pet::LoadPetFromDB(player, PET_LOAD_BG_RESURRECT, 0, player->GetLastPetNumber(), true);
             }
 
             void Register()
@@ -4929,7 +4881,6 @@ void AddSC_generic_spell_scripts()
 	new spell_gen_focused_bursts();
 	new spell_gen_flurry_of_claws();
 	new spell_gen_throw_back();
-    new spell_animal_blood_dummy();
 
 	// theirs:
     new spell_gen_absorb0_hitlimit1();

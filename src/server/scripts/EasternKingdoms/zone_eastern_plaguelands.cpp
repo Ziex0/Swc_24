@@ -35,8 +35,6 @@ EndContentData */
 #include "ScriptedGossip.h"
 #include "Player.h"
 #include "WorldSession.h"
-#include "PassiveAI.h"
-#include "SpellInfo.h"
 
 // Ours
 

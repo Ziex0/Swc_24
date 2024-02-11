@@ -33,22 +33,25 @@ class titles_commandscript : public CommandScript
 public:
     titles_commandscript() : CommandScript("titles_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> titlesSetCommandTable =
+        static ChatCommand titlesSetCommandTable[] =
         {
-            { "mask",           SEC_GAMEMASTER,     false, &HandleTitlesSetMaskCommand,        "" },
+            { "mask",           SEC_GAMEMASTER,     false, &HandleTitlesSetMaskCommand,        "", NULL },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
-        static std::vector<ChatCommand> titlesCommandTable =
+        static ChatCommand titlesCommandTable[] =
         {
-            { "add",            SEC_GAMEMASTER,     false, &HandleTitlesAddCommand,            "" },
-            { "current",        SEC_GAMEMASTER,     false, &HandleTitlesCurrentCommand,        "" },
-            { "remove",         SEC_GAMEMASTER,     false, &HandleTitlesRemoveCommand,         "" },
+            { "add",            SEC_GAMEMASTER,     false, &HandleTitlesAddCommand,            "", NULL },
+            { "current",        SEC_GAMEMASTER,     false, &HandleTitlesCurrentCommand,        "", NULL },
+            { "remove",         SEC_GAMEMASTER,     false, &HandleTitlesRemoveCommand,         "", NULL },
             { "set",            SEC_GAMEMASTER,     false, NULL,              "", titlesSetCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
             { "titles",         SEC_GAMEMASTER,     false, NULL,                 "", titlesCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }

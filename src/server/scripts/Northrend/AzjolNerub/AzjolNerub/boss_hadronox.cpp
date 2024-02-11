@@ -7,8 +7,6 @@ REWRITTEN BY XINEF
 #include "azjol_nerub.h"
 #include "ScriptedEscortAI.h"
 #include "Player.h"
-#include "SpellAuraEffects.h"
-#include "SpellScript.h"
 
 enum Spells
 {

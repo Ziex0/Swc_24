@@ -11,7 +11,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "PassiveAI.h"
 #include "Opcodes.h"
 #include "Player.h"
-#include "Chat.h"
 
 enum YoggSpells
 {

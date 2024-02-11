@@ -22,7 +22,6 @@
 #include "Define.h"
 
 class Unit;
-class Map;
 
 enum DisableType
 {
@@ -34,7 +33,6 @@ enum DisableType
     DISABLE_TYPE_OUTDOORPVP             = 5,
     DISABLE_TYPE_VMAP                   = 6,
     DISABLE_TYPE_GO_LOS					= 7,
-    DISABLE_TYPE_MMAP                   = 8
 };
 
 enum SpellDisableTypes
@@ -59,19 +57,11 @@ enum VmapDisableTypes
     VMAP_DISABLE_LIQUIDSTATUS   = 0x8,
 };
 
-enum MMapDisableTypes
-{
-    MMAP_DISABLE_PATHFINDING    = 0x0
-};
-
 namespace DisableMgr
 {
     void LoadDisables();
     bool IsDisabledFor(DisableType type, uint32 entry, Unit const* unit, uint8 flags = 0);
     void CheckQuestDisables();
-    bool IsVMAPDisabledFor(uint32 entry, uint8 flags);
-    bool IsPathfindingEnabled(uint32 mapId);
-    bool IsPathfindingEnabled(const Map* map, bool force = false);
 }
 
 #endif //TRINITY_DISABLEMGR_H

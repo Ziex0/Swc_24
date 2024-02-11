@@ -16,20 +16,22 @@ class spectator_commandscript : public CommandScript
 public:
     spectator_commandscript() : CommandScript("spectator_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> spectatorCommandTable =
+        static ChatCommand spectatorCommandTable[] =
         {
-            { "version",        SEC_CONSOLE,        false, &HandleSpectatorVersionCommand,    "" },
-            { "reset",          SEC_CONSOLE,        false, &HandleSpectatorResetCommand,      "" },
-            { "spectate",       SEC_CONSOLE,        false, &ArenaSpectator::HandleSpectatorSpectateCommand, "" },
-            { "watch",          SEC_CONSOLE,        false, &ArenaSpectator::HandleSpectatorWatchCommand, "" },
-            { "leave",          SEC_CONSOLE,        false, &HandleSpectatorLeaveCommand,      "" },
-            { "",               SEC_CONSOLE,        false, &HandleSpectatorCommand,           "" }
+            { "version",        SEC_CONSOLE,        false, &HandleSpectatorVersionCommand,    "", NULL },
+            { "reset",          SEC_CONSOLE,        false, &HandleSpectatorResetCommand,      "", NULL },
+            { "spectate",       SEC_CONSOLE,        false, &ArenaSpectator::HandleSpectatorSpectateCommand, "", NULL },
+            { "watch",          SEC_CONSOLE,        false, &ArenaSpectator::HandleSpectatorWatchCommand, "", NULL },
+            { "leave",          SEC_CONSOLE,        false, &HandleSpectatorLeaveCommand,      "", NULL },
+            { "",               SEC_CONSOLE,        false, &HandleSpectatorCommand,           "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "spect",          SEC_CONSOLE,        false, NULL,                              "", spectatorCommandTable }
+            { "spect",          SEC_CONSOLE,        false, NULL,                              "", spectatorCommandTable },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
         return commandTable;
     }
@@ -193,7 +195,7 @@ bool ArenaSpectator::HandleSpectatorSpectateCommand(ChatHandler* handler, char c
 	{
 		handler->PSendSysMessage("To spectate, please fix the following:");
 		for (std::list<std::string>::const_iterator itr = errors.begin(); itr != errors.end(); ++itr)
-            handler->PSendSysMessage("- %s", (*itr).c_str());
+			handler->PSendSysMessage(("- "+(*itr)).c_str());
 
 		return true;
 	}

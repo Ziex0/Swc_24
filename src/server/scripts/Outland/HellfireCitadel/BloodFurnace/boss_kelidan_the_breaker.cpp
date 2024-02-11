@@ -6,7 +6,6 @@ REWRITTEN BY XINEF
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"
 #include "blood_furnace.h"
-#include "Player.h"
 
 enum eKelidan
 {
@@ -134,7 +133,7 @@ class boss_kelidan_the_breaker : public CreatureScript
 					}
 					me->SetReactState(REACT_AGGRESSIVE);
 					me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NON_ATTACKABLE);
-					if (Player* target = me->SelectNearestPlayer(100.0f))
+					if (Unit* target = me->SelectNearestPlayer(100.0f))
 						AttackStart(target);
 				}
 			}

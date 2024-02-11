@@ -5,9 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "karazhan.h"
-#include "SpellScript.h"
-#include "CreatureAIImpl.h"
-#include "SpellAuraEffects.h"
 
 
 class instance_karazhan : public InstanceMapScript

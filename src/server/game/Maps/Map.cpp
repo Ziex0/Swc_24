@@ -36,7 +36,6 @@
 #include "VMapFactory.h"
 #include "LFGMgr.h"
 #include "Chat.h"
-#include <DisableMgr.h>
 
 union u_map_magic
 {
@@ -45,7 +44,7 @@ union u_map_magic
 };
 
 u_map_magic MapMagic        = { {'M','A','P','S'} };
-u_map_magic MapVersionMagic = { {'v','1','.','8'} };
+u_map_magic MapVersionMagic = { {'v','1','.','2'} };
 u_map_magic MapAreaMagic    = { {'A','R','E','A'} };
 u_map_magic MapHeightMagic  = { {'M','H','G','T'} };
 u_map_magic MapLiquidMagic  = { {'M','L','I','Q'} };
@@ -120,7 +119,7 @@ bool Map::ExistVMap(uint32 mapid, int gx, int gy)
 
 void Map::LoadMMap(int gx, int gy)
 { 
-    if (!DisableMgr::IsPathfindingEnabled(this, true)) // pussywizard
+    if (!MMAP::MMapFactory::IsPathfindingEnabled(this, true)) // pussywizard
         return;
 
     int mmapLoadResult = MMAP::MMapFactory::createOrGetMMapManager()->loadMap(GetId(), gx, gy);
@@ -226,7 +225,6 @@ _instanceResetPeriod(0), i_scriptLock(false), _defaultLight(GetDefaultMapLight(i
             setNGrid(NULL, idx, j);
         }
     }
-    _areaPlayerCountMap.clear();
 
     //lets initialize visibility distance for map
     Map::InitVisibilityDistance();
@@ -644,48 +642,6 @@ void Map::VisitNearbyCellsOf(WorldObject* obj, TypeContainerVisitor<Trinity::Obj
     }
 }
 
-void Map::UpdatePlayerAreaStats(uint32 oldArea, uint32 newArea)
-{
-    // Nothing to do if no change
-    if (oldArea == newArea)
-        return;
-
-    uint32 oldAreaCount = 0;
-    uint32 newAreaCount = 0;
-
-    // Get old area if exist, without creating element if not
-    auto oldItr = _areaPlayerCountMap.find(oldArea);
-    if (oldItr != _areaPlayerCountMap.end())
-        oldAreaCount = oldItr->second;
-
-    // Sanity check, we're leaving an area (that isn't the default) and there's no players there (should be at least one)
-    if (oldArea && oldAreaCount == 0)
-    {
-        sLog->outMisc("Player left area %u, when no players in area!", oldArea);
-        return;
-    }
-
-    // If there is already a count then the iterator will exist, use it to subtract one.
-    // If there was only one (us) delete the element entirely.
-    if (oldArea && oldAreaCount > 1)
-        oldItr->second--;
-    else if (oldArea && oldAreaCount == 1)
-        _areaPlayerCountMap.erase(oldItr);
-
-    if (newArea == 0) return;
-
-    // Get new area if exist, without creating element if not
-    auto newItr = _areaPlayerCountMap.find(newArea);
-    if (newItr != _areaPlayerCountMap.end())
-        newAreaCount = newItr->second;
-
-    // If we already have an iterator (already players in the area) increment. Otherwise, add to map
-    if (newArea && newAreaCount > 0)
-        newItr->second++;
-    else if (newArea)
-        _areaPlayerCountMap[newArea]++;
-}
-
 void Map::Update(const uint32 t_diff, const uint32 s_diff, bool thread)
 {
 	uint32 mapId = GetId(); // pussywizard: for crashlogs
@@ -816,7 +772,7 @@ void Map::HandleDelayedVisibility()
 { 
 	if (i_objectsForDelayedVisibility.empty())
 		return;
-	for (std::unordered_set<Unit*>::iterator itr = i_objectsForDelayedVisibility.begin(); itr != i_objectsForDelayedVisibility.end(); ++itr)
+	for (UNORDERED_SET<Unit*>::iterator itr = i_objectsForDelayedVisibility.begin(); itr != i_objectsForDelayedVisibility.end(); ++itr)
 		(*itr)->ExecuteDelayedUnitRelocationEvent();
 	i_objectsForDelayedVisibility.clear();
 }
@@ -835,9 +791,6 @@ struct ResetNotifier
 
 void Map::RemovePlayerFromMap(Player* player, bool remove)
 { 
-    // Before leaving map, update zone/area for stats
-    player->UpdateZone(0xFFFFFFFF, 0);
-
     player->getHostileRefManager().deleteReferences(); // pussywizard: multithreading crashfix
 
     bool inWorld = player->IsInWorld();
@@ -1797,12 +1750,12 @@ GridMap* Map::GetGrid(float x, float y)
     return GridMaps[gx][gy];
 }
 
-float Map::GetWaterOrGroundLevel(uint32 phasemask, float x, float y, float z, float* ground /*= NULL*/, bool /*swim = false*/, float maxSearchDist /*= 50.0f*/) const
+float Map::GetWaterOrGroundLevel(float x, float y, float z, float* ground /*= NULL*/, bool /*swim = false*/, float maxSearchDist /*= 50.0f*/) const
 { 
     if (const_cast<Map*>(this)->GetGrid(x, y))
     {
         // we need ground level (including grid height version) for proper return water level in point
-        float ground_z = GetHeight(phasemask, x, y, z, true, maxSearchDist);
+        float ground_z = GetHeight(PHASEMASK_NORMAL, x, y, z, true, maxSearchDist);
         if (ground)
             *ground = ground_z;
 
@@ -1872,7 +1825,7 @@ float Map::GetHeight(float x, float y, float z, bool checkVMap /*= true*/, float
 
             // we are already under the surface or vmap height above map heigt
             // or if the distance of the vmap height is less the land height distance
-            if (vmapHeight > mapHeight || fabs(mapHeight-z) > fabs(vmapHeight-z))
+            if (z < mapHeight || vmapHeight > mapHeight || fabs(mapHeight-z) > fabs(vmapHeight-z))
                 return vmapHeight;
             else
                 return mapHeight;                           // better use .map surface height
@@ -1971,10 +1924,8 @@ uint16 Map::GetAreaFlag(float x, float y, float z, bool *isOutdoors) const
         if (GridMap* gmap = const_cast<Map*>(this)->GetGrid(x, y))
             areaflag = gmap->getArea(x, y);
         // this used while not all *.map files generated (instances)
-
         else
             areaflag = GetAreaFlagByMapId(i_mapEntry->MapID);
-
     }
 
     if (isOutdoors)
@@ -2304,7 +2255,7 @@ void Map::RemoveAllObjectsInRemoveList()
     //sLog->outDebug(LOG_FILTER_MAPS, "Object remover 1 check.");
     while (!i_objectsToRemove.empty())
     {
-        std::unordered_set<WorldObject*>::iterator itr = i_objectsToRemove.begin();
+        UNORDERED_SET<WorldObject*>::iterator itr = i_objectsToRemove.begin();
         WorldObject* obj = *itr;
         i_objectsToRemove.erase(itr);
 
@@ -2909,7 +2860,7 @@ void Map::UpdateIteratorBack(Player* player)
         m_mapRefIter = m_mapRefIter->nocheck_prev();
 }
 
-void Map::SaveCreatureRespawnTime(uint32 dbGuid, time_t& respawnTime, uint32 areaId)
+void Map::SaveCreatureRespawnTime(uint32 dbGuid, time_t& respawnTime)
 { 
     if (!respawnTime)
     {
@@ -2918,12 +2869,8 @@ void Map::SaveCreatureRespawnTime(uint32 dbGuid, time_t& respawnTime, uint32 are
         return;
     }
 
-    time_t now = time(NULL);
-    time_t diff = respawnTime - now;
-
-    uint8 respawnSpeedup = 0;
-
-	if (GetInstanceResetPeriod() > 0 && diff + 5 >= GetInstanceResetPeriod())
+	time_t now = time(NULL);
+	if (GetInstanceResetPeriod() > 0 && respawnTime-now+5 >= GetInstanceResetPeriod())
 		respawnTime = now+YEAR;
 
     _creatureRespawnTimes[dbGuid] = respawnTime;
@@ -3170,21 +3117,6 @@ void Map::SendZoneDynamicInfo(Player* player)
         data << uint32(overrideLight);
         data << uint32(itr->second.LightFadeInTime);
         player->SendDirectMessage(&data);
-    }
-}
-
-void Map::PlayDirectSoundToMap(uint32 soundId, uint32 zoneId)
-{
-    Map::PlayerList const& players = GetPlayers();
-    if (!players.isEmpty())
-    {
-        WorldPacket data(SMSG_PLAY_SOUND, 4);
-        data << uint32(soundId);
-
-        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-            if (Player* player = itr->GetSource())
-                if (!zoneId || player->GetZoneId() == zoneId)
-                    player->SendDirectMessage(&data);
     }
 }
 

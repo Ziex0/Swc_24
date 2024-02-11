@@ -32,16 +32,18 @@ class achievement_commandscript : public CommandScript
 public:
     achievement_commandscript() : CommandScript("achievement_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> achievementCommandTable =
+        static ChatCommand achievementCommandTable[] =
         {
-            { "add",            SEC_ADMINISTRATOR,  false,  &HandleAchievementAddCommand,      "" },
-            { "checkall",       SEC_ADMINISTRATOR,  false,  &HandleAchievementCheckAllCommand, "" }
+            { "add",            SEC_ADMINISTRATOR,  false,  &HandleAchievementAddCommand,      "", NULL },
+            { "checkall",       SEC_ADMINISTRATOR,  false,  &HandleAchievementCheckAllCommand, "", NULL },
+            { NULL,             0,                  false,  NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "achievement",    SEC_ADMINISTRATOR,  false, NULL,            "", achievementCommandTable }
+            { "achievement",    SEC_ADMINISTRATOR,  false, NULL,            "", achievementCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -60,9 +62,7 @@ public:
                 return false;
         }
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);

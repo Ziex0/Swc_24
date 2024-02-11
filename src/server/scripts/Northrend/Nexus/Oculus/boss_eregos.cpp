@@ -5,7 +5,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "oculus.h"
-#include "SpellAuras.h"
 
 enum Spells
 {

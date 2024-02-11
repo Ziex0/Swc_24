@@ -23,7 +23,6 @@
 #include "Spell.h"
 #include "SpellAuraEffects.h"
 #include "PassiveAI.h"
-#include "GridNotifiers.h"
 
 //
 //  Emerald Dragon NPCs and IDs (kept here for reference)
@@ -365,7 +364,8 @@ class boss_lethon : public CreatureScript
             {
                 if (spell->Id == SPELL_DRAW_SPIRIT && target->GetTypeId() == TYPEID_PLAYER)
                 {
-                    Position targetPos = target->GetPosition();
+                    Position targetPos;
+                    target->GetPosition(&targetPos);
                     me->SummonCreature(NPC_SPIRIT_SHADE, targetPos, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 50000);
                 }
             }

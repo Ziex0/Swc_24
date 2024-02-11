@@ -20,7 +20,9 @@
 #define TRINITY_MAP_H
 
 // Pathfinding
+#include "DetourAlloc.h"
 #include "DetourNavMesh.h"
+#include "DetourNavMeshQuery.h"
 
 #include "Define.h"
 #include <ace/RW_Thread_Mutex.h>
@@ -30,14 +32,15 @@
 #include "GridDefines.h"
 #include "Cell.h"
 #include "Timer.h"
+#include "SharedDefines.h"
 #include "GridRefManager.h"
 #include "MapRefManager.h"
 #include "DynamicTree.h"
 #include "GameObjectModel.h"
+#include "Log.h"
 
 #include <bitset>
 #include <list>
-#include <unordered_set>
 
 class Unit;
 class WorldPacket;
@@ -251,7 +254,7 @@ struct ZoneDynamicInfo
 #define MIN_UNLOAD_DELAY      1                             // immediate unload
 
 typedef std::map<uint32/*leaderDBGUID*/, CreatureGroup*>        CreatureGroupHolderType;
-typedef std::unordered_map<uint32 /*zoneId*/, ZoneDynamicInfo> ZoneDynamicInfoMap;
+typedef UNORDERED_MAP<uint32 /*zoneId*/, ZoneDynamicInfo> ZoneDynamicInfoMap;
 typedef std::set<MotionTransport*> TransportsContainer;
 
 enum EncounterCreditType
@@ -328,9 +331,9 @@ class Map : public GridRefManager<NGridType>
         // pussywizard: movemaps, mmaps
         ACE_RW_Thread_Mutex& GetMMapLock() const { return *(const_cast<ACE_RW_Thread_Mutex*>(&MMapLock)); }
         // pussywizard:
-        std::unordered_set<Object*> i_objectsToUpdate;
+        UNORDERED_SET<Object*> i_objectsToUpdate;
         void BuildAndSendUpdateForObjects(); // definition in ObjectAccessor.cpp, below ObjectAccessor::Update, because it does the same for a map
-        std::unordered_set<Unit*> i_objectsForDelayedVisibility;
+        UNORDERED_SET<Unit*> i_objectsForDelayedVisibility;
         void HandleDelayedVisibility();
 
         // some calls like isInWater should not use vmaps due to processor power
@@ -423,13 +426,6 @@ class Map : public GridRefManager<NGridType>
 
         typedef MapRefManager PlayerList;
         PlayerList const& GetPlayers() const { return m_mapRefManager; }
-        uint32 GetPlayersInAreaCount(uint32 areaId) const
-        {
-            auto newItr = _areaPlayerCountMap.find(areaId);
-            if (newItr != _areaPlayerCountMap.end()) return newItr->second;
-
-            return 0;
-        }
 
         //per-map script storage
         void ScriptsStart(std::map<uint32, std::multimap<uint32, ScriptInfo> > const& scripts, uint32 id, Object* source, Object* target);
@@ -472,7 +468,7 @@ class Map : public GridRefManager<NGridType>
         BattlegroundMap* ToBattlegroundMap() { if (IsBattlegroundOrArena()) return reinterpret_cast<BattlegroundMap*>(this); else return NULL;  }
         const BattlegroundMap* ToBattlegroundMap() const { if (IsBattlegroundOrArena()) return reinterpret_cast<BattlegroundMap const*>(this); return NULL; }
 
-        float GetWaterOrGroundLevel(uint32 phasemask, float x, float y, float z, float* ground = NULL, bool swim = false, float maxSearchDist = 50.0f) const;
+        float GetWaterOrGroundLevel(float x, float y, float z, float* ground = NULL, bool swim = false, float maxSearchDist = 50.0f) const;
         float GetHeight(uint32 phasemask, float x, float y, float z, bool vmap = true, float maxSearchDist = DEFAULT_HEIGHT_SEARCH) const;
         bool isInLineOfSight(float x1, float y1, float z1, float x2, float y2, float z2, uint32 phasemask) const;
         void Balance() { _dynamicTree.balance(); }
@@ -488,7 +484,7 @@ class Map : public GridRefManager<NGridType>
         time_t GetLinkedRespawnTime(uint64 guid) const;
         time_t GetCreatureRespawnTime(uint32 dbGuid) const
         {
-            std::unordered_map<uint32 /*dbGUID*/, time_t>::const_iterator itr = _creatureRespawnTimes.find(dbGuid);
+            UNORDERED_MAP<uint32 /*dbGUID*/, time_t>::const_iterator itr = _creatureRespawnTimes.find(dbGuid);
             if (itr != _creatureRespawnTimes.end())
                 return itr->second;
 
@@ -497,16 +493,14 @@ class Map : public GridRefManager<NGridType>
 
         time_t GetGORespawnTime(uint32 dbGuid) const
         {
-            std::unordered_map<uint32 /*dbGUID*/, time_t>::const_iterator itr = _goRespawnTimes.find(dbGuid);
+            UNORDERED_MAP<uint32 /*dbGUID*/, time_t>::const_iterator itr = _goRespawnTimes.find(dbGuid);
             if (itr != _goRespawnTimes.end())
                 return itr->second;
 
             return time_t(0);
         }
 
-        void UpdatePlayerAreaStats(uint32 oldArea, uint32 newArea);
-
-        void SaveCreatureRespawnTime(uint32 dbGuid, time_t& respawnTime, uint32 areaId = 0);
+        void SaveCreatureRespawnTime(uint32 dbGuid, time_t& respawnTime);
         void RemoveCreatureRespawnTime(uint32 dbGuid);
         void SaveGORespawnTime(uint32 dbGuid, time_t& respawnTime);
         void RemoveGORespawnTime(uint32 dbGuid);
@@ -519,7 +513,6 @@ class Map : public GridRefManager<NGridType>
         void SendInitTransports(Player* player);
         void SendRemoveTransports(Player* player);
         void SendZoneDynamicInfo(Player* player);
-        void PlayDirectSoundToMap(uint32 soundId, uint32 zoneId = 0);
         void SendInitSelf(Player* player);
 
         void SetZoneMusic(uint32 zoneId, uint32 musicId);
@@ -620,9 +613,9 @@ class Map : public GridRefManager<NGridType>
         std::bitset<TOTAL_NUMBER_OF_CELLS_PER_MAP*TOTAL_NUMBER_OF_CELLS_PER_MAP> marked_cells;
 
         bool i_scriptLock;
-        std::unordered_set<WorldObject*> i_objectsToRemove;
+        UNORDERED_SET<WorldObject*> i_objectsToRemove;
         std::map<WorldObject*, bool> i_objectsToSwitch;
-        std::unordered_set<WorldObject*> i_worldObjects;
+        UNORDERED_SET<WorldObject*> i_worldObjects;
 
         typedef std::multimap<time_t, ScriptAction> ScriptScheduleMap;
         ScriptScheduleMap m_scriptSchedule;
@@ -655,10 +648,8 @@ class Map : public GridRefManager<NGridType>
                 m_activeNonPlayers.erase(obj);
         }
 
-        std::unordered_map<uint32 /*dbGUID*/, time_t> _creatureRespawnTimes;
-        std::unordered_map<uint32 /*dbGUID*/, time_t> _goRespawnTimes;
-
-        std::unordered_map<uint32, uint32> _areaPlayerCountMap;
+        UNORDERED_MAP<uint32 /*dbGUID*/, time_t> _creatureRespawnTimes;
+        UNORDERED_MAP<uint32 /*dbGUID*/, time_t> _goRespawnTimes;
 
         ZoneDynamicInfoMap _zoneDynamicInfo;
         uint32 _defaultLight;

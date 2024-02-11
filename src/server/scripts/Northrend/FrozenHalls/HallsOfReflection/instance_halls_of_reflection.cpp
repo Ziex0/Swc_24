@@ -2,15 +2,10 @@
 REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 */
 
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
-#include "InstanceScript.h"
+#include "ScriptPCH.h"
+#include "halls_of_reflection.h"
 #include "Transport.h"
 #include "MapManager.h"
-#include "Player.h"
-#include "SpellAuras.h"
-
-#include "halls_of_reflection.h"
 
 class UtherBatteredHiltEvent : public BasicEvent
 {
@@ -246,7 +241,7 @@ public:
 					creature->SetVisible(false);
 					NPC_GuardGUID = creature->GetGUID();
 					if (TeamIdInInstance == TEAM_ALLIANCE)
-						creature->UpdateEntry(NPC_ARCHMAGE_KORELN);
+						creature->UpdateEntry(NPC_ARCHMAGE_ELANDRA);
 					break;
 				case NPC_UTHER:
 					creature->SetVisible(false);

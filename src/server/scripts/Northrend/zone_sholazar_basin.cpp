@@ -37,8 +37,6 @@ EndContentData */
 #include "Player.h"
 #include "Vehicle.h"
 #include "WaypointManager.h"
-#include "PassiveAI.h"
-#include "CombatAI.h"
 
 // Ours
 enum songOfWindandWater
@@ -68,7 +66,7 @@ class spell_q12726_song_of_wind_and_water : public SpellScriptLoader
 					{
 						player->KilledMonsterCredit(cr->GetDisplayId() == NPC_SOWAW_WATER_MODEL ? 29008 : 29009, 0);
 						CreatureTemplate const* ct = sObjectMgr->GetCreatureTemplate(cr->GetDisplayId() == NPC_SOWAW_WIND_MODEL ? NPC_SOWAW_WIND_ELEMENTAL : NPC_SOWAW_WATER_ELEMENTAL);
-						for (uint8 i=0; i < MAX_CREATURE_SPELLS; ++i)
+						for (uint8 i=0; i < CREATURE_MAX_SPELLS; ++i)
 							cr->m_spells[i] = ct->spells[i];
 
 						player->VehicleSpellInitialize();
@@ -1299,7 +1297,7 @@ public:
 
                         Unit::Kill(bird, bird);
                         crunchy->GetMotionMaster()->MovePoint(0, bird->GetPositionX(), bird->GetPositionY(),
-                            bird->GetMap()->GetWaterOrGroundLevel(bird->GetPhaseMask(), bird->GetPositionX(), bird->GetPositionY(), bird->GetPositionZ()));
+                            bird->GetMap()->GetWaterOrGroundLevel(bird->GetPositionX(), bird->GetPositionY(), bird->GetPositionZ()));
                         /// @todo Make crunchy perform emote eat when he reaches the bird
 
                         break;

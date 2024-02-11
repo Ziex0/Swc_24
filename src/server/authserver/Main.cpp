@@ -35,7 +35,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Configuration/Config.h"
 #include "Log.h"
-#include "GitRevision.h"
+#include "SystemConfig.h"
 #include "Util.h"
 #include "SignalHandler.h"
 #include "RealmList.h"
@@ -111,7 +111,7 @@ extern int main(int argc, char** argv)
         return 1;
     }
 
-    sLog->outString("%s (authserver)", GitRevision::GetFullVersion());
+    sLog->outString("%s (authserver)", _FULLVERSION);
     sLog->outString("<Ctrl-C> to stop.\n");
     sLog->outString("Using configuration file %s.", configFile);
 
@@ -202,20 +202,20 @@ extern int main(int argc, char** argv)
             ULONG_PTR currentAffinity = affinity & appAff;
             
             if (!currentAffinity)
-                sLog->outError("Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
+                sLog->outError("server.authserver", "Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
             else if (SetProcessAffinityMask(hProcess, currentAffinity))
-                sLog->outString("Using processors (bitmask, hex): %x", currentAffinity);
+                sLog->outString("server.authserver", "Using processors (bitmask, hex): %x", currentAffinity);
             else
-                sLog->outError("Can't set used processors (hex): %x", currentAffinity);
+                sLog->outError("server.authserver", "Can't set used processors (hex): %x", currentAffinity);
         }
     }
     
     if (highPriority)
     {
         if (SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS))
-            sLog->outString("authserver process priority class set to HIGH");
+            sLog->outString("server.authserver", "authserver process priority class set to HIGH");
         else
-            sLog->outError("Can't set authserver process priority class.");
+            sLog->outError("server.authserver", "Can't set authserver process priority class.");
     }
     
 #else // Linux
@@ -230,33 +230,29 @@ extern int main(int argc, char** argv)
                 CPU_SET(i, &mask);
 
         if (sched_setaffinity(0, sizeof(mask), &mask))
-            sLog->outError("Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
+            sLog->outError("server.authserver", "Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
         else
         {
             CPU_ZERO(&mask);
             sched_getaffinity(0, sizeof(mask), &mask);
-            sLog->outString("Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
+            sLog->outString("server.authserver", "Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
         }
     }
 
     if (highPriority)
     {
         if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
-            sLog->outError("Can't set authserver process priority class, error: %s", strerror(errno));
+            sLog->outError("server.authserver", "Can't set authserver process priority class, error: %s", strerror(errno));
         else
-            sLog->outString("authserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
+            sLog->outString("server.authserver", "authserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
     }
     
 #endif
 #endif
 
     // maximum counter for next ping
-    uint32 pingLoops = (sConfigMgr->GetIntDefault("MaxPingTime", 60) * (MINUTE * 1000000 / 100000));
-    uint32 pingLoopCounter = 0;
-
-    // maximum counter for ban cleaning
-    uint32 banLoops = (sConfigMgr->GetIntDefault("BanExpiryCheckInterval", 1) * (MINUTE * 1000000 / 100000));
-    uint32 banLoopCounter = 0;
+    uint32 numLoops = (sConfigMgr->GetIntDefault("MaxPingTime", 30) * (MINUTE * 1000000 / 100000));
+    uint32 loopCounter = 0;
 
     // possibly enable db logging; avoid massive startup spam by doing it here.
     if (sConfigMgr->GetBoolDefault("EnableLogDB", false))
@@ -274,19 +270,11 @@ extern int main(int argc, char** argv)
         if (ACE_Reactor::instance()->run_reactor_event_loop(interval) == -1)
             break;
 
-        if ((++pingLoopCounter) == pingLoops)
+        if ((++loopCounter) == numLoops)
         {
-            pingLoopCounter = 0;
+            loopCounter = 0;
             sLog->outDetail("Ping MySQL to keep connection alive");
             LoginDatabase.KeepAlive();
-        }
-
-        if ((++banLoopCounter) == banLoops)
-        {
-            banLoopCounter = 0;
-            sLog->outDetail("Removing expired bans");
-            LoginDatabase.Execute(LoginDatabase.GetPreparedStatement(LOGIN_DEL_EXPIRED_IP_BANS));
-            LoginDatabase.Execute(LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPIRED_ACCOUNT_BANS));
         }
     }
 

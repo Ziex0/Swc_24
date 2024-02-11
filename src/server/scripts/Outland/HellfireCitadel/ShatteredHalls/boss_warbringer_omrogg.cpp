@@ -5,7 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "shattered_halls.h"
-#include "PassiveAI.h"
 
 enum Spells
 {

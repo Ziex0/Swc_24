@@ -20,9 +20,8 @@
 #define _FORMATIONS_H
 
 #include "Define.h"
+#include "UnorderedMap.h"
 #include <map>
-
-#include <unordered_map>
 
 class Creature;
 class CreatureGroup;
@@ -37,7 +36,7 @@ struct FormationInfo
     uint16 point_2;
 };
 
-typedef std::unordered_map<uint32/*memberDBGUID*/, FormationInfo*>   CreatureGroupInfoType;
+typedef UNORDERED_MAP<uint32/*memberDBGUID*/, FormationInfo*>   CreatureGroupInfoType;
 
 class FormationMgr
 {

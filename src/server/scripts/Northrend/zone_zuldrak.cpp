@@ -24,7 +24,6 @@
 #include "PassiveAI.h"
 #include "SpellInfo.h"
 #include "Vehicle.h"
-#include "SpellAuras.h"
 
 // Ours
 enum AlchemistItemRequirements

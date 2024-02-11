@@ -36,20 +36,22 @@ class gm_commandscript : public CommandScript
 public:
     gm_commandscript() : CommandScript("gm_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> gmCommandTable =
+        static ChatCommand gmCommandTable[] =
         {
-            { "chat",           SEC_GAMEMASTER,      false, &HandleGMChatCommand,              "" },
-            { "fly",            SEC_ADMINISTRATOR,  false, &HandleGMFlyCommand,               "" },
-            //{ "ingame",         SEC_PLAYER,         true,  &HandleGMListIngameCommand,        "" },
-            { "list",           SEC_ADMINISTRATOR,  true,  &HandleGMListFullCommand,          "" },
-            { "visible",        SEC_GAMEMASTER,      false, &HandleGMVisibleCommand,           "" },
-            { "",               SEC_GAMEMASTER,      false, &HandleGMCommand,                  "" }
+            { "chat",           SEC_GAMEMASTER,      false, &HandleGMChatCommand,              "", NULL },
+            { "fly",            SEC_ADMINISTRATOR,  false, &HandleGMFlyCommand,               "", NULL },
+            //{ "ingame",         SEC_PLAYER,         true,  &HandleGMListIngameCommand,        "", NULL },
+            { "list",           SEC_ADMINISTRATOR,  true,  &HandleGMListFullCommand,          "", NULL },
+            { "visible",        SEC_GAMEMASTER,      false, &HandleGMVisibleCommand,           "", NULL },
+            { "",               SEC_GAMEMASTER,      false, &HandleGMCommand,                  "", NULL },
+            { NULL,             0,                  false, NULL,                              "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "gm",             SEC_GAMEMASTER,      false, NULL,                     "", gmCommandTable }
+            { "gm",             SEC_GAMEMASTER,      false, NULL,                     "", gmCommandTable },
+            { NULL,             0,                  false, NULL,                               "", NULL }
         };
         return commandTable;
     }
@@ -93,9 +95,7 @@ public:
         if (!*args)
             return false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target =  handler->getSelectedPlayer();
         if (!target || handler->GetSession()->GetSecurity() < SEC_GAMEMASTER)
             target = handler->GetSession()->GetPlayer();
 

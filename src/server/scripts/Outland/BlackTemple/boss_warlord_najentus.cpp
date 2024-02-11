@@ -5,7 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "black_temple.h"
-#include "SpellScript.h"
 
 enum Yells
 {

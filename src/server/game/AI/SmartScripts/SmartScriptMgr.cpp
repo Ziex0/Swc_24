@@ -35,7 +35,7 @@ void SmartWaypointMgr::LoadFromDB()
 {
     uint32 oldMSTime = getMSTime();
 
-    for (std::unordered_map<uint32, WPPath*>::iterator itr = waypoint_map.begin(); itr != waypoint_map.end(); ++itr)
+    for (UNORDERED_MAP<uint32, WPPath*>::iterator itr = waypoint_map.begin(); itr != waypoint_map.end(); ++itr)
     {
         for (WPPath::iterator pathItr = itr->second->begin(); pathItr != itr->second->end(); ++pathItr)
             delete pathItr->second;
@@ -94,7 +94,7 @@ void SmartWaypointMgr::LoadFromDB()
 
 SmartWaypointMgr::~SmartWaypointMgr()
 {
-    for (std::unordered_map<uint32, WPPath*>::iterator itr = waypoint_map.begin(); itr != waypoint_map.end(); ++itr)
+    for (UNORDERED_MAP<uint32, WPPath*>::iterator itr = waypoint_map.begin(); itr != waypoint_map.end(); ++itr)
     {
         for (WPPath::iterator pathItr = itr->second->begin(); pathItr != itr->second->end(); ++pathItr)
             delete pathItr->second;
@@ -982,14 +982,14 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
             GameEventMgr::GameEventDataMap const& events = sGameEventMgr->GetEventMap();
             if (eventId < 1 || eventId >= events.size())
             {
-                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), eventId);
+                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), e.action.gameEventStop);
                 return false;
             }
 
             GameEventData const& eventData = events[eventId];
             if (!eventData.isValid())
             {
-                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), eventId);
+                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), e.action.gameEventStop);
                 return false;
             }
             break;
@@ -1002,14 +1002,14 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
             GameEventMgr::GameEventDataMap const& events = sGameEventMgr->GetEventMap();
             if (eventId < 1 || eventId >= events.size())
             {
-                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), eventId);
+                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), e.action.gameEventStart);
                 return false;
             }
 
             GameEventData const& eventData = events[eventId];
             if (!eventData.isValid())
             {
-                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), eventId);
+                sLog->outError("SmartAIMgr: Entry %u SourceType %u Event %u Action %u uses non-existent event, eventId %u, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), e.action.gameEventStart);
                 return false;
             }
             break;

@@ -33,7 +33,6 @@
 #include "GroupMgr.h"
 #include "GameEventMgr.h"
 #include "WorldSession.h"
-#include "Opcodes.h"
 
 namespace lfg
 {
@@ -102,23 +101,12 @@ void LFGMgr::LoadRewards()
 {
     uint32 oldMSTime = getMSTime();
 
-    if (!sWorld->IsInCurrentContent(PATCH_330))
-    {
-        sLog->outString(">> Loaded 0 lfg dungeon rewards. LFG was not implemented in current patch!");
-        return;
-    }
-
     for (LfgRewardContainer::iterator itr = RewardMapStore.begin(); itr != RewardMapStore.end(); ++itr)
         delete itr->second;
     RewardMapStore.clear();
 
-    uint32 currentBuild = sWorld->getIntConfig(CONFIG_CURRENT_BUILD);
     // ORDER BY is very important for GetRandomDungeonReward!
-    QueryResult result = WorldDatabase.PQuery("SELECT dungeonId, lfg_dungeon_rewards.maxLevel, firstQuestId, otherQuestId FROM lfg_dungeon_rewards "
-    "LEFT OUTER JOIN quest_template qt1 ON qt1.Id = lfg_dungeon_rewards.firstQuestId  "
-    "LEFT OUTER JOIN quest_template qt2 ON qt2.Id = lfg_dungeon_rewards.otherQuestId "
-    "WHERE qt1.AddedInBuild <= '%u' AND IF(qt2.Id IS NOT NULL, qt2.AddedInBuild <= '%u', 1 = 1) "
-    "ORDER BY dungeonId, maxLevel ASC", currentBuild, currentBuild);
+    QueryResult result = WorldDatabase.Query("SELECT dungeonId, maxLevel, firstQuestId, otherQuestId FROM lfg_dungeon_rewards ORDER BY dungeonId, maxLevel ASC");
 
     if (!result)
     {
@@ -204,12 +192,11 @@ void LFGMgr::LoadLFGDungeons(bool reload /* = false */)
     }
 
     // Fill teleport locations from DB
-    //                                                   0          1           2           3            4
-    QueryResult result = WorldDatabase.Query("SELECT dungeonId, position_x, position_y, position_z, orientation FROM lfg_dungeon_template");
+    QueryResult result = WorldDatabase.Query("SELECT dungeonId, position_x, position_y, position_z, orientation FROM lfg_entrances");
 
     if (!result)
     {
-        sLog->outError(">> Loaded 0 lfg entrance positions. DB table `lfg_dungeon_template` is empty!");
+        sLog->outError(">> Loaded 0 lfg entrance positions. DB table `lfg_entrances` is empty!");
         return;
     }
 
@@ -222,7 +209,7 @@ void LFGMgr::LoadLFGDungeons(bool reload /* = false */)
         LFGDungeonContainer::iterator dungeonItr = LfgDungeonStore.find(dungeonId);
         if (dungeonItr == LfgDungeonStore.end())
         {
-            sLog->outError("table `lfg_dungeon_template` contains coordinates for wrong dungeon %u", dungeonId);
+            sLog->outError("table `lfg_entrances` contains coordinates for wrong dungeon %u", dungeonId);
             continue;
         }
 
@@ -2049,14 +2036,11 @@ void LFGMgr::FinishDungeon(uint64 gguid, const uint32 dungeonId, const Map* curr
             sLog->outDebug(LOG_FILTER_LFG, "LFGMgr::FinishDungeon: [" UI64FMTD "] is in map %u and should be in %u to get reward", guid, player->GetMapId(), mapId);
             continue;
         }
-        
-        if (!sWorld->IsInCurrentContent(PATCH_330))
-            continue;
 
         // Xinef: Update achievements, set correct amount of randomly grouped players
         if (dungeon->difficulty == DUNGEON_DIFFICULTY_HEROIC)
 			if (uint8 count = GetRandomPlayersCount(player->GetGUID()))
-				  player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, count);
+				player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, count);
 
         LfgReward const* reward = GetRandomDungeonReward(rDungeonId, player->getLevel());
         if (!reward)

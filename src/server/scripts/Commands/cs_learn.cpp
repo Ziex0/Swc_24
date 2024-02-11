@@ -36,47 +36,49 @@ class learn_commandscript : public CommandScript
 public:
     learn_commandscript() : CommandScript("learn_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> learnAllMyCommandTable =
+        static ChatCommand learnAllMyCommandTable[] =
         {
-            { "class",          SEC_ADMINISTRATOR,  false, &HandleLearnAllMyClassCommand,       "" },
-            { "pettalents",     SEC_ADMINISTRATOR,  false, &HandleLearnAllMyPetTalentsCommand,  "" },
-            { "spells",         SEC_ADMINISTRATOR,  false, &HandleLearnAllMySpellsCommand,      "" },
-            { "talents",        SEC_ADMINISTRATOR,  false, &HandleLearnAllMyTalentsCommand,     "" }
+            { "class",          SEC_ADMINISTRATOR,  false, &HandleLearnAllMyClassCommand,       "", NULL },
+            { "pettalents",     SEC_ADMINISTRATOR,  false, &HandleLearnAllMyPetTalentsCommand,  "", NULL },
+            { "spells",         SEC_ADMINISTRATOR,  false, &HandleLearnAllMySpellsCommand,      "", NULL },
+            { "talents",        SEC_ADMINISTRATOR,  false, &HandleLearnAllMyTalentsCommand,     "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> learnAllCommandTable =
+        static ChatCommand learnAllCommandTable[] =
         {
             { "my",             SEC_ADMINISTRATOR,  false, NULL,                                "",  learnAllMyCommandTable },
-            { "gm",             SEC_GAMEMASTER,     false, &HandleLearnAllGMCommand,            "" },
-            { "crafts",         SEC_GAMEMASTER,     false, &HandleLearnAllCraftsCommand,        "" },
-            { "default",        SEC_GAMEMASTER,      false, &HandleLearnAllDefaultCommand,       "" },
-            { "lang",           SEC_GAMEMASTER,      false, &HandleLearnAllLangCommand,          "" },
-            { "recipes",        SEC_GAMEMASTER,     false, &HandleLearnAllRecipesCommand,       "" }
+            { "gm",             SEC_GAMEMASTER,     false, &HandleLearnAllGMCommand,            "", NULL },
+            { "crafts",         SEC_GAMEMASTER,     false, &HandleLearnAllCraftsCommand,        "", NULL },
+            { "default",        SEC_GAMEMASTER,      false, &HandleLearnAllDefaultCommand,       "", NULL },
+            { "lang",           SEC_GAMEMASTER,      false, &HandleLearnAllLangCommand,          "", NULL },
+            { "recipes",        SEC_GAMEMASTER,     false, &HandleLearnAllRecipesCommand,       "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> learnCommandTable =
+        static ChatCommand learnCommandTable[] =
         {
             { "all",            SEC_ADMINISTRATOR,  false, NULL,                                "",  learnAllCommandTable },
-            { "",               SEC_ADMINISTRATOR,  false, &HandleLearnCommand,                 "" }
+            { "",               SEC_ADMINISTRATOR,  false, &HandleLearnCommand,                 "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
             { "learn",          SEC_GAMEMASTER,      false, NULL,                                "", learnCommandTable },
-            { "unlearn",        SEC_ADMINISTRATOR,  false, &HandleUnLearnCommand,               "" }
+            { "unlearn",        SEC_ADMINISTRATOR,  false, &HandleUnLearnCommand,               "", NULL },
+            { NULL,             0,                  false, NULL,                                "", NULL }
         };
         return commandTable;
     }
 
     static bool HandleLearnCommand(ChatHandler* handler, char const* args)
     {
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* targetPlayer = handler->getSelectedPlayer();
 
-        if (!target)
+        if (!targetPlayer)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
             handler->SetSentErrorMessage(true);
@@ -115,24 +117,24 @@ public:
         char const* all = strtok(NULL, " ");
         bool allRanks = all ? (strncmp(all, "all", strlen(all)) == 0) : false;
 
-        if (!allRanks && target->HasSpell(spell))
+        if (!allRanks && targetPlayer->HasSpell(spell))
         {
-            if (target == handler->GetSession()->GetPlayer())
+            if (targetPlayer == handler->GetSession()->GetPlayer())
                 handler->SendSysMessage(LANG_YOU_KNOWN_SPELL);
             else
-                handler->PSendSysMessage(LANG_TARGET_KNOWN_SPELL, handler->GetNameLink(target).c_str());
+                handler->PSendSysMessage(LANG_TARGET_KNOWN_SPELL, handler->GetNameLink(targetPlayer).c_str());
             handler->SetSentErrorMessage(true);
             return false;
         }
 
         if (allRanks)
-            target->learnSpellHighRank(spell);
+            targetPlayer->learnSpellHighRank(spell);
         else
-            target->learnSpell(spell);
+            targetPlayer->learnSpell(spell);
 
         uint32 firstSpell = sSpellMgr->GetFirstSpellInChain(spell);
         if (GetTalentSpellCost(firstSpell))
-            target->SendTalentsInfoData(false);
+            targetPlayer->SendTalentsInfoData(false);
 
         return true;
     }
@@ -347,8 +349,7 @@ public:
         if (!handler->extractPlayerTarget((char*)args, &target))
             return false;
 
-        target->LearnDefaultSkills();
-        target->LearnCustomSpells();
+        target->learnDefaultSpells();
         target->learnQuestRewardedSpells();
 
         handler->PSendSysMessage(LANG_COMMAND_LEARN_ALL_DEFAULT_AND_QUEST, handler->GetNameLink(target).c_str());
@@ -379,9 +380,7 @@ public:
         //  Learns all recipes of specified profession and sets skill to max
         //  Example: .learn all_recipes enchanting
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
@@ -500,9 +499,7 @@ public:
         char const* allStr = strtok(NULL, " ");
         bool allRanks = allStr ? (strncmp(allStr, "all", strlen(allStr)) == 0) : false;
 
-        Player* target = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
         if (!target)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);

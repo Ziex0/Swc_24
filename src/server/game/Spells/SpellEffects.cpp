@@ -614,13 +614,17 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                     if (Player* caster = m_caster->ToPlayer())
                     {
                         // Add Ammo and Weapon damage plus RAP * 0.1
-                        float dmg_min = caster->GetWeaponDamageRange(RANGED_ATTACK, MINDAMAGE);
-                        float dmg_max = caster->GetWeaponDamageRange(RANGED_ATTACK, MAXDAMAGE);
-                        if (dmg_max == 0.0f && dmg_min > dmg_max)
-                            damage += int32(dmg_min);
-                        else
-                            damage += irand(int32(dmg_min), int32(dmg_max));
-                        damage += int32(caster->GetAmmoDPS() * caster->GetAttackTime(RANGED_ATTACK) * 0.001f);
+                        if (Item* item = caster->GetWeaponForAttack(RANGED_ATTACK))
+                        {
+                            ItemTemplate const* weaponTemplate = item->GetTemplate();
+                            float dmg_min = weaponTemplate->Damage[0].DamageMin;
+                            float dmg_max = weaponTemplate->Damage[0].DamageMax;
+                            if (dmg_max == 0.0f && dmg_min > dmg_max)
+                                damage += int32(dmg_min);
+                            else
+                                damage += irand(int32(dmg_min), int32(dmg_max));
+                            damage += int32(caster->GetAmmoDPS() * weaponTemplate->Delay * 0.001f);
+                        }
                     }
                 }
                 break;
@@ -1643,96 +1647,84 @@ void Spell::DoCreateItem(uint8 /*effIndex*/, uint32 itemId)
 
     Player* player = unitTarget->ToPlayer();
 
-    uint32 newitemid = itemId;
-    ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(newitemid);
+    ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemId);
     if (!pProto)
     {
         player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, NULL, NULL);
         return;
     }
 
+	uint32 addNumber = damage;
+
     // bg reward have some special in code work
-    uint32 bgType = 0;
+    bool SelfCast = true;
     switch (m_spellInfo->Id)
     {
-    case SPELL_AV_MARK_WINNER:
-    case SPELL_AV_MARK_LOSER:
-        bgType = BATTLEGROUND_AV;
-        break;
-    case SPELL_WS_MARK_WINNER:
-    case SPELL_WS_MARK_LOSER:
-        bgType = BATTLEGROUND_WS;
-        break;
-    case SPELL_AB_MARK_WINNER:
-    case SPELL_AB_MARK_LOSER:
-        bgType = BATTLEGROUND_AB;
-        break;
-    default:
-        break;
+        case SPELL_AV_MARK_WINNER:
+        case SPELL_AV_MARK_LOSER:
+        case SPELL_WS_MARK_WINNER:
+        case SPELL_WS_MARK_LOSER:
+        case SPELL_AB_MARK_WINNER:
+        case SPELL_AB_MARK_LOSER:
+            SelfCast = true;
+            break;
+		case SPELL_WG_MARK_WINNER:
+			if (player->HasAura(55629 /*SPELL_LIEUTENANT*/))
+				addNumber = 3;
+			else if (player->HasAura(33280 /*SPELL_CORPORAL*/))
+				addNumber = 2;
+			else
+				addNumber = 1;
+			SelfCast = true;
+			break;
     }
 
-    uint32 num_to_add = damage;
+    if (addNumber < 1)
+        addNumber = 1;
+    if (addNumber > pProto->GetMaxStackSize())
+        addNumber = pProto->GetMaxStackSize();
 
-    if (num_to_add < 1)
-        num_to_add = 1;
-    if (num_to_add > pProto->GetMaxStackSize())
-        num_to_add = pProto->GetMaxStackSize();
-
-    /* == gem perfection handling == */
-
-    // the chance of getting a perfect result
-    float perfectCreateChance = 0.0f;
-    // the resulting perfect item if successful
-    uint32 perfectItemType = itemId;
-    // get perfection capability and chance
-    if (CanCreatePerfectItem(player, m_spellInfo->Id, perfectCreateChance, perfectItemType))
-        if (roll_chance_f(perfectCreateChance)) // if the roll succeeds...
-            newitemid = perfectItemType;        // the perfect item replaces the regular one
-
-                                                /* == gem perfection handling over == */
-
-
-                                                /* == profession specialization handling == */
-
-                                                // init items_count to 1, since 1 item will be created regardless of specialization
-    int items_count = 1;
-    // the chance to create additional items
+    // init items_count to 1, since 1 item will be created regardless of specialization
+    int32 itemsCount = 1;
     float additionalCreateChance = 0.0f;
-    // the maximum number of created additional items
-    uint8 additionalMaxNum = 0;
+    int32 newMaxOrEntry = 0;
     // get the chance and maximum number for creating extra items
-    if (CanCreateExtraItems(player, m_spellInfo->Id, additionalCreateChance, additionalMaxNum))
-        // roll with this chance till we roll not to create or we create the max num
-        while (roll_chance_f(additionalCreateChance) && items_count <= additionalMaxNum)
-            ++items_count;
+    if (canCreateExtraItems(player, m_spellInfo->Id, additionalCreateChance, newMaxOrEntry))
+    {
+		if (newMaxOrEntry > 0)
+		{
+			// roll with this chance till we roll not to create or we create the max num
+			while (roll_chance_f(additionalCreateChance) && itemsCount <= newMaxOrEntry)
+				++itemsCount;
+		}
+		else if (roll_chance_f(additionalCreateChance))   // if the roll succeeds...
+            itemId = uint32(-newMaxOrEntry);        // the perfect item replaces the regular one
+    }
 
     // really will be created more items
-    num_to_add *= items_count;
-
-    /* == profession specialization handling over == */
-
+    addNumber *= itemsCount;
 
     // can the player store the new item?
     ItemPosCountVec dest;
     uint32 no_space = 0;
-    InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, newitemid, num_to_add, &no_space);
+    InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, addNumber, &no_space);
     if (msg != EQUIP_ERR_OK)
     {
         // convert to possible store amount
         if (msg == EQUIP_ERR_INVENTORY_FULL || msg == EQUIP_ERR_CANT_CARRY_MORE_OF_THIS)
-            num_to_add -= no_space;
+            addNumber -= no_space;
         else
         {
             // if not created by another reason from full inventory or unique items amount limitation
-            player->SendEquipError(msg, NULL, NULL, newitemid);
+            player->SendEquipError(msg, NULL, NULL, itemId);
             return;
         }
     }
 
-    if (num_to_add)
+    if (addNumber)
     {
         // create the new item and store it
-        Item* pItem = player->StoreNewItem(dest, newitemid, true, Item::GenerateItemRandomPropertyId(newitemid));
+        Item* pItem = player->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
 
         // was it successful? return error if not
         if (!pItem)
@@ -1742,25 +1734,16 @@ void Spell::DoCreateItem(uint8 /*effIndex*/, uint32 itemId)
         }
 
         // set the "Crafted by ..." property of the item
-        if (pItem->GetTemplate()->Class != ITEM_CLASS_CONSUMABLE && pItem->GetTemplate()->Class != ITEM_CLASS_QUEST && newitemid != 6265 && newitemid != 6948)
-            pItem->SetUInt32Value(ITEM_FIELD_CREATOR, player->GetGUID());
+        if (pItem->GetTemplate()->Class != ITEM_CLASS_CONSUMABLE && pItem->GetTemplate()->Class != ITEM_CLASS_QUEST && itemId != 6265 && itemId != 6948)
+            pItem->SetUInt32Value(ITEM_FIELD_CREATOR, player->GetGUIDLow());
 
         // send info to the client
-        player->SendNewItem(pItem, num_to_add, true, bgType == 0);
+        player->SendNewItem(pItem, addNumber, true, SelfCast);
 
         // we succeeded in creating at least one item, so a levelup is possible
-        if (bgType == 0)
+        if (SelfCast)
             player->UpdateCraftSkill(m_spellInfo->Id);
     }
-
-    /*
-    // for battleground marks send by mail if not add all expected
-    if (no_space > 0 && bgType)
-    {
-    if (Battleground* bg = sBattlegroundMgr->GetBattlegroundTemplate(BattlegroundTypeId(bgType)))
-    bg->SendRewardMarkByMail(player, newitemid, no_space);
-    }
-    */
 }
 
 void Spell::EffectCreateItem(SpellEffIndex effIndex)
@@ -2431,7 +2414,7 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
                             pos = *destTarget;
                         else
                             // randomize position for multiple summons
-                            pos = m_caster->GetRandomPoint(*destTarget, radius);
+                            m_caster->GetRandomPoint(*destTarget, radius, pos);
 
                         summon = m_originalCaster->SummonCreature(entry, pos, summonType, duration);
                         if (!summon)
@@ -2757,16 +2740,8 @@ void Spell::EffectLearnSkill(SpellEffIndex effIndex)
         return;
 
     uint32 skillid = m_spellInfo->Effects[effIndex].MiscValue;
-    SkillRaceClassInfoEntry const* rcEntry = GetSkillRaceClassInfo(skillid, unitTarget->getRace(), unitTarget->getClass());
-    if (!rcEntry)
-        return;
-
-    SkillTiersEntry const* tier = sSkillTiersStore.LookupEntry(rcEntry->SkillTier);
-    if (!tier)
-        return;
-
     uint16 skillval = unitTarget->ToPlayer()->GetPureSkillValue(skillid);
-    unitTarget->ToPlayer()->SetSkill(skillid, m_spellInfo->Effects[effIndex].CalcValue(), std::max<uint16>(skillval, 1), tier->MaxSkill[damage - 1]);
+    unitTarget->ToPlayer()->SetSkill(skillid, m_spellInfo->Effects[effIndex].CalcValue(), skillval?skillval:1, damage*75);
 }
 
 void Spell::EffectAddHonor(SpellEffIndex /*effIndex*/)
@@ -3183,8 +3158,7 @@ void Spell::EffectSummonPet(SpellEffIndex effIndex)
 
     float x, y, z;
     owner->GetClosePoint(x, y, z, owner->GetObjectSize());
-    owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0, m_spellInfo->Id, m_caster->GetGUID(), PET_LOAD_SUMMON_PET);
-
+	owner->SummonPet(petentry, x, y, z, owner->GetOrientation(), SUMMON_PET, 0, m_spellInfo->Id, m_caster->GetGUID(), PET_LOAD_SUMMON_PET);
     //if (!pet)
     //    return;
 
@@ -3324,16 +3298,6 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                         aur->ModStackAmount(num);
                     spell_bonus += (aur->GetStackAmount() - 1) * CalculateSpellDamage(2, unitTarget);
                 }
-            }
-            // Heroic Strike
-            // Causes {0.35*$m1} additional damage against Dazed targets.
-            else if (m_spellInfo->SpellFamilyFlags[0] & 0x64)
-            {
-                // only rank 10+ gives the bonus damage
-                if (m_spellInfo->BaseLevel >= 66)
-                    // check for daze
-                    if (unitTarget->HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED))
-                        spell_bonus += (m_spellInfo->Effects[EFFECT_0].CalcValue() * 0.35);
             }
 			break;
         }
@@ -3842,12 +3806,11 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     if (Player* caster = m_caster->ToPlayer())
                     {
                         caster->RewardPlayerAndGroupAtEvent(18388, unitTarget);
-                        if (unitTarget->isDead())
-                            if (Creature* target = unitTarget->ToCreature())
-                            {
-                                target->setDeathState(CORPSE);
-                                target->RemoveCorpse();
-                            }
+                        if (Creature* target = unitTarget->ToCreature())
+                        {
+                            target->setDeathState(CORPSE);
+                            target->RemoveCorpse();
+                        }
                     }
                     break;
 				// SOTA defender teleport
@@ -4741,7 +4704,8 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
     if (!m_targets.HasDst())
         return;
 
-    Position dstpos = destTarget->GetPosition();
+    Position dstpos;
+    destTarget->GetPosition(&dstpos);
     unitTarget->NearTeleportTo(dstpos.GetPositionX(), dstpos.GetPositionY(), dstpos.GetPositionZ(), dstpos.GetOrientation(), unitTarget == m_caster);
 }
 
@@ -4956,7 +4920,7 @@ void Spell::EffectCharge(SpellEffIndex /*effIndex*/)
             {
                 float angle = m_caster->GetRelativeAngle(&pos);
                 float dist = m_caster->GetDistance(pos);
-                pos = m_caster->GetFirstCollisionPosition(dist, angle);
+                m_caster->GetFirstCollisionPosition(pos, dist, angle);
             }
 
             m_caster->GetMotionMaster()->MoveCharge(pos.m_positionX, pos.m_positionY, pos.m_positionZ+0.5f);
@@ -4981,13 +4945,14 @@ void Spell::EffectChargeDest(SpellEffIndex /*effIndex*/)
 
     if (m_targets.HasDst())
     {
-        Position pos = destTarget->GetPosition();
+        Position pos;
+        destTarget->GetPosition(&pos);
 		
 		if (!m_caster->IsWithinLOS(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ()))
 		{
 			float angle = m_caster->GetRelativeAngle(pos.GetPositionX(), pos.GetPositionY());
 			float dist = m_caster->GetDistance(pos);
-            pos = m_caster->GetFirstCollisionPosition(dist, angle);
+			m_caster->GetFirstCollisionPosition(pos, dist, angle);
 		}
 
         m_caster->GetMotionMaster()->MoveCharge(pos.m_positionX, pos.m_positionY, pos.m_positionZ);
@@ -5361,25 +5326,6 @@ void Spell::EffectTransmitted(SpellEffIndex effIndex)
 		fy = m_caster->GetPositionY();
 		fz = m_caster->GetPositionZ();
 	}
-
-    if (m_spellInfo->Id == 9082) // Investigate the XXX - Mage quest
-    {
-        std::list<Creature*> targetList;
-        m_caster->GetCreatureListWithEntryInGrid(targetList, 6492, 26.0f);
-        
-        bool riftFound = false;
-        for (std::list<Creature*>::const_iterator itr = targetList.begin(); itr != targetList.end(); ++itr)
-        {
-            if ((*itr)->HasAura(9032))
-            {
-                fx = (*itr)->GetPositionX();
-                fy = (*itr)->GetPositionY();
-                fz = (*itr)->GetPositionZ();
-                riftFound = true;
-            }
-        }
-        if (!riftFound) return;
-    }
 
     Map *cMap = m_caster->GetMap();
     // if gameobject is summoning object, it should be spawned right on caster's position
@@ -5969,7 +5915,7 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
             pos = *destTarget;
         else
             // randomize position for multiple summons
-            pos = m_caster->GetRandomPoint(*destTarget, radius);
+            m_caster->GetRandomPoint(*destTarget, radius, pos);
 
         summon = map->SummonCreature(entry, pos, properties, duration, caster, m_spellInfo->Id);
         if (!summon)
@@ -6205,7 +6151,10 @@ void Spell::EffectBind(SpellEffIndex effIndex)
     if (m_targets.HasDst())
         homeLoc.WorldRelocate(*destTarget);
     else
-        homeLoc = player->GetWorldLocation();
+    {
+        player->GetPosition(&homeLoc);
+        homeLoc.m_mapId = player->GetMapId();
+    }
 
     player->SetHomebind(homeLoc, areaId);
 

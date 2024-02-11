@@ -31,7 +31,7 @@
 
 class ChannelMgr
 {
-    typedef std::unordered_map<std::wstring, Channel*> ChannelMap;
+    typedef UNORDERED_MAP<std::wstring, Channel*> ChannelMap;
     typedef std::map<std::string, ChannelRights> ChannelRightsMap;
 
     public:

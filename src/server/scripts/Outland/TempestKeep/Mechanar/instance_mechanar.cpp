@@ -5,8 +5,6 @@ REWRITTEN BY XINEF
 #include "ScriptMgr.h"
 #include "InstanceScript.h"
 #include "mechanar.h"
-#include "CreatureAI.h"
-#include "Player.h"
 
 static DoorData const doorData[] =
 {

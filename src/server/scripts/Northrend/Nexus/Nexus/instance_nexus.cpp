@@ -5,8 +5,6 @@ REWRITTEN FROM SCRATCH BY XINEF, IT OWNS NOW!
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "nexus.h"
-#include "MapReference.h"
-#include "Player.h"
 
 DoorData const doorData[] =
 {

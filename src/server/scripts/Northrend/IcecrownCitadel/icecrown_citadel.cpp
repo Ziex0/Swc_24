@@ -16,8 +16,6 @@ REWRITTEN FROM SCRATCH BY PUSSYWIZARD, IT OWNS NOW!
 #include "SmartAI.h"
 #include "Group.h"
 #include "icecrown_citadel.h"
-#include "ScriptedGossip.h"
-#include "Chat.h"
 
 enum Texts
 {
@@ -1755,7 +1753,8 @@ class npc_frostwing_vrykul : public CreatureScript
 			{
 				if (spell->Id == 71306 && c->GetTypeId() == TYPEID_UNIT) // Twisted Winds
 				{
-					Position myPos = me->GetPosition();
+					Position myPos;
+					me->GetPosition(&myPos);
 					me->NearTeleportTo(c->GetPositionX(), c->GetPositionY(), c->GetPositionZ(), c->GetOrientation());
 					c->NearTeleportTo(myPos.GetPositionX(), myPos.GetPositionY(), myPos.GetPositionZ(), myPos.GetOrientation());
 					const ThreatContainer::StorageType me_tl = me->getThreatManager().getThreatList();
@@ -2160,8 +2159,9 @@ class spell_svalna_revive_champion : public SpellScriptLoader
                 if (!caster)
                     return;
 
-                Position pos = caster->GetPosition();
-                pos = caster->GetNearPosition(5.0f, 0.0f);
+                Position pos;
+                caster->GetPosition(&pos);
+                caster->GetNearPosition(pos, 5.0f, 0.0f);
                 pos.m_positionZ = caster->GetBaseMap()->GetHeight(caster->GetPhaseMask(), pos.GetPositionX(), pos.GetPositionY(), caster->GetPositionZ(), true, 50.0f);
                 pos.m_positionZ += 0.1f;
 				caster->SendMeleeAttackStop(caster->GetVictim());
@@ -3195,7 +3195,8 @@ public:
 
 			if (currPipeWP != VENGEFUL_WP_COUNT)
 			{
-				Position pos = who->GetPosition();
+				Position pos;
+				who->GetPosition(&pos);
 				float angle = who->GetAngle(me);
 				float dist = 3.0f;
 				pos.m_positionX += cos(angle)*dist;

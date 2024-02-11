@@ -41,9 +41,9 @@
 
 char* command_finder(const char* text, int state)
 {
-    static size_t idx, len;
+    static int idx, len;
     const char* ret;
-    std::vector<ChatCommand> const& cmd = ChatHandler::getCommandTable();
+    ChatCommand* cmd = ChatHandler::getCommandTable();
 
     if (!state)
     {
@@ -51,19 +51,20 @@ char* command_finder(const char* text, int state)
         len = strlen(text);
     }
 
-    while (idx < cmd.size())
+    while ((ret = cmd[idx].Name))
     {
-        ret = cmd[idx].Name;
         if (!cmd[idx].AllowConsole)
         {
-            ++idx;
+            idx++;
             continue;
         }
 
-        ++idx;
+        idx++;
         //printf("Checking %s \n", cmd[idx].Name);
         if (strncmp(ret, text, len) == 0)
             return strdup(ret);
+        if (cmd[idx].Name == NULL)
+            break;
     }
 
     return ((char*)NULL);

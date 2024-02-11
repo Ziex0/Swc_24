@@ -24,8 +24,6 @@
 #include "DetourCommon.h"
 #include "DetourNavMeshQuery.h"
 
-#include "CellImpl.h"
-
 ////////////////// PathGenerator //////////////////
 PathGenerator::PathGenerator(const Unit* owner) :
 	_polyLength(0), _type(PATHFIND_BLANK), _useStraightPath(false),
@@ -36,10 +34,11 @@ PathGenerator::PathGenerator(const Unit* owner) :
     memset(_pathPolyRefs, 0, sizeof(_pathPolyRefs));
 
 	uint32 mapId = _sourceUnit->GetMapId();
-	//if (DisableMgr::IsPathfindingEnabled(_sourceUnit->FindMap())) // pussywizard: checked before creating new PathGenerator
+	//if (MMAP::MMapFactory::IsPathfindingEnabled(_sourceUnit->FindMap())) // pussywizard: checked before creating new PathGenerator
 	{
 		MMAP::MMapManager* mmap = MMAP::MMapFactory::createOrGetMMapManager();
 
+		TRINITY_READ_GUARD(ACE_RW_Thread_Mutex, mmap->GetManagerLock());
 		_navMesh = mmap->GetNavMesh(mapId);
 		_navMeshQuery = mmap->GetNavMeshQuery(mapId, _sourceUnit->GetInstanceId());
 	}
@@ -85,7 +84,7 @@ bool PathGenerator::CalculatePath(float destX, float destY, float destZ, bool fo
 
 	// pussywizard: mutex with new that can be release at any moment, DON'T FORGET TO RELEASE ON EVERY RETURN !!!
 	const Map* base = _sourceUnit->GetBaseMap();
-	ACE_RW_Thread_Mutex& mmapLock = base->GetMMapLock();
+	ACE_RW_Thread_Mutex& mmapLock = (base ? base->GetMMapLock() : MMAP::MMapFactory::createOrGetMMapManager()->GetMMapGeneralLock());
 	mmapLock.acquire_read();
 
 	// make sure navMesh works - we can run on map w/o mmap
@@ -152,10 +151,9 @@ dtPolyRef PathGenerator::GetPolyByLocation(float* point, float* distance) const
 
 	// still nothing ..
 	// try with bigger search box
-    // Note that the extent should not overlap more than 128 polygons in the navmesh (see dtNavMeshQuery::findNearestPoly)
-    extents[1] = 50.0f;
-
-    if (dtStatusSucceed(_navMeshQuery->findNearestPoly(point, extents, &_filter, &polyRef, closestPoint)) && polyRef != INVALID_POLYREF)
+	extents[1] = 80.0f;
+	result = _navMeshQuery->findNearestPoly(point, extents, &_filter, &polyRef, closestPoint);
+	if (DT_SUCCESS == result && polyRef != INVALID_POLYREF)
 	{
 		*distance = dtVdist(closestPoint, point);
 		return polyRef;
@@ -340,7 +338,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 		if (startPoly != endPoly || !endInWaterFar)
 		{
 			float closestPoint[VERTEX_SIZE];
-            if (dtStatusSucceed(_navMeshQuery->closestPointOnPoly(endPoly, endPoint, closestPoint, NULL)))
+			if (DT_SUCCESS == _navMeshQuery->closestPointOnPoly(endPoly, endPoint, closestPoint))
 			{
 				dtVcopy(endPoint, closestPoint);
 				SetActualEndPosition(G3D::Vector3(endPoint[2], endPoint[0], endPoint[1]));
@@ -417,7 +415,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 
 		// we need any point on our suffix start poly to generate poly-path, so we need last poly in prefix data
 		float suffixEndPoint[VERTEX_SIZE];
-        if (dtStatusFailed(_navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint, NULL)))
+		if (DT_SUCCESS != _navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint))
 		{
 			// we can hit offmesh connection as last poly - closestPointOnPoly() don't like that
 			// try to recover by using prev polyref
@@ -425,7 +423,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 			if (prefixPolyLength)
 			{
 				suffixStartPoly = _pathPolyRefs[prefixPolyLength-1];
-                if (dtStatusFailed(_navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint, NULL)))
+				if (DT_SUCCESS != _navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint))
 					error = true;
 			}
 			else
@@ -446,7 +444,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 									(int*)&suffixPolyLength,
 									MAX_PATH_LENGTH-prefixPolyLength);   // max number of polygons in output path
 
-			if (!suffixPolyLength || dtStatusFailed(dtResult))
+			if (!suffixPolyLength || dtResult != DT_SUCCESS)
 			{
 				// this is probably an error state, but we'll leave it
 				// and hopefully recover on the next Update
@@ -471,7 +469,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 					(int*)&_polyLength,
 					MAX_PATH_LENGTH);   // max number of polygons in output path
 
-			if (!_polyLength || dtStatusFailed(dtResult))
+			if (!_polyLength || dtResult != DT_SUCCESS)
 			{
 				// only happens if we passed bad data to findPath(), or navmesh is messed up
 				BuildShortcut();
@@ -500,7 +498,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
 				(int*)&_polyLength,
 				MAX_PATH_LENGTH);   // max number of polygons in output path
 
-		if (!_polyLength || dtStatusFailed(dtResult))
+		if (!_polyLength || dtResult != DT_SUCCESS)
 		{
 			// only happens if we passed bad data to findPath(), or navmesh is messed up
 			BuildShortcut();
@@ -659,7 +657,7 @@ void PathGenerator::BuildPointPath(const float *startPoint, const float *endPoin
 				_pointPathLimit);    // maximum number of points
 	}
 
-	if (pointCount < 2 || dtStatusFailed(dtResult))
+	if (pointCount < 2 || dtResult != DT_SUCCESS)
 	{
 		// only happens if pass bad data to findStraightPath or navmesh is broken
 		// single point paths can be generated here
@@ -785,7 +783,7 @@ bool PathGenerator::HaveTile(const G3D::Vector3& p) const
 	if (tx < 0 || ty < 0)
 		return false;
 
-    return (_navMesh->getTileAt(tx, ty, 0) != NULL);
+	return (_navMesh->getTileAt(tx, ty) != NULL);
 }
 
 uint32 PathGenerator::FixupCorridor(dtPolyRef* path, uint32 npath, uint32 maxPath, dtPolyRef const* visited, uint32 nvisited)
@@ -845,7 +843,7 @@ bool PathGenerator::GetSteerTarget(float const* startPos, float const* endPos,
 	uint32 nsteerPath = 0;
 	dtStatus dtResult = _navMeshQuery->findStraightPath(startPos, endPos, path, pathSize,
 												steerPath, steerPathFlags, steerPathPolys, (int*)&nsteerPath, MAX_STEER_POINTS);
-	if (!nsteerPath || dtStatusFailed(dtResult))
+	if (!nsteerPath || DT_SUCCESS != dtResult)
 		return false;
 
 	// Find vertex far enough to steer to.
@@ -909,7 +907,7 @@ dtStatus PathGenerator::FindSmoothPath(float const* startPos, float const* endPo
 		// Find movement delta.
 		float delta[VERTEX_SIZE];
 		dtVsub(delta, steerPos, iterPos);
-        float len = dtMathSqrtf(dtVdot(delta, delta));
+		float len = dtSqrt(dtVdot(delta,delta));
 		// If the steer target is end of path or off-mesh link, do not move past the location.
 		if ((endOfPath || offMeshConnection) && len < SMOOTH_PATH_STEP_SIZE)
 			len = 1.0f;

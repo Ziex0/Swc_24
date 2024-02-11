@@ -156,7 +156,8 @@ class boss_ayamiss : public CreatureScript
                     _phase = PHASE_GROUND;
                     SetCombatMovement(true);
                     me->SetCanFly(false);
-                    Position VictimPos = me->GetVictim()->GetPosition();
+                    Position VictimPos;
+                    me->GetVictim()->GetPosition(&VictimPos);
                     me->GetMotionMaster()->MovePoint(POINT_GROUND, VictimPos);
                     DoResetThreat();
                     events.ScheduleEvent(EVENT_LASH, urand(5000, 8000));
@@ -207,12 +208,11 @@ class boss_ayamiss : public CreatureScript
                             events.ScheduleEvent(EVENT_SWARMER_ATTACK, 60000);
                             break;
                         case EVENT_SUMMON_SWARMER:
-                        {
-                            Position Pos = me->GetRandomPoint(SwarmerPos, 80.0f);
+                            Position Pos;
+                            me->GetRandomPoint(SwarmerPos, 80.0f, Pos);
                             me->SummonCreature(NPC_SWARMER, Pos);
                             events.ScheduleEvent(EVENT_SUMMON_SWARMER, 5000);
                             break;
-                        }
                         case EVENT_TRASH:
                             DoCastVictim(SPELL_TRASH);
                             events.ScheduleEvent(EVENT_TRASH, urand(5000, 7000));

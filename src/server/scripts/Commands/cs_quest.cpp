@@ -33,27 +33,27 @@ class quest_commandscript : public CommandScript
 public:
     quest_commandscript() : CommandScript("quest_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const
+    ChatCommand* GetCommands() const
     {
-        static std::vector<ChatCommand> questCommandTable =
+        static ChatCommand questCommandTable[] =
         {
-            { "add",            SEC_ADMINISTRATOR,  false, &HandleQuestAdd,                    "" },
-            { "complete",       SEC_ADMINISTRATOR,  false, &HandleQuestComplete,               "" },
-            { "remove",         SEC_ADMINISTRATOR,  false, &HandleQuestRemove,                 "" },
-            { "reward",         SEC_ADMINISTRATOR,  false, &HandleQuestReward,                 "" }
+            { "add",            SEC_ADMINISTRATOR,  false, &HandleQuestAdd,                    "", NULL },
+            { "complete",       SEC_ADMINISTRATOR,  false, &HandleQuestComplete,               "", NULL },
+            { "remove",         SEC_ADMINISTRATOR,  false, &HandleQuestRemove,                 "", NULL },
+            { "reward",         SEC_ADMINISTRATOR,  false, &HandleQuestReward,                 "", NULL },
+            { NULL,             SEC_PLAYER,         false, NULL,                               "", NULL }
         };
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommand commandTable[] =
         {
-            { "quest",          SEC_ADMINISTRATOR,  false, NULL,                  "", questCommandTable }
+            { "quest",          SEC_ADMINISTRATOR,  false, NULL,                  "", questCommandTable },
+            { NULL,             SEC_PLAYER,         false, NULL,                               "", NULL }
         };
         return commandTable;
     }
 
     static bool HandleQuestAdd(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -98,9 +98,7 @@ public:
 
     static bool HandleQuestRemove(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -153,9 +151,7 @@ public:
 
     static bool HandleQuestComplete(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR
-            ? handler->getSelectedPlayer()
-            : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -248,9 +244,7 @@ public:
 
     static bool HandleQuestReward(ChatHandler* handler, char const* args)
     {
-        Player* player = handler->GetSession()->GetSecurity() >= SEC_ADMINISTRATOR 
-        ? handler->getSelectedPlayer() 
-        : handler->GetSession()->GetPlayer();
+        Player* player = handler->getSelectedPlayer();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
