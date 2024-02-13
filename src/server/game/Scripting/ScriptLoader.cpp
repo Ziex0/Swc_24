@@ -1245,7 +1245,7 @@ void AddBattlegroundScripts()
 	void AddSc_Script_CustomTeleporter();
 	void AddSC_universal_npc();
 	void AddSC_pet_tut();
-	void AddSC_premium_ra;te()
+	void AddSC_premium_rate();
 	void AddSC_level_255();
 	void AddSc_Scriptquest_freya();
 /********************* Intance tele *************/
@@ -1269,7 +1269,7 @@ void AddCustomScripts()
 	AddSc_Script_CustomTeleporter();
 	AddSC_universal_npc();
 	AddSC_pet_tut();
-	AddSC_premium_ra;te()
+	AddSC_premium_rate();
 	AddSC_level_255();
 	AddSc_Scriptquest_freya();
 /********************* Intance tele *************/
