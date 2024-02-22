@@ -46,12 +46,6 @@ enum eAuthCmd
     XFER_CANCEL                                  = 0x34
 };
 
-enum eStatus
-{
-    STATUS_CONNECTED                             = 0,
-    STATUS_AUTHED
-};
-
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push, N), also any gcc version not support it at some paltform
 #if defined(__GNUC__)
 #pragma pack(1)
@@ -124,6 +118,18 @@ typedef struct XFER_INIT
     uint8 md5[MD5_DIGEST_LENGTH];                           // MD5
 } XFER_INIT;
 
+
+enum class BufferSizes : uint32
+{
+    SRP_6_V = 0x20,
+    SRP_6_S = 0x20,
+};
+
+#define MAX_ACCEPTED_CHALLENGE_SIZE (sizeof(AUTH_LOGON_CHALLENGE_C) + 16)
+
+#define AUTH_LOGON_CHALLENGE_INITIAL_SIZE 4
+#define REALM_LIST_PACKET_SIZE 5
+
 typedef struct XFER_DATA
 {
     uint8 opcode;
@@ -180,14 +186,14 @@ private:
 
 const AuthHandler table[] =
 {
-    { AUTH_LOGON_CHALLENGE,     STATUS_CONNECTED, &AuthSocket::_HandleLogonChallenge    },
-    { AUTH_LOGON_PROOF,         STATUS_CONNECTED, &AuthSocket::_HandleLogonProof        },
-    { AUTH_RECONNECT_CHALLENGE, STATUS_CONNECTED, &AuthSocket::_HandleReconnectChallenge},
-    { AUTH_RECONNECT_PROOF,     STATUS_CONNECTED, &AuthSocket::_HandleReconnectProof    },
-    { REALM_LIST,               STATUS_AUTHED,    &AuthSocket::_HandleRealmList         },
-    { XFER_ACCEPT,              STATUS_CONNECTED, &AuthSocket::_HandleXferAccept        },
-    { XFER_RESUME,              STATUS_CONNECTED, &AuthSocket::_HandleXferResume        },
-    { XFER_CANCEL,              STATUS_CONNECTED, &AuthSocket::_HandleXferCancel        }
+	{ AUTH_LOGON_CHALLENGE,     STATUS_CHALLENGE,			&AuthSocket::_HandleLogonChallenge    },
+    { AUTH_LOGON_PROOF,         STATUS_CONNECTED,			&AuthSocket::_HandleLogonProof        },
+    { AUTH_RECONNECT_CHALLENGE, STATUS_CHALLENGE,			&AuthSocket::_HandleReconnectChallenge},
+    { AUTH_RECONNECT_PROOF,     STATUS_RECONNECT_PROOF,		&AuthSocket::_HandleReconnectProof    },
+    { REALM_LIST,               STATUS_AUTHED,				&AuthSocket::_HandleRealmList         },
+    { XFER_ACCEPT,              STATUS_CONNECTED,			&AuthSocket::_HandleXferAccept        },
+    { XFER_RESUME,              STATUS_CONNECTED,			&AuthSocket::_HandleXferResume        },
+    { XFER_CANCEL,              STATUS_CONNECTED,			&AuthSocket::_HandleXferCancel        }
 };
 
 #define AUTH_TOTAL_COMMANDS 8
@@ -245,7 +251,7 @@ void AuthSocket::OnRead()
         // Circle through known commands and call the correct command handler
         for (i = 0; i < AUTH_TOTAL_COMMANDS; ++i)
         {
-            if ((uint8)table[i].cmd == _cmd && (table[i].status == STATUS_CONNECTED || (_authed && table[i].status == STATUS_AUTHED)))
+            if ((uint8)table[i].cmd == _cmd && (table[i].status == STATUS_CHALLENGE || (_authed && table[i].status == STATUS_AUTHED)))
             {
                 ;//sLog->outDebug(LOG_FILTER_NETWORKIO, "Got data for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
 
@@ -567,11 +573,8 @@ bool AuthSocket::_HandleLogonProof()
     A.SetBinary(lp.A, 32);
 
     // SRP safeguard: abort if A == 0
-    if (A.isZero())
-    {
-        socket().shutdown();
-        return true;
-    }
+    if ((A % N).isZero())
+        return false;
 
     SHA1Hash sha;
     sha.UpdateBigNumbers(&A, &B, NULL);

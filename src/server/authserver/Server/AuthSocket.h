@@ -26,6 +26,16 @@
 class ACE_INET_Addr;
 struct Realm;
 
+enum AuthStatus
+{
+	STATUS_CONNECTED = 0,
+    STATUS_CHALLENGE = 0,
+    STATUS_LOGON_PROOF,
+    STATUS_RECONNECT_PROOF,
+    STATUS_AUTHED,
+    STATUS_CLOSED
+};
+
 // Handle login commands
 class AuthSocket: public RealmSocket::Session
 {
