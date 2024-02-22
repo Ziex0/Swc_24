@@ -216,7 +216,7 @@ bool InstanceSave::RemovePlayer(uint32 guidLow, InstanceSaveManager* ism)
 void InstanceSaveManager::LoadInstances()
 {
     uint32 oldMSTime = getMSTime();
-	
+
 	// Delete expired instances (Instance related spawns are removed in the following cleanup queries)
     CharacterDatabase.DirectExecute("DELETE i FROM instance i LEFT JOIN instance_reset ir ON mapid = map AND i.difficulty = ir.difficulty "
                                     "WHERE (i.resettime > 0 AND i.resettime < UNIX_TIMESTAMP()) OR (ir.resettime IS NOT NULL AND ir.resettime < UNIX_TIMESTAMP())");
@@ -229,7 +229,7 @@ void InstanceSaveManager::LoadInstances()
 
     // Delete instance with no binds
     CharacterDatabase.DirectExecute("DELETE i.* FROM instance AS i LEFT JOIN character_instance AS ci ON i.id = ci.instance WHERE ci.guid IS NULL");
-	
+
 	// Delete Instance_reset so it can generate a new patch for this
     CharacterDatabase.DirectExecute("DELETE FROM instance_reset");
 
