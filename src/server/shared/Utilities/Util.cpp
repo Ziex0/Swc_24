@@ -313,38 +313,24 @@ bool Utf8toWStr(char const* utf8str, size_t csize, wchar_t* wstr, size_t& wsize)
 {
     try
     {
-        size_t len = utf8::distance(utf8str, utf8str + csize);
+        size_t len = utf8::distance(utf8str, utf8str+csize);
         if (len > wsize)
         {
             if (wsize > 0)
-            {
                 wstr[0] = L'\0';
-            }
             wsize = 0;
             return false;
         }
 
         wsize = len;
-        utf8::utf8to16(utf8str, utf8str + csize, wstr);
+        utf8::utf8to16(utf8str, utf8str+csize, wstr);
         wstr[len] = L'\0';
     }
-    catch (std::exception)
+    catch(std::exception)
     {
-        wchar_t const* errorMessage = L"An error occurred converting string from UTF-8 to WStr";
-        size_t errorMessageLength = wcslen(errorMessage);
-        if (wsize >= errorMessageLength)
-        {
-            wcscpy(wstr, errorMessage);
-            wsize = wcslen(wstr);
-        }
-        else if (wsize > 0)
-        {
-                wstr[0] = L'\0';
-            wsize = 0;
-        }
-        else
-            wsize = 0;
-
+        if (wsize > 0)
+            wstr[0] = L'\0';
+        wsize = 0;
         return false;
     }
 
