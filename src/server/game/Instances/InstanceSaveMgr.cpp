@@ -216,6 +216,10 @@ bool InstanceSave::RemovePlayer(uint32 guidLow, InstanceSaveManager* ism)
 void InstanceSaveManager::LoadInstances()
 {
     uint32 oldMSTime = getMSTime();
+	
+	// Delete expired instances (Instance related spawns are removed in the following cleanup queries)
+    CharacterDatabase.DirectExecute("DELETE i FROM instance i LEFT JOIN instance_reset ir ON mapid = map AND i.difficulty = ir.difficulty "
+                                    "WHERE (i.resettime > 0 AND i.resettime < UNIX_TIMESTAMP()) OR (ir.resettime IS NOT NULL AND ir.resettime < UNIX_TIMESTAMP())");
 
     // Delete character_instance for non-existent character
     CharacterDatabase.DirectExecute("DELETE ci.* FROM character_instance AS ci LEFT JOIN characters AS c ON ci.guid = c.guid WHERE c.guid IS NULL");
@@ -225,6 +229,9 @@ void InstanceSaveManager::LoadInstances()
 
     // Delete instance with no binds
     CharacterDatabase.DirectExecute("DELETE i.* FROM instance AS i LEFT JOIN character_instance AS ci ON i.id = ci.instance WHERE ci.guid IS NULL");
+	
+	// Delete Instance_reset so it can generate a new patch for this
+    CharacterDatabase.DirectExecute("DELETE FROM instance_reset");
 
     // Delete creature_respawn, gameobject_respawn and creature_instance for non-existent instance
     CharacterDatabase.DirectExecute("DELETE FROM creature_respawn WHERE instanceId > 0 AND instanceId NOT IN (SELECT id FROM instance)");
@@ -524,6 +531,26 @@ void InstanceSaveManager::_ResetOrWarnAll(uint32 mapid, Difficulty difficulty, b
             period = DAY;
 
         uint32 next_reset = uint32(((resetTime + MINUTE) / DAY * DAY) + period + diff);
+		uint32 previous_reset = resetTime;
+        uint8 event_type = 1;
+        while (time_t(next_reset - 3600) < now) // while next_reset in past, skip to next reset time
+        {
+            bool warn = event_type < 5;
+            if (warn)
+            {
+                ++event_type;
+                next_reset = next_reset - ResetTimeDelay[event_type - 1];
+            }
+            else
+            {
+                event_type = 1;
+                previous_reset = next_reset;
+                next_reset = uint32(((next_reset + MINUTE) / DAY * DAY) + period + diff);
+            }
+        }
+        if (previous_reset != resetTime && event_type != 1) // if previous_reset is not current reset and next_reset is scheduled from warn, use last non-warning reset time
+            next_reset = previous_reset;
+			
         SetResetTimeFor(mapid, difficulty, next_reset);
         SetExtendedResetTimeFor(mapid, difficulty, next_reset + period);
         ScheduleReset(time_t(next_reset-3600), InstResetEvent(1, mapid, difficulty));
