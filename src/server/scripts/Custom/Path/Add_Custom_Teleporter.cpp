@@ -2,13 +2,17 @@
 <--------------------------------------------------------------------------->
  - Developer(s): Zie
  - Complete: 100%
- - ScriptName: 'tele ICC' 
- - Comment: N/A
+ - ScriptName: 'Teleporter' 
+ - Comment: Need update for spell calss and clean code for future !!
 <--------------------------------------------------------------------------->
 */ 
 
 #include "ScriptPCH.h"
 #include "Language.h"
+#include "ScriptMgr.h"
+#include "Player.h"
+#include "Creature.h"
+#include "ScriptedGossip.h"
 
 enum eTexts
 {
@@ -67,7 +71,7 @@ public:
 	void CreatureWhisperBasedOnBool(const char *text, Creature *pCreature, Player *pPlayer, bool value)
 	{
 		if (value)
-			pCreature->MonsterWhisper(text, pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage(text, pPlayer->GetGUID());
 	}
 
 	uint32 PlayerMaxLevel() const
@@ -161,7 +165,7 @@ public:
 	// See "static void HandleLearnSkillRecipesHelper(Player* player,uint32 skill_id)" from cs_learn.cpp 
 	void LearnSkillRecipesHelper(Player *player, uint32 skill_id)
 	{
-		uint32 classmask = player->GetClassMask();
+		uint32 classmask = player->getClassMask();
 
         for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
         {
@@ -186,10 +190,10 @@ public:
                 continue;
 
             SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(skillLine->spellId);
-            if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
+            if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo))
                 continue;
 
-            player->learnSpell(skillLine->spellId, false);
+            player->learnSpell(skillLine->spellId);
         }
 	}
 
@@ -201,11 +205,12 @@ public:
 	void CompleteLearnProfession(Player *pPlayer, Creature *pCreature, SkillType skill)
 	{
 		if (PlayerAlreadyHasTwoProfessions(pPlayer) && !IsSecondarySkill(skill))
-			pCreature->MonsterWhisper("You already know two professions!", pPlayer->GetGUID());
+			//ChatHandler(pPlayer->GetSession()).PSendSysMessage("You already know two professions!", pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("Success! You was teleported.");
 		else
 		{
 			if (!LearnAllRecipesInProfession(pPlayer, skill))
-				pCreature->MonsterWhisper("Enjoy !!",pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy !!",pPlayer->GetGUID());
 		}
 	}
 
@@ -216,16 +221,16 @@ public:
 		switch (skill)
 		{
 		case RIDING_APPRENTICE:
-			pCreature->MonsterWhisper("I taught you Apprentice riding!", plrGuid);
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("I taught you Apprentice riding!", plrGuid);
 			break;
 		case RIDING_JOURNEYMAN:
-			pCreature->MonsterWhisper("I taught you Journeyman riding!", plrGuid);
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("I taught you Journeyman riding!", plrGuid);
 			break;
 		case RIDING_EXPERT:
-			pCreature->MonsterWhisper("I taught you Expert riding!", plrGuid);
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("I taught you Expert riding!", plrGuid);
 			break;
 		case RIDING_ARTISAN:
-			pCreature->MonsterWhisper("I taught you Artisan riding!", plrGuid);
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("I taught you Artisan riding!", plrGuid);
 			break;
 		}
 	}
@@ -235,34 +240,34 @@ public:
 	void GiveRidingSkill(Player *pPlayer, Creature *pCreature)
 	{
 		if (pPlayer->getLevel() <= 19)
-			pCreature->MonsterWhisper("Your level is not high enough!", pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("Your level is not high enough!", pPlayer->GetGUID());
 		else if (pPlayer->getLevel() >= 20 && pPlayer->getLevel() <= 39)
 		{
 			if (pPlayer->HasSpell(RIDING_APPRENTICE))
-				pCreature->MonsterWhisper("You already know Apprentice riding!", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("You already know Apprentice riding!", pPlayer->GetGUID());
 			else
 			{
-				pPlayer->learnSpell(RIDING_APPRENTICE, false);
+				pPlayer->learnSpell(RIDING_APPRENTICE);
 				CreatureWhisperBasedOnRidingSkill(pCreature, pPlayer, RIDING_APPRENTICE);
 			}
 		}
 		else if (pPlayer->getLevel() >= 40 && pPlayer->getLevel() <= 59)
 		{
 			if (pPlayer->HasSpell(RIDING_JOURNEYMAN))
-				pCreature->MonsterWhisper("You already know Journeyman riding!", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("You already know Journeyman riding!", pPlayer->GetGUID());
 			else
 			{
-				pPlayer->learnSpell(RIDING_JOURNEYMAN, false);
+				pPlayer->learnSpell(RIDING_JOURNEYMAN);
 				CreatureWhisperBasedOnRidingSkill(pCreature, pPlayer, RIDING_JOURNEYMAN);
 			}
 		}
 		else if (pPlayer->getLevel() >= 60 && pPlayer->getLevel() <= 69)
 		{
 			if (pPlayer->HasSpell(RIDING_EXPERT))
-				pCreature->MonsterWhisper("You already know Expert riding!", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("You already know Expert riding!", pPlayer->GetGUID());
 			else
 			{
-				pPlayer->learnSpell(RIDING_EXPERT, false);
+				pPlayer->learnSpell(RIDING_EXPERT);
 				CreatureWhisperBasedOnRidingSkill(pCreature, pPlayer, RIDING_EXPERT);
 			}
 		}
@@ -270,15 +275,15 @@ public:
 		{
 			if (pPlayer->getLevel() >= 77 && !pPlayer->HasSpell(COLD_WEATHER_FLYING))
 			{
-				pPlayer->learnSpell(COLD_WEATHER_FLYING, false);
-				pCreature->MonsterWhisper("I taught you Cold Weather Flying!", pPlayer->GetGUID());
+				pPlayer->learnSpell(COLD_WEATHER_FLYING);
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("I taught you Cold Weather Flying!", pPlayer->GetGUID());
 			}
 
 			if (pPlayer->HasSpell(RIDING_ARTISAN))
-				pCreature->MonsterWhisper("You already know Artisan riding!", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("You already know Artisan riding!", pPlayer->GetGUID());
 			else
 			{
-				pPlayer->learnSpell(RIDING_ARTISAN, false);
+				pPlayer->learnSpell(RIDING_ARTISAN);
 				CreatureWhisperBasedOnRidingSkill(pCreature, pPlayer, RIDING_ARTISAN);
 			}
 		}
@@ -288,7 +293,7 @@ public:
     {
 		if (pPlayer->IsInCombat())
 		{
-			pCreature->MonsterWhisper("You are in combat, wait until your combat is gone.", pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("You are in combat, wait until your combat is gone.", pPlayer->GetGUID());
 			pPlayer->CLOSE_GOSSIP_MENU();
 
 			return true;
@@ -301,7 +306,7 @@ public:
 
 			case GOSSIP_ACTION_INFO_DEF + 1:
 				pPlayer->DurabilityRepairAll(false, 0.0f, true);
-				pCreature->MonsterWhisper("I repaired all your items, including items from bank.", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("I repaired all your items, including items from bank.", pPlayer->GetGUID());
 				pPlayer->CLOSE_GOSSIP_MENU();
 
 				break;
@@ -311,7 +316,7 @@ public:
 				break;
 			case GOSSIP_ACTION_INFO_DEF + 9:
 				pPlayer->UpdateSkillsToMaxSkillsForLevel();
-				pCreature->MonsterWhisper("Your weapon skills have been advanced to maximum level.", pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage("Your weapon skills have been advanced to maximum level.", pPlayer->GetGUID());
 				pPlayer->CLOSE_GOSSIP_MENU();
 
 				break;
@@ -322,7 +327,7 @@ public:
 				pPlayer->SetUInt32Value(PLAYER_XP, 0);
 				std::ostringstream ostr;
 				ostr << PlayerMaxLevel();
-				pCreature->MonsterWhisper(("You have been advanced to level " + ostr.str()).c_str(), pPlayer->GetGUID());
+				ChatHandler(pPlayer->GetSession()).PSendSysMessage(("You have been advanced to level " + ostr.str()).c_str(), pPlayer->GetGUID());
 		
 				pPlayer->CLOSE_GOSSIP_MENU();
 	
@@ -417,7 +422,7 @@ public:
 
 			case GOSSIP_ACTION_INFO_DEF + 12:
 			{
-				switch (pPlayer->GetTeam())
+				switch (pPlayer->GetTeamId())
 				{
 				case HORDE:
 					pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Orgrimmar", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 13);
@@ -523,14 +528,14 @@ public:
 				uint32 maxHp = pPlayer->GetMaxHealth();
 
 				if (currHp == maxHp)
-					pCreature->MonsterWhisper("Your HP is already full.", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Your HP is already full.", pPlayer->GetGUID());
 				else
 				{
 					uint32 hdiff = maxHp - currHp;
 					std::ostringstream ostr;
 					ostr << "I have healed you for " << hdiff << " HP points.";
 					pPlayer->SetHealth(maxHp);
-					pCreature->MonsterWhisper(ostr.str().c_str(), pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage(ostr.str().c_str(), pPlayer->GetGUID());
 				}
 
 				pPlayer->CLOSE_GOSSIP_MENU();
@@ -541,10 +546,10 @@ public:
 				if (pPlayer->HasAura(15007))
 				{
 					pPlayer->RemoveAura(15007);
-					pCreature->MonsterWhisper("I have removed your ressurection sickness.", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("I have removed your ressurection sickness.", pPlayer->GetGUID());
 				}
 				else
-					pCreature->MonsterWhisper("You don't have ressurection sickness.", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You don't have ressurection sickness.", pPlayer->GetGUID());
 
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1092,7 +1097,7 @@ public:
 				pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "[Leveling zone] ->", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8000);
 				//pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "[Farm Zone]", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 710);
 				
-				if (pPlayer->GetTeam() == HORDE)
+				if (pPlayer->GetTeamId() == HORDE)
 				{					
 					pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Horde Demon of The Sky", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 302);
 				}
@@ -1539,7 +1544,7 @@ public:
 				pPlayer->TeleportTo(530, -1633.28f, -10671.1f, 146.859f, 0.227153f);
 				break;
 			case GOSSIP_ACTION_INFO_DEF + 7103:				
-				if(pPlayer->GetTeam() == HORDE)
+				if(pPlayer->GetTeamId() == HORDE)
 					{
 					pPlayer->CLOSE_GOSSIP_MENU();
 					pPlayer->TeleportTo(0, -8552.08f, 471.941f, 105.800f, 5.38456f);				
@@ -1878,7 +1883,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(29228, 1);
-					pCreature->MonsterWhisper("Enjoy your Dark War Talbuk!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Dark War Talbuk!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1888,7 +1893,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(13335, 1);
-					pCreature->MonsterWhisper("Enjoy your Deathcharger!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Deathcharger!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1898,7 +1903,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(19902, 1);
-					pCreature->MonsterWhisper("Enjoy your Swift Zulian Tiger!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Swift Zulian Tiger!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1908,7 +1913,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(43962, 1);
-					pCreature->MonsterWhisper("Enjoy your White Polar Bear!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your White Polar Bear!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1918,7 +1923,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(37828, 1);
-					pCreature->MonsterWhisper("Enjoy your Great Brewfest Kodo!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Great Brewfest Kodo!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1928,7 +1933,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(32859, 1);
-					pCreature->MonsterWhisper("Enjoy your Cobalt Netherwing Drake!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Cobalt Netherwing Drake!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1938,7 +1943,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(32768, 1);
-					pCreature->MonsterWhisper("Enjoy your Reins of Raven Lord!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Reins of Raven Lord!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1948,7 +1953,7 @@ public:
 				else
 				{
 					pPlayer->AddItem(45801, 1);
-					pCreature->MonsterWhisper("Enjoy your Ironbound Proto-Drake!", pPlayer->GetGUID());
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("Enjoy your Ironbound Proto-Drake!", pPlayer->GetGUID());
 				}
 				pPlayer->CLOSE_GOSSIP_MENU();
 				break;
@@ -1979,43 +1984,43 @@ public:
 
 			//spell classess			
 			case GOSSIP_ACTION_INFO_DEF + 460:				
-					if(pPlayer->GetClass() == CLASS_WARRIOR)
+					if(pPlayer->getClass() == CLASS_WARRIOR)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_VENDOR, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3000);
 						}
-					if(pPlayer->GetClass() == CLASS_DEATH_KNIGHT)
+					if(pPlayer->getClass() == CLASS_DEATH_KNIGHT)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3001);
 						}			 
-					if(pPlayer->GetClass() == CLASS_DRUID)
+					if(pPlayer->getClass() == CLASS_DRUID)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3002);
 						}			 
-					if(pPlayer->GetClass() == CLASS_HUNTER)
+					if(pPlayer->getClass() == CLASS_HUNTER)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3003);
 						}			 
-					if(pPlayer->GetClass() == CLASS_MAGE)
+					if(pPlayer->getClass() == CLASS_MAGE)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3004);
 						}			 
-					if(pPlayer->GetClass() == CLASS_PALADIN)
+					if(pPlayer->getClass() == CLASS_PALADIN)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3005);
 						}			 
-					if(pPlayer->GetClass() == CLASS_PRIEST)
+					if(pPlayer->getClass() == CLASS_PRIEST)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3006);
 						}			 
-					if(pPlayer->GetClass() == CLASS_ROGUE )
+					if(pPlayer->getClass() == CLASS_ROGUE )
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3007);
 						}			 
-					if(pPlayer->GetClass() == CLASS_SHAMAN)
+					if(pPlayer->getClass() == CLASS_SHAMAN)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3008);
 						}			 
-					if(pPlayer->GetClass() == CLASS_WARLOCK)
+					if(pPlayer->getClass() == CLASS_WARLOCK)
 						{
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, "Learn for my class spell.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3009);
 						}
@@ -2028,579 +2033,579 @@ public:
 				break;
 			case GOSSIP_ACTION_INFO_DEF + 3010:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(2457, false);
-				pPlayer->learnSpell(1715, false);
-				pPlayer->learnSpell(2687, false);
-				pPlayer->learnSpell(71, false);
-				pPlayer->learnSpell(355, false);
-				pPlayer->learnSpell(7384, false);
-				pPlayer->learnSpell(72, false);
-				pPlayer->learnSpell(694, false);
-				pPlayer->learnSpell(2565, false);
-				pPlayer->learnSpell(676, false);
-				pPlayer->learnSpell(20230, false);
-				pPlayer->learnSpell(12678, false);
-				pPlayer->learnSpell(5246, false);
-				pPlayer->learnSpell(1161, false);
-				pPlayer->learnSpell(871, false);
-				pPlayer->learnSpell(2458, false);
-				pPlayer->learnSpell(20252, false);
-				pPlayer->learnSpell(18449, false);
-				pPlayer->learnSpell(1680, false);
-				pPlayer->learnSpell(6552, false);
-				pPlayer->learnSpell(34428, false);
-				pPlayer->learnSpell(23920, false);
-				pPlayer->learnSpell(3411, false);
-				pPlayer->learnSpell(55694, false);
-				pPlayer->learnSpell(47450, false);
-				pPlayer->learnSpell(60220, false);
-				pPlayer->learnSpell(47867, false);
-				pPlayer->learnSpell(47889, false);
-				pPlayer->learnSpell(48018, false);
-				pPlayer->learnSpell(47811, false);
-				pPlayer->learnSpell(14063, false);				
+				pPlayer->learnSpell(2457);
+				pPlayer->learnSpell(1715);
+				pPlayer->learnSpell(2687);
+				pPlayer->learnSpell(71);
+				pPlayer->learnSpell(355);
+				pPlayer->learnSpell(7384);
+				pPlayer->learnSpell(72);
+				pPlayer->learnSpell(694);
+				pPlayer->learnSpell(2565);
+				pPlayer->learnSpell(676);
+				pPlayer->learnSpell(20230);
+				pPlayer->learnSpell(12678);
+				pPlayer->learnSpell(5246);
+				pPlayer->learnSpell(1161);
+				pPlayer->learnSpell(871);
+				pPlayer->learnSpell(2458);
+				pPlayer->learnSpell(20252);
+				pPlayer->learnSpell(18449);
+				pPlayer->learnSpell(1680);
+				pPlayer->learnSpell(6552);
+				pPlayer->learnSpell(34428);
+				pPlayer->learnSpell(23920);
+				pPlayer->learnSpell(3411);
+				pPlayer->learnSpell(55694);
+				pPlayer->learnSpell(47450);
+				pPlayer->learnSpell(60220);
+				pPlayer->learnSpell(47867);
+				pPlayer->learnSpell(47889);
+				pPlayer->learnSpell(48018);
+				pPlayer->learnSpell(47811);
+				pPlayer->learnSpell(14063);				
 				//lang
-				pPlayer->learnSpell(668, false);
-				pPlayer->learnSpell(669, false);
-				pPlayer->learnSpell(46917, false);
-				pPlayer->learnSpell(674, false);
-				pPlayer->learnSpell (23881,false);
-				pPlayer->learnSpell (100,false);
-				pPlayer->learnSpell (59653,false);
-				pPlayer->learnSpell (12162,false);
-				pPlayer->learnSpell (12850,false);
-				pPlayer->learnSpell (12868,false);
-				pPlayer->learnSpell (12834,false);
-				pPlayer->learnSpell (5308,false);
-				pPlayer->learnSpell (58367,false);
-				pPlayer->learnSpell (63326,false);
-				pPlayer->learnSpell (65156,false);
-				pPlayer->learnSpell (64976,false);
-				pPlayer->learnSpell (12975,false);
-				pPlayer->learnSpell (50783,false);
-				pPlayer->learnSpell (12328,false);
-				pPlayer->learnSpell (53385,false);
+				pPlayer->learnSpell(668);
+				pPlayer->learnSpell(669);
+				pPlayer->learnSpell(46917);
+				pPlayer->learnSpell(674);
+				pPlayer->learnSpell (23881);
+				pPlayer->learnSpell (100);
+				pPlayer->learnSpell (59653);
+				pPlayer->learnSpell (12162);
+				pPlayer->learnSpell (12850);
+				pPlayer->learnSpell (12868);
+				pPlayer->learnSpell (12834);
+				pPlayer->learnSpell (5308);
+				pPlayer->learnSpell (58367);
+				pPlayer->learnSpell (63326);
+				pPlayer->learnSpell (65156);
+				pPlayer->learnSpell (64976);
+				pPlayer->learnSpell (12975);
+				pPlayer->learnSpell (50783);
+				pPlayer->learnSpell (12328);
+				pPlayer->learnSpell (53385);
 
-				pPlayer->learnSpell (20911,false);
-				pPlayer->learnSpell (25899,false);
-				pPlayer->learnSpell (51722,false);
-				pPlayer->learnSpell (68066,false);
+				pPlayer->learnSpell (20911);
+				pPlayer->learnSpell (25899);
+				pPlayer->learnSpell (51722);
+				pPlayer->learnSpell (68066);
 				break;
 				
 			case GOSSIP_ACTION_INFO_DEF + 3000:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(2457, false);
-				pPlayer->learnSpell(1715, false);
-				pPlayer->learnSpell(2687, false);
-				pPlayer->learnSpell(71, false);
-				pPlayer->learnSpell(355, false);
-				pPlayer->learnSpell(7384, false);
-				pPlayer->learnSpell(72, false);
-				pPlayer->learnSpell(694, false);
-				pPlayer->learnSpell(2565, false);
-				pPlayer->learnSpell(676, false);
-				pPlayer->learnSpell(20230, false);
-				pPlayer->learnSpell(12678, false);
-				pPlayer->learnSpell(5246, false);
-				pPlayer->learnSpell(1161, false);
-				pPlayer->learnSpell(871, false);
-				pPlayer->learnSpell(2458, false);
-				pPlayer->learnSpell(20252, false);
-				pPlayer->learnSpell(18449, false);
-				pPlayer->learnSpell(1680, false);
-				pPlayer->learnSpell(6552, false);
-				pPlayer->learnSpell(11578, false);
-				pPlayer->learnSpell(1719, false);
-				pPlayer->learnSpell(34428, false);
-				pPlayer->learnSpell(23920, false);
-				pPlayer->learnSpell(3411, false);
-				pPlayer->learnSpell(55694, false);
-				pPlayer->learnSpell(47450, false);
-				pPlayer->learnSpell(47465, false);
-				pPlayer->learnSpell(47520, false);
-				pPlayer->learnSpell(47436, false);
-				pPlayer->learnSpell(47502, false);
-				pPlayer->learnSpell(47437, false);
-				pPlayer->learnSpell(47475, false);
-				pPlayer->learnSpell(47440, false);
-				pPlayer->learnSpell(47471, false);
-				pPlayer->learnSpell(57755, false);
-				pPlayer->learnSpell(57823, false);
-				pPlayer->learnSpell(47488, false);
+				pPlayer->learnSpell(2457);
+				pPlayer->learnSpell(1715);
+				pPlayer->learnSpell(2687);
+				pPlayer->learnSpell(71);
+				pPlayer->learnSpell(355);
+				pPlayer->learnSpell(7384);
+				pPlayer->learnSpell(72);
+				pPlayer->learnSpell(694);
+				pPlayer->learnSpell(2565);
+				pPlayer->learnSpell(676);
+				pPlayer->learnSpell(20230);
+				pPlayer->learnSpell(12678);
+				pPlayer->learnSpell(5246);
+				pPlayer->learnSpell(1161);
+				pPlayer->learnSpell(871);
+				pPlayer->learnSpell(2458);
+				pPlayer->learnSpell(20252);
+				pPlayer->learnSpell(18449);
+				pPlayer->learnSpell(1680);
+				pPlayer->learnSpell(6552);
+				pPlayer->learnSpell(11578);
+				pPlayer->learnSpell(1719);
+				pPlayer->learnSpell(34428);
+				pPlayer->learnSpell(23920);
+				pPlayer->learnSpell(3411);
+				pPlayer->learnSpell(55694);
+				pPlayer->learnSpell(47450);
+				pPlayer->learnSpell(47465);
+				pPlayer->learnSpell(47520);
+				pPlayer->learnSpell(47436);
+				pPlayer->learnSpell(47502);
+				pPlayer->learnSpell(47437);
+				pPlayer->learnSpell(47475);
+				pPlayer->learnSpell(47440);
+				pPlayer->learnSpell(47471);
+				pPlayer->learnSpell(57755);
+				pPlayer->learnSpell(57823);
+				pPlayer->learnSpell(47488);
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF + 3001:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(48778, false);
-				pPlayer->learnSpell(48266, false);
-				pPlayer->learnSpell(50977, false);
-				pPlayer->learnSpell(49576, false);
-				pPlayer->learnSpell(49142, false);
-				pPlayer->learnSpell(46584, false);
-				pPlayer->learnSpell(48263, false);
-				pPlayer->learnSpell(48528, false);
-				pPlayer->learnSpell(45524, false);
-				pPlayer->learnSpell(3714, false);
-				pPlayer->learnSpell(48792, false);
-				pPlayer->learnSpell(45529, false);
-				pPlayer->learnSpell(56222, false);
-				pPlayer->learnSpell(48743, false);
-				pPlayer->learnSpell(56815, false);
-				pPlayer->learnSpell(48707, false);
-				pPlayer->learnSpell(48265, false);
-				pPlayer->learnSpell(41999, false);
-				pPlayer->learnSpell(47568, false);
-				pPlayer->learnSpell(57623, false);
-				pPlayer->learnSpell(49941, false);
-				pPlayer->learnSpell(49909, false);
-				pPlayer->learnSpell(42650, false);
-				pPlayer->learnSpell(49930, false);
-				pPlayer->learnSpell(49938, false);
-				pPlayer->learnSpell(49895, false);
-				pPlayer->learnSpell(49924, false);
-				pPlayer->learnSpell(49921, false);
+				pPlayer->learnSpell(48778);
+				pPlayer->learnSpell(48266);
+				pPlayer->learnSpell(50977);
+				pPlayer->learnSpell(49576);
+				pPlayer->learnSpell(49142);
+				pPlayer->learnSpell(46584);
+				pPlayer->learnSpell(48263);
+				pPlayer->learnSpell(48528);
+				pPlayer->learnSpell(45524);
+				pPlayer->learnSpell(3714);
+				pPlayer->learnSpell(48792);
+				pPlayer->learnSpell(45529);
+				pPlayer->learnSpell(56222);
+				pPlayer->learnSpell(48743);
+				pPlayer->learnSpell(56815);
+				pPlayer->learnSpell(48707);
+				pPlayer->learnSpell(48265);
+				pPlayer->learnSpell(41999);
+				pPlayer->learnSpell(47568);
+				pPlayer->learnSpell(57623);
+				pPlayer->learnSpell(49941);
+				pPlayer->learnSpell(49909);
+				pPlayer->learnSpell(42650);
+				pPlayer->learnSpell(49930);
+				pPlayer->learnSpell(49938);
+				pPlayer->learnSpell(49895);
+				pPlayer->learnSpell(49924);
+				pPlayer->learnSpell(49921);
 				break;
 				case GOSSIP_ACTION_INFO_DEF + 3002:
 							pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(5487, false);
-				pPlayer->learnSpell(6795, false);
-				pPlayer->learnSpell(18960, false);
-				pPlayer->learnSpell(5229, false);
-				pPlayer->learnSpell(8946, false);
-				pPlayer->learnSpell(1066, false);
-				pPlayer->learnSpell(768, false);
-				pPlayer->learnSpell(2782, false);
-				pPlayer->learnSpell(2893, false);
-				pPlayer->learnSpell(5209, false);
-				pPlayer->learnSpell(783, false);
-				pPlayer->learnSpell(5225, false);
-				pPlayer->learnSpell(22842, false);
-				pPlayer->learnSpell(9634, false);
-				pPlayer->learnSpell(20719, false);
-				pPlayer->learnSpell(29166, false);
-				pPlayer->learnSpell(22812, false);
-				pPlayer->learnSpell(8983, false);
-				pPlayer->learnSpell(18658, false);
-				pPlayer->learnSpell(33357, false);
-				pPlayer->learnSpell(33786, false);
-				pPlayer->learnSpell(26995, false);
-				pPlayer->learnSpell(40120, false);
-				pPlayer->learnSpell(62078, false);
-				pPlayer->learnSpell(49802, false);
-				pPlayer->learnSpell(53307, false);
-				pPlayer->learnSpell(52610, false);
-				pPlayer->learnSpell(48575, false);
-				pPlayer->learnSpell(48476, false);
-				pPlayer->learnSpell(48560, false);
-				pPlayer->learnSpell(49803, false);
-				pPlayer->learnSpell(48443, false);
-				pPlayer->learnSpell(48562, false);
-				pPlayer->learnSpell(53308, false);
-				pPlayer->learnSpell(48577, false);
-				pPlayer->learnSpell(53312, false);
-				pPlayer->learnSpell(48574, false);
-				pPlayer->learnSpell(48465, false);
-				pPlayer->learnSpell(48570, false);
-				pPlayer->learnSpell(48378, false);
-				pPlayer->learnSpell(48480, false);
-				pPlayer->learnSpell(48579, false);
-				pPlayer->learnSpell(48477, false);
-				pPlayer->learnSpell(50213, false);
-				pPlayer->learnSpell(48461, false);
-				pPlayer->learnSpell(48470, false);
-				pPlayer->learnSpell(48467, false);
-				pPlayer->learnSpell(48568, false);
-				pPlayer->learnSpell(48451, false);
-				pPlayer->learnSpell(48469, false);
-				pPlayer->learnSpell(48463, false);
-				pPlayer->learnSpell(48441, false);
-				pPlayer->learnSpell(50763, false);
-				pPlayer->learnSpell(49800, false);
-				pPlayer->learnSpell(48572, false);
-				pPlayer->learnSpell(48447, false);
+				pPlayer->learnSpell(5487);
+				pPlayer->learnSpell(6795);
+				pPlayer->learnSpell(18960);
+				pPlayer->learnSpell(5229);
+				pPlayer->learnSpell(8946);
+				pPlayer->learnSpell(1066);
+				pPlayer->learnSpell(768);
+				pPlayer->learnSpell(2782);
+				pPlayer->learnSpell(2893);
+				pPlayer->learnSpell(5209);
+				pPlayer->learnSpell(783);
+				pPlayer->learnSpell(5225);
+				pPlayer->learnSpell(22842);
+				pPlayer->learnSpell(9634);
+				pPlayer->learnSpell(20719);
+				pPlayer->learnSpell(29166);
+				pPlayer->learnSpell(22812);
+				pPlayer->learnSpell(8983);
+				pPlayer->learnSpell(18658);
+				pPlayer->learnSpell(33357);
+				pPlayer->learnSpell(33786);
+				pPlayer->learnSpell(26995);
+				pPlayer->learnSpell(40120);
+				pPlayer->learnSpell(62078);
+				pPlayer->learnSpell(49802);
+				pPlayer->learnSpell(53307);
+				pPlayer->learnSpell(52610);
+				pPlayer->learnSpell(48575);
+				pPlayer->learnSpell(48476);
+				pPlayer->learnSpell(48560);
+				pPlayer->learnSpell(49803);
+				pPlayer->learnSpell(48443);
+				pPlayer->learnSpell(48562);
+				pPlayer->learnSpell(53308);
+				pPlayer->learnSpell(48577);
+				pPlayer->learnSpell(53312);
+				pPlayer->learnSpell(48574);
+				pPlayer->learnSpell(48465);
+				pPlayer->learnSpell(48570);
+				pPlayer->learnSpell(48378);
+				pPlayer->learnSpell(48480);
+				pPlayer->learnSpell(48579);
+				pPlayer->learnSpell(48477);
+				pPlayer->learnSpell(50213);
+				pPlayer->learnSpell(48461);
+				pPlayer->learnSpell(48470);
+				pPlayer->learnSpell(48467);
+				pPlayer->learnSpell(48568);
+				pPlayer->learnSpell(48451);
+				pPlayer->learnSpell(48469);
+				pPlayer->learnSpell(48463);
+				pPlayer->learnSpell(48441);
+				pPlayer->learnSpell(50763);
+				pPlayer->learnSpell(49800);
+				pPlayer->learnSpell(48572);
+				pPlayer->learnSpell(48447);
 					break;
 				case GOSSIP_ACTION_INFO_DEF + 3003:
 						pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(75, false);
-				pPlayer->learnSpell(1494, false);
-				pPlayer->learnSpell(13163, false);
-				pPlayer->learnSpell(5116, false);
-				pPlayer->learnSpell(883, false);
-				pPlayer->learnSpell(2641, false);
-				pPlayer->learnSpell(6991, false);
-				pPlayer->learnSpell(982, false);
-				pPlayer->learnSpell(1515, false);
-				pPlayer->learnSpell(19883, false);
-				pPlayer->learnSpell(20736, false);
-				pPlayer->learnSpell(2974, false);
-				pPlayer->learnSpell(6197, false);
-				pPlayer->learnSpell(1002, false);
-				pPlayer->learnSpell(19884, false);
-				pPlayer->learnSpell(5118, false);
-				pPlayer->learnSpell(34074, false);
-				pPlayer->learnSpell(781, false);
-				pPlayer->learnSpell(3043, false);
-				pPlayer->learnSpell(1462, false);
-				pPlayer->learnSpell(19885, false);
-				pPlayer->learnSpell(3045, false);
-				pPlayer->learnSpell(19880, false);
-				pPlayer->learnSpell(13809, false);
-				pPlayer->learnSpell(13161, false);
-				pPlayer->learnSpell(5384, false);
-				pPlayer->learnSpell(1543, false);
-				pPlayer->learnSpell(19878, false);
-				pPlayer->learnSpell(3034, false);
-				pPlayer->learnSpell(13159, false);
-				pPlayer->learnSpell(19882, false);
-				pPlayer->learnSpell(14327, false);
-				pPlayer->learnSpell(19879, false);
-				pPlayer->learnSpell(19263, false);
-				pPlayer->learnSpell(14311, false);
-				pPlayer->learnSpell(19801, false);
-				pPlayer->learnSpell(34026, false);
-				pPlayer->learnSpell(27044, false);
-				pPlayer->learnSpell(34600, false);
-				pPlayer->learnSpell(34477, false);
-				pPlayer->learnSpell(53271, false);
-				pPlayer->learnSpell(49071, false);
-				pPlayer->learnSpell(53338, false);
-				pPlayer->learnSpell(49067, false);
-				pPlayer->learnSpell(48996, false);
-				pPlayer->learnSpell(49052, false);
-				pPlayer->learnSpell(49056, false);
-				pPlayer->learnSpell(49045, false);
-				pPlayer->learnSpell(49001, false);
-				pPlayer->learnSpell(61847, false);
-				pPlayer->learnSpell(60192, false);
-				pPlayer->learnSpell(61006, false);
-				pPlayer->learnSpell(48990, false);
-				pPlayer->learnSpell(53339, false);
-				pPlayer->learnSpell(49048, false);
-				pPlayer->learnSpell(58434, false);
+				pPlayer->learnSpell(75);
+				pPlayer->learnSpell(1494);
+				pPlayer->learnSpell(13163);
+				pPlayer->learnSpell(5116);
+				pPlayer->learnSpell(883);
+				pPlayer->learnSpell(2641);
+				pPlayer->learnSpell(6991);
+				pPlayer->learnSpell(982);
+				pPlayer->learnSpell(1515);
+				pPlayer->learnSpell(19883);
+				pPlayer->learnSpell(20736);
+				pPlayer->learnSpell(2974);
+				pPlayer->learnSpell(6197);
+				pPlayer->learnSpell(1002);
+				pPlayer->learnSpell(19884);
+				pPlayer->learnSpell(5118);
+				pPlayer->learnSpell(34074);
+				pPlayer->learnSpell(781);
+				pPlayer->learnSpell(3043);
+				pPlayer->learnSpell(1462);
+				pPlayer->learnSpell(19885);
+				pPlayer->learnSpell(3045);
+				pPlayer->learnSpell(19880);
+				pPlayer->learnSpell(13809);
+				pPlayer->learnSpell(13161);
+				pPlayer->learnSpell(5384);
+				pPlayer->learnSpell(1543);
+				pPlayer->learnSpell(19878);
+				pPlayer->learnSpell(3034);
+				pPlayer->learnSpell(13159);
+				pPlayer->learnSpell(19882);
+				pPlayer->learnSpell(14327);
+				pPlayer->learnSpell(19879);
+				pPlayer->learnSpell(19263);
+				pPlayer->learnSpell(14311);
+				pPlayer->learnSpell(19801);
+				pPlayer->learnSpell(34026);
+				pPlayer->learnSpell(27044);
+				pPlayer->learnSpell(34600);
+				pPlayer->learnSpell(34477);
+				pPlayer->learnSpell(53271);
+				pPlayer->learnSpell(49071);
+				pPlayer->learnSpell(53338);
+				pPlayer->learnSpell(49067);
+				pPlayer->learnSpell(48996);
+				pPlayer->learnSpell(49052);
+				pPlayer->learnSpell(49056);
+				pPlayer->learnSpell(49045);
+				pPlayer->learnSpell(49001);
+				pPlayer->learnSpell(61847);
+				pPlayer->learnSpell(60192);
+				pPlayer->learnSpell(61006);
+				pPlayer->learnSpell(48990);
+				pPlayer->learnSpell(53339);
+				pPlayer->learnSpell(49048);
+				pPlayer->learnSpell(58434);
 						break;
 				case GOSSIP_ACTION_INFO_DEF + 3004:
 						pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(130, false);
-				pPlayer->learnSpell(475, false);
-				pPlayer->learnSpell(1953, false);
-				pPlayer->learnSpell(12051, false);
-				pPlayer->learnSpell(7301, false);
-				pPlayer->learnSpell(32271, false);
-				pPlayer->learnSpell(3562, false);
-				pPlayer->learnSpell(3567, false);
-				pPlayer->learnSpell(32272, false);
-				pPlayer->learnSpell(3561, false);
-				pPlayer->learnSpell(3563, false);
-				pPlayer->learnSpell(2139, false);
-				pPlayer->learnSpell(45438, false);
-				pPlayer->learnSpell(3565, false);
-				pPlayer->learnSpell(3566, false);
-				pPlayer->learnSpell(32266, false);
-				pPlayer->learnSpell(11416, false);
-				pPlayer->learnSpell(11417, false);
-				pPlayer->learnSpell(32267, false);
-				pPlayer->learnSpell(10059, false);
-				pPlayer->learnSpell(11418, false);
-				pPlayer->learnSpell(11419, false);
-				pPlayer->learnSpell(11420, false);
-				pPlayer->learnSpell(12826, false);
-				pPlayer->learnSpell(66, false);
-				pPlayer->learnSpell(30449, false);
-				pPlayer->learnSpell(53140, false);
-				pPlayer->learnSpell(42917, false);
-				pPlayer->learnSpell(43015, false);
-				pPlayer->learnSpell(43017, false);
-				pPlayer->learnSpell(42985, false);
-				pPlayer->learnSpell(43010, false);
-				pPlayer->learnSpell(42833, false);
-				pPlayer->learnSpell(42914, false);
-				pPlayer->learnSpell(42859, false);
-				pPlayer->learnSpell(42846, false);
-				pPlayer->learnSpell(43012, false);
-				pPlayer->learnSpell(42842, false);
-				pPlayer->learnSpell(43008, false);
-				pPlayer->learnSpell(43024, false);
-				pPlayer->learnSpell(43020, false);
-				pPlayer->learnSpell(43046, false);
-				pPlayer->learnSpell(42897, false);
-				pPlayer->learnSpell(43002, false);
-				pPlayer->learnSpell(42921, false);
-				pPlayer->learnSpell(42940, false);
-				pPlayer->learnSpell(42956, false);
-				pPlayer->learnSpell(61316, false);
-				pPlayer->learnSpell(61024, false);
-				pPlayer->learnSpell(42973, false);
-				pPlayer->learnSpell(47610, false);
-				pPlayer->learnSpell(58659, false);
-				if (pPlayer->GetTeam() == HORDE) {
-						pPlayer->learnSpell(11418, false);
-						pPlayer->learnSpell(11420, false);
-						pPlayer->learnSpell(11417, false);
-						pPlayer->learnSpell(32267, false);
-						pPlayer->learnSpell(32272, false);
-						pPlayer->learnSpell(3567, false);
-						pPlayer->learnSpell(3563, false);
-						pPlayer->learnSpell(3566, false);
+				pPlayer->learnSpell(130);
+				pPlayer->learnSpell(475);
+				pPlayer->learnSpell(1953);
+				pPlayer->learnSpell(12051);
+				pPlayer->learnSpell(7301);
+				pPlayer->learnSpell(32271);
+				pPlayer->learnSpell(3562);
+				pPlayer->learnSpell(3567);
+				pPlayer->learnSpell(32272);
+				pPlayer->learnSpell(3561);
+				pPlayer->learnSpell(3563);
+				pPlayer->learnSpell(2139);
+				pPlayer->learnSpell(45438);
+				pPlayer->learnSpell(3565);
+				pPlayer->learnSpell(3566);
+				pPlayer->learnSpell(32266);
+				pPlayer->learnSpell(11416);
+				pPlayer->learnSpell(11417);
+				pPlayer->learnSpell(32267);
+				pPlayer->learnSpell(10059);
+				pPlayer->learnSpell(11418);
+				pPlayer->learnSpell(11419);
+				pPlayer->learnSpell(11420);
+				pPlayer->learnSpell(12826);
+				pPlayer->learnSpell(66);
+				pPlayer->learnSpell(30449);
+				pPlayer->learnSpell(53140);
+				pPlayer->learnSpell(42917);
+				pPlayer->learnSpell(43015);
+				pPlayer->learnSpell(43017);
+				pPlayer->learnSpell(42985);
+				pPlayer->learnSpell(43010);
+				pPlayer->learnSpell(42833);
+				pPlayer->learnSpell(42914);
+				pPlayer->learnSpell(42859);
+				pPlayer->learnSpell(42846);
+				pPlayer->learnSpell(43012);
+				pPlayer->learnSpell(42842);
+				pPlayer->learnSpell(43008);
+				pPlayer->learnSpell(43024);
+				pPlayer->learnSpell(43020);
+				pPlayer->learnSpell(43046);
+				pPlayer->learnSpell(42897);
+				pPlayer->learnSpell(43002);
+				pPlayer->learnSpell(42921);
+				pPlayer->learnSpell(42940);
+				pPlayer->learnSpell(42956);
+				pPlayer->learnSpell(61316);
+				pPlayer->learnSpell(61024);
+				pPlayer->learnSpell(42973);
+				pPlayer->learnSpell(47610);
+				pPlayer->learnSpell(58659);
+				if (pPlayer->GetTeamId() == HORDE) {
+						pPlayer->learnSpell(11418);
+						pPlayer->learnSpell(11420);
+						pPlayer->learnSpell(11417);
+						pPlayer->learnSpell(32267);
+						pPlayer->learnSpell(32272);
+						pPlayer->learnSpell(3567);
+						pPlayer->learnSpell(3563);
+						pPlayer->learnSpell(3566);
 				}
 					else {
-						pPlayer->learnSpell(11419, false);
-						pPlayer->learnSpell(32266, false);
-						pPlayer->learnSpell(11416, false);
-						pPlayer->learnSpell(10059, false);
-						pPlayer->learnSpell(3565, false);
-						pPlayer->learnSpell(32271, false);
-						pPlayer->learnSpell(3562, false);
-						pPlayer->learnSpell(3561, false);	
+						pPlayer->learnSpell(11419);
+						pPlayer->learnSpell(32266);
+						pPlayer->learnSpell(11416);
+						pPlayer->learnSpell(10059);
+						pPlayer->learnSpell(3565);
+						pPlayer->learnSpell(32271);
+						pPlayer->learnSpell(3562);
+						pPlayer->learnSpell(3561);	
 					}
 						break;
 				case GOSSIP_ACTION_INFO_DEF + 3005:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(21084, false);
-				pPlayer->learnSpell(20271, false);
-				pPlayer->learnSpell(498, false);
-				pPlayer->learnSpell(1152, false);
-				pPlayer->learnSpell(53408, false);
-				pPlayer->learnSpell(31789, false);
-				pPlayer->learnSpell(62124, false);
-				pPlayer->learnSpell(25780, false);
-				pPlayer->learnSpell(1044, false);
-				pPlayer->learnSpell(5502, false);
-				pPlayer->learnSpell(19746, false);
-				pPlayer->learnSpell(20164, false);
-				pPlayer->learnSpell(10326, false);
-				pPlayer->learnSpell(1038, false);
-				pPlayer->learnSpell(53407, false);
-				pPlayer->learnSpell(19752, false);
-				pPlayer->learnSpell(20165, false);
-				pPlayer->learnSpell(642, false);
-				pPlayer->learnSpell(10278, false);
-				pPlayer->learnSpell(20166, false);
-				pPlayer->learnSpell(4987, false);
-				pPlayer->learnSpell(6940, false);
-				pPlayer->learnSpell(10308, false);
-				pPlayer->learnSpell(23214, false);
-				pPlayer->learnSpell(25898, false);
-				pPlayer->learnSpell(25899, false);
-				pPlayer->learnSpell(34767, false);
-				pPlayer->learnSpell(32223, false);
-				pPlayer->learnSpell(33776, false);
-				pPlayer->learnSpell(31884, false);
-				pPlayer->learnSpell(54428, false);
-				pPlayer->learnSpell(54043, false);
-				pPlayer->learnSpell(48943, false);
-				pPlayer->learnSpell(48936, false);
-				pPlayer->learnSpell(48945, false);
-				pPlayer->learnSpell(48938, false);
-				pPlayer->learnSpell(48947, false);
-				pPlayer->learnSpell(48817, false);
-				pPlayer->learnSpell(48788, false);
-				pPlayer->learnSpell(48932, false);
-				pPlayer->learnSpell(48942, false);
-				pPlayer->learnSpell(48801, false);
-				pPlayer->learnSpell(48785, false);
-				pPlayer->learnSpell(48934, false);
-				pPlayer->learnSpell(48950, false);
-				pPlayer->learnSpell(48819, false);
-				pPlayer->learnSpell(48806, false);
-				pPlayer->learnSpell(48782, false);
-				pPlayer->learnSpell(53601, false);
-				pPlayer->learnSpell(61411, false);
-				if (pPlayer->GetTeam() == HORDE) 
+				pPlayer->learnSpell(21084);
+				pPlayer->learnSpell(20271);
+				pPlayer->learnSpell(498);
+				pPlayer->learnSpell(1152);
+				pPlayer->learnSpell(53408);
+				pPlayer->learnSpell(31789);
+				pPlayer->learnSpell(62124);
+				pPlayer->learnSpell(25780);
+				pPlayer->learnSpell(1044);
+				pPlayer->learnSpell(5502);
+				pPlayer->learnSpell(19746);
+				pPlayer->learnSpell(20164);
+				pPlayer->learnSpell(10326);
+				pPlayer->learnSpell(1038);
+				pPlayer->learnSpell(53407);
+				pPlayer->learnSpell(19752);
+				pPlayer->learnSpell(20165);
+				pPlayer->learnSpell(642);
+				pPlayer->learnSpell(10278);
+				pPlayer->learnSpell(20166);
+				pPlayer->learnSpell(4987);
+				pPlayer->learnSpell(6940);
+				pPlayer->learnSpell(10308);
+				pPlayer->learnSpell(23214);
+				pPlayer->learnSpell(25898);
+				pPlayer->learnSpell(25899);
+				pPlayer->learnSpell(34767);
+				pPlayer->learnSpell(32223);
+				pPlayer->learnSpell(33776);
+				pPlayer->learnSpell(31884);
+				pPlayer->learnSpell(54428);
+				pPlayer->learnSpell(54043);
+				pPlayer->learnSpell(48943);
+				pPlayer->learnSpell(48936);
+				pPlayer->learnSpell(48945);
+				pPlayer->learnSpell(48938);
+				pPlayer->learnSpell(48947);
+				pPlayer->learnSpell(48817);
+				pPlayer->learnSpell(48788);
+				pPlayer->learnSpell(48932);
+				pPlayer->learnSpell(48942);
+				pPlayer->learnSpell(48801);
+				pPlayer->learnSpell(48785);
+				pPlayer->learnSpell(48934);
+				pPlayer->learnSpell(48950);
+				pPlayer->learnSpell(48819);
+				pPlayer->learnSpell(48806);
+				pPlayer->learnSpell(48782);
+				pPlayer->learnSpell(53601);
+				pPlayer->learnSpell(61411);
+				if (pPlayer->GetTeamId() == HORDE) 
 						{
-						pPlayer->learnSpell(53736, false);				
+						pPlayer->learnSpell(53736);				
 						}
 					else 
 						{
-						pPlayer->learnSpell(31801, false);	
+						pPlayer->learnSpell(31801);	
 						}
 				break;
 							
 				case GOSSIP_ACTION_INFO_DEF + 3006:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(586, false);
-				pPlayer->learnSpell(2053, false);
-				pPlayer->learnSpell(528, false);
-				pPlayer->learnSpell(6346, false);
-				pPlayer->learnSpell(453, false);
-				pPlayer->learnSpell(8129, false);
-				pPlayer->learnSpell(605, false);
-				pPlayer->learnSpell(552, false);
-				pPlayer->learnSpell(6064, false);
-				pPlayer->learnSpell(1706, false);
-				pPlayer->learnSpell(988, false);
-				pPlayer->learnSpell(10909, false);
-				pPlayer->learnSpell(10890, false);
-				pPlayer->learnSpell(10955, false);
-				pPlayer->learnSpell(34433, false);
-				pPlayer->learnSpell(32375, false);
-				pPlayer->learnSpell(48072, false);
-				pPlayer->learnSpell(48169, false);
-				pPlayer->learnSpell(48168, false);
-				pPlayer->learnSpell(48170, false);
-				pPlayer->learnSpell(48120, false);
-				pPlayer->learnSpell(48063, false);
-				pPlayer->learnSpell(48135, false);
-				pPlayer->learnSpell(48171, false);
-				pPlayer->learnSpell(48300, false);
-				pPlayer->learnSpell(48071, false);
-				pPlayer->learnSpell(48127, false);
-				pPlayer->learnSpell(48113, false);
-				pPlayer->learnSpell(48123, false);
-				pPlayer->learnSpell(48173, false);
-				pPlayer->learnSpell(48073, false);
-				pPlayer->learnSpell(48078, false);
-				pPlayer->learnSpell(48087, false);
-				pPlayer->learnSpell(53023, false);
-				pPlayer->learnSpell(48161, false);
-				pPlayer->learnSpell(48066, false);
-				pPlayer->learnSpell(48162, false);
-				pPlayer->learnSpell(48074, false);
-				pPlayer->learnSpell(48068, false);
-				pPlayer->learnSpell(48158, false);
-				pPlayer->learnSpell(48125, false);
+				pPlayer->learnSpell(586);
+				pPlayer->learnSpell(2053);
+				pPlayer->learnSpell(528);
+				pPlayer->learnSpell(6346);
+				pPlayer->learnSpell(453);
+				pPlayer->learnSpell(8129);
+				pPlayer->learnSpell(605);
+				pPlayer->learnSpell(552);
+				pPlayer->learnSpell(6064);
+				pPlayer->learnSpell(1706);
+				pPlayer->learnSpell(988);
+				pPlayer->learnSpell(10909);
+				pPlayer->learnSpell(10890);
+				pPlayer->learnSpell(10955);
+				pPlayer->learnSpell(34433);
+				pPlayer->learnSpell(32375);
+				pPlayer->learnSpell(48072);
+				pPlayer->learnSpell(48169);
+				pPlayer->learnSpell(48168);
+				pPlayer->learnSpell(48170);
+				pPlayer->learnSpell(48120);
+				pPlayer->learnSpell(48063);
+				pPlayer->learnSpell(48135);
+				pPlayer->learnSpell(48171);
+				pPlayer->learnSpell(48300);
+				pPlayer->learnSpell(48071);
+				pPlayer->learnSpell(48127);
+				pPlayer->learnSpell(48113);
+				pPlayer->learnSpell(48123);
+				pPlayer->learnSpell(48173);
+				pPlayer->learnSpell(48073);
+				pPlayer->learnSpell(48078);
+				pPlayer->learnSpell(48087);
+				pPlayer->learnSpell(53023);
+				pPlayer->learnSpell(48161);
+				pPlayer->learnSpell(48066);
+				pPlayer->learnSpell(48162);
+				pPlayer->learnSpell(48074);
+				pPlayer->learnSpell(48068);
+				pPlayer->learnSpell(48158);
+				pPlayer->learnSpell(48125);
 								break;
 		case GOSSIP_ACTION_INFO_DEF + 3007:
 			pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(921, false);
-				pPlayer->learnSpell(1776, false);
-				pPlayer->learnSpell(1766, false);
-				pPlayer->learnSpell(1804, false);
-				pPlayer->learnSpell(51722, false);
-				pPlayer->learnSpell(1725, false);
-				pPlayer->learnSpell(2836, false);
-				pPlayer->learnSpell(1833, false);
-				pPlayer->learnSpell(1842, false);
-				pPlayer->learnSpell(2094, false);
-				pPlayer->learnSpell(1860, false);
-				pPlayer->learnSpell(6774, false);
-				pPlayer->learnSpell(26669, false);
-				pPlayer->learnSpell(8643, false);
-				pPlayer->learnSpell(11305, false);
-				pPlayer->learnSpell(1787, false);
-				pPlayer->learnSpell(26889, false);
-				pPlayer->learnSpell(31224, false);
-				pPlayer->learnSpell(5938, false);
-				pPlayer->learnSpell(51724, false);
-				pPlayer->learnSpell(57934, false);
-				pPlayer->learnSpell(48674, false);
-				pPlayer->learnSpell(48659, false);
-				pPlayer->learnSpell(48668, false);
-				pPlayer->learnSpell(48672, false);
-				pPlayer->learnSpell(48691, false);
-				pPlayer->learnSpell(48657, false);
-				pPlayer->learnSpell(57993, false);
-				pPlayer->learnSpell(51723, false);
-				pPlayer->learnSpell(48676, false);
-				pPlayer->learnSpell(48638, false);
+				pPlayer->learnSpell(921);
+				pPlayer->learnSpell(1776);
+				pPlayer->learnSpell(1766);
+				pPlayer->learnSpell(1804);
+				pPlayer->learnSpell(51722);
+				pPlayer->learnSpell(1725);
+				pPlayer->learnSpell(2836);
+				pPlayer->learnSpell(1833);
+				pPlayer->learnSpell(1842);
+				pPlayer->learnSpell(2094);
+				pPlayer->learnSpell(1860);
+				pPlayer->learnSpell(6774);
+				pPlayer->learnSpell(26669);
+				pPlayer->learnSpell(8643);
+				pPlayer->learnSpell(11305);
+				pPlayer->learnSpell(1787);
+				pPlayer->learnSpell(26889);
+				pPlayer->learnSpell(31224);
+				pPlayer->learnSpell(5938);
+				pPlayer->learnSpell(51724);
+				pPlayer->learnSpell(57934);
+				pPlayer->learnSpell(48674);
+				pPlayer->learnSpell(48659);
+				pPlayer->learnSpell(48668);
+				pPlayer->learnSpell(48672);
+				pPlayer->learnSpell(48691);
+				pPlayer->learnSpell(48657);
+				pPlayer->learnSpell(57993);
+				pPlayer->learnSpell(51723);
+				pPlayer->learnSpell(48676);
+				pPlayer->learnSpell(48638);
 			break;
 			case GOSSIP_ACTION_INFO_DEF + 3008:
 				pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(30671, false);
-				pPlayer->learnSpell(2484, false);
-				pPlayer->learnSpell(526, false);
-				pPlayer->learnSpell(57994, false);
-				pPlayer->learnSpell(8143, false);
-				pPlayer->learnSpell(2645, false);
-				pPlayer->learnSpell(2870, false);
-				pPlayer->learnSpell(8166, false);
-				pPlayer->learnSpell(131, false);
-				pPlayer->learnSpell(10399, false);
-				pPlayer->learnSpell(6196, false);
-				pPlayer->learnSpell(546, false);
-				pPlayer->learnSpell(556, false);
-				pPlayer->learnSpell(8177, false);
-				pPlayer->learnSpell(20608, false);
-				pPlayer->learnSpell(36936, false);
-				pPlayer->learnSpell(8012, false);
-				pPlayer->learnSpell(8512, false);
-				pPlayer->learnSpell(6495, false);
-				pPlayer->learnSpell(8170, false);
-				pPlayer->learnSpell(3738, false);
-				pPlayer->learnSpell(2062, false);
-				pPlayer->learnSpell(2894, false);
-				pPlayer->learnSpell(57960, false);
-				pPlayer->learnSpell(49276, false);
-				pPlayer->learnSpell(49236, false);
-				pPlayer->learnSpell(58734, false);
-				pPlayer->learnSpell(58582, false);
-				pPlayer->learnSpell(58753, false);
-				pPlayer->learnSpell(49231, false);
-				pPlayer->learnSpell(49238, false);
-				pPlayer->learnSpell(49277, false);
-				pPlayer->learnSpell(55459, false);
-				pPlayer->learnSpell(49271, false);
-				pPlayer->learnSpell(49284, false);
-				pPlayer->learnSpell(51994, false);
-				pPlayer->learnSpell(61657, false);
-				pPlayer->learnSpell(58739, false);
-				pPlayer->learnSpell(49233, false);
-				pPlayer->learnSpell(58656, false);
-				pPlayer->learnSpell(58790, false);
-				pPlayer->learnSpell(58745, false);
-				pPlayer->learnSpell(58796, false);
-				pPlayer->learnSpell(58757, false);
-				pPlayer->learnSpell(49273, false);
-				pPlayer->learnSpell(51514, false);
-				pPlayer->learnSpell(60043, false);
-				pPlayer->learnSpell(49281, false);
-				pPlayer->learnSpell(58774, false);
-				pPlayer->learnSpell(58749, false);
-				pPlayer->learnSpell(58704, false);
-				pPlayer->learnSpell(58643, false);
-				pPlayer->learnSpell(58804, false);
+				pPlayer->learnSpell(30671);
+				pPlayer->learnSpell(2484);
+				pPlayer->learnSpell(526);
+				pPlayer->learnSpell(57994);
+				pPlayer->learnSpell(8143);
+				pPlayer->learnSpell(2645);
+				pPlayer->learnSpell(2870);
+				pPlayer->learnSpell(8166);
+				pPlayer->learnSpell(131);
+				pPlayer->learnSpell(10399);
+				pPlayer->learnSpell(6196);
+				pPlayer->learnSpell(546);
+				pPlayer->learnSpell(556);
+				pPlayer->learnSpell(8177);
+				pPlayer->learnSpell(20608);
+				pPlayer->learnSpell(36936);
+				pPlayer->learnSpell(8012);
+				pPlayer->learnSpell(8512);
+				pPlayer->learnSpell(6495);
+				pPlayer->learnSpell(8170);
+				pPlayer->learnSpell(3738);
+				pPlayer->learnSpell(2062);
+				pPlayer->learnSpell(2894);
+				pPlayer->learnSpell(57960);
+				pPlayer->learnSpell(49276);
+				pPlayer->learnSpell(49236);
+				pPlayer->learnSpell(58734);
+				pPlayer->learnSpell(58582);
+				pPlayer->learnSpell(58753);
+				pPlayer->learnSpell(49231);
+				pPlayer->learnSpell(49238);
+				pPlayer->learnSpell(49277);
+				pPlayer->learnSpell(55459);
+				pPlayer->learnSpell(49271);
+				pPlayer->learnSpell(49284);
+				pPlayer->learnSpell(51994);
+				pPlayer->learnSpell(61657);
+				pPlayer->learnSpell(58739);
+				pPlayer->learnSpell(49233);
+				pPlayer->learnSpell(58656);
+				pPlayer->learnSpell(58790);
+				pPlayer->learnSpell(58745);
+				pPlayer->learnSpell(58796);
+				pPlayer->learnSpell(58757);
+				pPlayer->learnSpell(49273);
+				pPlayer->learnSpell(51514);
+				pPlayer->learnSpell(60043);
+				pPlayer->learnSpell(49281);
+				pPlayer->learnSpell(58774);
+				pPlayer->learnSpell(58749);
+				pPlayer->learnSpell(58704);
+				pPlayer->learnSpell(58643);
+				pPlayer->learnSpell(58804);
 				break;
 			case GOSSIP_ACTION_INFO_DEF + 3009:
 					pPlayer->CLOSE_GOSSIP_MENU();
-				pPlayer->learnSpell(59671, false);
-				pPlayer->learnSpell(688, false);
-				pPlayer->learnSpell(696, false);
-				pPlayer->learnSpell(697, false);
-				pPlayer->learnSpell(5697, false);
-				pPlayer->learnSpell(698, false);
-				pPlayer->learnSpell(712, false);
-				pPlayer->learnSpell(126, false);
-				pPlayer->learnSpell(5138, false);
-				pPlayer->learnSpell(5500, false);
-				pPlayer->learnSpell(132, false);
-				pPlayer->learnSpell(691, false);
-				pPlayer->learnSpell(18647, false);
-				pPlayer->learnSpell(11719, false);
-				pPlayer->learnSpell(1122, false);
-				pPlayer->learnSpell(17928, false);
-				pPlayer->learnSpell(6215, false);
-				pPlayer->learnSpell(18540, false);
-				pPlayer->learnSpell(23161, false);
-				pPlayer->learnSpell(29858, false);
-				pPlayer->learnSpell(50511, false);
-				pPlayer->learnSpell(61191, false);
-				pPlayer->learnSpell(47884, false);
-				pPlayer->learnSpell(47856, false);
-				pPlayer->learnSpell(47813, false);
-				pPlayer->learnSpell(47855, false);
-				pPlayer->learnSpell(47888, false);
-				pPlayer->learnSpell(47865, false);
-				pPlayer->learnSpell(47860, false);
-				pPlayer->learnSpell(47857, false);
-				pPlayer->learnSpell(47823, false);
-				pPlayer->learnSpell(47891, false);
-				pPlayer->learnSpell(47878, false);
-				pPlayer->learnSpell(47864, false);
-				pPlayer->learnSpell(57595, false);
-				pPlayer->learnSpell(47893, false);
-				pPlayer->learnSpell(47820, false);
-				pPlayer->learnSpell(47815, false);
-				pPlayer->learnSpell(47809, false);
-				pPlayer->learnSpell(60220, false);
-				pPlayer->learnSpell(47867, false);
-				pPlayer->learnSpell(47889, false);
-				pPlayer->learnSpell(48018, false);
-				pPlayer->learnSpell(47811, false);
-				pPlayer->learnSpell(47838, false);
-				pPlayer->learnSpell(57946, false);
-				pPlayer->learnSpell(58887, false);
-				pPlayer->learnSpell(47836, false);
-				pPlayer->learnSpell(61290, false);
-				pPlayer->learnSpell(47825, false);
+				pPlayer->learnSpell(59671);
+				pPlayer->learnSpell(688);
+				pPlayer->learnSpell(696);
+				pPlayer->learnSpell(697);
+				pPlayer->learnSpell(5697);
+				pPlayer->learnSpell(698);
+				pPlayer->learnSpell(712);
+				pPlayer->learnSpell(126);
+				pPlayer->learnSpell(5138);
+				pPlayer->learnSpell(5500);
+				pPlayer->learnSpell(132);
+				pPlayer->learnSpell(691);
+				pPlayer->learnSpell(18647);
+				pPlayer->learnSpell(11719);
+				pPlayer->learnSpell(1122);
+				pPlayer->learnSpell(17928);
+				pPlayer->learnSpell(6215);
+				pPlayer->learnSpell(18540);
+				pPlayer->learnSpell(23161);
+				pPlayer->learnSpell(29858);
+				pPlayer->learnSpell(50511);
+				pPlayer->learnSpell(61191);
+				pPlayer->learnSpell(47884);
+				pPlayer->learnSpell(47856);
+				pPlayer->learnSpell(47813);
+				pPlayer->learnSpell(47855);
+				pPlayer->learnSpell(47888);
+				pPlayer->learnSpell(47865);
+				pPlayer->learnSpell(47860);
+				pPlayer->learnSpell(47857);
+				pPlayer->learnSpell(47823);
+				pPlayer->learnSpell(47891);
+				pPlayer->learnSpell(47878);
+				pPlayer->learnSpell(47864);
+				pPlayer->learnSpell(57595);
+				pPlayer->learnSpell(47893);
+				pPlayer->learnSpell(47820);
+				pPlayer->learnSpell(47815);
+				pPlayer->learnSpell(47809);
+				pPlayer->learnSpell(60220);
+				pPlayer->learnSpell(47867);
+				pPlayer->learnSpell(47889);
+				pPlayer->learnSpell(48018);
+				pPlayer->learnSpell(47811);
+				pPlayer->learnSpell(47838);
+				pPlayer->learnSpell(57946);
+				pPlayer->learnSpell(58887);
+				pPlayer->learnSpell(47836);
+				pPlayer->learnSpell(61290);
+				pPlayer->learnSpell(47825);
 					break;
 					
 				case GOSSIP_ACTION_INFO_DEF + 3011:
