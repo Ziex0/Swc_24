@@ -48,7 +48,7 @@ public:
 	void CreatureWhisperBasedOnBool(const char *text, Creature *pCreature, Player *pPlayer, bool value)
 	{
 		if (value)
-			pCreature->MonsterWhisper(text, pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage(text, pPlayer->GetGUID());
 	}
 
 	uint32 PlayerMaxLevel() const
@@ -80,7 +80,7 @@ public:
     {
 		if (pPlayer->IsInCombat())
 		{
-			pCreature->MonsterWhisper("You are in combat !!!!, wait until your combat is gone...ughhhhh .!!!", pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage("You are in combat !!!!, wait until your combat is gone...ughhhhh .!!!", pPlayer->GetGUID());
 			pPlayer->CLOSE_GOSSIP_MENU();
 
 			return true;
@@ -108,15 +108,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(201, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(201);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -125,15 +125,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(198, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(198);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -142,15 +142,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(196, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(196);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -159,15 +159,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(1180, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(1180);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -176,15 +176,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(227, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(227);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -193,15 +193,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(202, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(202);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -210,15 +210,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(197, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(197);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -227,15 +227,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(199, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(199);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -244,15 +244,15 @@ public:
                 if (pPlayer->HasItemCount(cross_token, 1)){
 					pPlayer->DestroyItemCount(29, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(46917, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(46917);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -270,15 +270,15 @@ public:
                 if (pPlayer->HasItemCount(spell_cust, 1)){
 					pPlayer->DestroyItemCount(28, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(25794, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(25794);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -287,15 +287,15 @@ public:
                 if (pPlayer->HasItemCount(spell_cust, 1)){
 					pPlayer->DestroyItemCount(28, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(25797, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(25797);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -304,15 +304,15 @@ public:
                 if (pPlayer->HasItemCount(spell_cust, 1)){
 					pPlayer->DestroyItemCount(28, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(27746, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(27746);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -321,15 +321,15 @@ public:
                 if (pPlayer->HasItemCount(spell_cust, 1)){
 					pPlayer->DestroyItemCount(28, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(27746, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(27746);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;
@@ -338,15 +338,15 @@ public:
                 if (pPlayer->HasItemCount(spell_cust, 1)){
 					pPlayer->DestroyItemCount(28, 1, true, false);
 					pPlayer->CLOSE_GOSSIP_MENU();
-					pPlayer->learnSpell(41924, false);
-					pCreature->MonsterWhisper("You have successfully acquired this spell.", pPlayer->GetGUID());
+					pPlayer->learnSpell(41924);
+					ChatHandler(pPlayer->GetSession()).PSendSysMessage("You have successfully acquired this spell.", pPlayer->GetGUID());
 					break;
 
                 }
                 else
                 {
                     pPlayer->CLOSE_GOSSIP_MENU();
-                    pCreature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
+                    ChatHandler(pPlayer->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", pPlayer->GetGUID());
                     return false;
                 }
                 break;

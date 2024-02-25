@@ -16,7 +16,7 @@ public:
         if (player->IsInCombat())
         {
             player->CLOSE_GOSSIP_MENU();
-            _creature->MonsterWhisper("You are in combat!", player->GetGUID());
+            ChatHandler(player->GetSession()).PSendSysMessage("You are in combat!", player->GetGUID());
             return true;
         }
         else
@@ -52,12 +52,12 @@ public:
                     player->CLOSE_GOSSIP_MENU();
                     player->ModifyHonorPoints(-25000);
                     player->ModifyArenaPoints(+250);
-                    _creature->MonsterWhisper("You exchanged succesfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged succesfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                     _creature->MonsterWhisper("I'm sorry, but you don't have enough honor points to make this exchange!.", player->GetGUID());
+                     ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have enough honor points to make this exchange!.", player->GetGUID());
                     return false;
                 }break;
 				
@@ -67,12 +67,12 @@ public:
                     player->CLOSE_GOSSIP_MENU();
                     player->ModifyArenaPoints(-250);
                     player->ModifyHonorPoints(+20000);
-                    _creature->MonsterWhisper("You exchanged succesfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged succesfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                     _creature->MonsterWhisper("I'm sorry, but you don't have enough arena points to make this exchange!.", player->GetGUID());
+                     ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have enough arena points to make this exchange!.", player->GetGUID());
                     return false;
                 }break;
 				
@@ -85,12 +85,12 @@ public:
                     player->DestroyItemCount(95506, 1, true, false);
                     player->DestroyItemCount(95507, 1, true, false);
                     player->AddItem(110011, 1 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;
@@ -103,12 +103,12 @@ public:
                     player->DestroyItemCount(95510, 1, true, false);
                     player->DestroyItemCount(95511, 1, true, false);
                     player->AddItem(110012, 1 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;
@@ -121,12 +121,12 @@ public:
                     player->DestroyItemCount(95514, 1, true, false);
                     player->DestroyItemCount(95515, 1, true, false);
                     player->AddItem(110013, 1 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;
@@ -139,12 +139,12 @@ public:
                     player->DestroyItemCount(95518, 1, true, false);
                     player->DestroyItemCount(95519, 1, true, false);
                     player->AddItem(110014, 1 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;
@@ -157,12 +157,12 @@ public:
                     player->DestroyItemCount(95522, 1, true, false);
                     player->DestroyItemCount(95523, 1, true, false);
                     player->AddItem(110015, 1 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;
@@ -175,12 +175,12 @@ public:
                     player->DestroyItemCount(95502, 1, true, false);
                     player->DestroyItemCount(95503, 1, true, false);
                     player->AddItem(110010, 5 );
-                    _creature->MonsterWhisper("You exchanged successfully!", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("You exchanged successfully!", player->GetGUID());
                 }
                 else
                 {
                     player->CLOSE_GOSSIP_MENU();
-                    _creature->MonsterWhisper("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
+                    ChatHandler(player->GetSession()).PSendSysMessage("I'm sorry, but you don't have items to make this exchange!.", player->GetGUID());
                     return false;
                 }
                 break;

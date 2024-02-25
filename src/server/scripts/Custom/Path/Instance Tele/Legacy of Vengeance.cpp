@@ -47,7 +47,7 @@ public:
 	void CreatureWhisperBasedOnBool(const char *text, Creature *pCreature, Player *pPlayer, bool value)
 	{
 		if (value)
-			pCreature->MonsterWhisper(text, pPlayer->GetGUID());
+			ChatHandler(pPlayer->GetSession()).PSendSysMessage(text, pPlayer->GetGUID());
 	}
 
 	void MainMenu(Player *pPlayer, Creature *pCreature)

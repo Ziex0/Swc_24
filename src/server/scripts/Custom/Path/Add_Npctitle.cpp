@@ -62,7 +62,7 @@ class universal_npc : public CreatureScript //titles vendor
 	   bool OnGossipHello(Player * player, Creature * _creature)
 	   {
 		   player->PlayerTalkClass->ClearMenus();
-		   if (player->GetTeam() == HORDE)
+		   if (player->GetTeamId() == HORDE)
 			   player->ADD_GOSSIP_ITEM(GOSSIP_ICON_TALK, "|TInterface/icons/Achievement_Arena_2v2_2:30|tPVP Titles", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
 		   else
 			   player->ADD_GOSSIP_ITEM(GOSSIP_ICON_TALK, "|TInterface/icons/Achievement_Arena_2v2_2:30|tPVP Titles", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2); 
@@ -140,24 +140,24 @@ class universal_npc : public CreatureScript //titles vendor
 					arena_team = sArenaTeamMgr->GetArenaTeamById(player->GetArenaTeamId(slot));
 					if( ! arena_team)
 					{
-						_creature->MonsterWhisper("You dont have team.", player->GetGUID());
+						ChatHandler(player->GetSession()).PSendSysMessage("You dont have team.", player->GetGUID());
 						OnGossipHello(player, _creature);
 						break;
 					}
 					member = arena_team->GetMember(player->GetGUID());
 					if ( ! member)
 					{
-						_creature->MonsterWhisper("Error Cant Find Member(tell gm about this).", player->GetGUID());
+						ChatHandler(player->GetSession()).PSendSysMessage("Error Cant Find Member(tell gm about this).", player->GetGUID());
 						player->PlayerTalkClass->SendCloseGossip();
 						break;
 					}
 					if(member->MatchMakerRating != sWorld->getIntConfig(CONFIG_ARENA_START_MATCHMAKER_RATING))
 					{
 						member->ModifyMatchmakerRating(sWorld->getIntConfig(CONFIG_ARENA_START_MATCHMAKER_RATING) - member->MatchMakerRating, slot);
-						_creature->MonsterWhisper("Your MMR successfuly reset.", player->GetGUID());
+						ChatHandler(player->GetSession()).PSendSysMessage("Your MMR successfuly reset.", player->GetGUID());
 					}
 					else
-						_creature->MonsterWhisper("Your MMR is already reset.", player->GetGUID());
+						ChatHandler(player->GetSession()).PSendSysMessage("Your MMR is already reset.", player->GetGUID());
 
 					OnGossipHello(player, _creature);
 					break;			
@@ -166,196 +166,196 @@ class universal_npc : public CreatureScript //titles vendor
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(SCOUT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+11:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=50)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(GRUNT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+12:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=100)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(SERGEANT_H));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+13:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=250)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(SENIOR_SERGEANT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+14:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(FIRST_SERGEANT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+15:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=750)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(STONE_GUARD));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+16:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(BLOOD_GUARD));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+17:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(LEGIONNAIRE));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+18:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=3000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(CENTURION));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+19:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=5000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(CHAMPION));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+20:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=7500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(LIEUTENANT_GENERAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+21:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=10000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(GENERAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+22:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=15000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(WARLORD));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+23:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=30000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(HIGH_WARLORD));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+30:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(PRIVATE));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+31:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=50)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(CORPORAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+32:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=100)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(SERGEANT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+33:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=250)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(MASTER_SERGEANT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+34:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(SERGEANT_MAJOR));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+35:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=750)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(KNIGHT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+36:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(KNIGHT_LIEUTENANT));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+37:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=1500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(KNIGHT_CAPTAIN));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+38:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=3000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(KNIGHT_CHAMPION));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+39:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=5000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(LIEUTENANT_COMMANDER));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+40:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=7500)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(COMMANDER));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+41:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=10000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(MARSHAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+42:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=15000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(FIELD_MARSHAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+43:
                 if(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS)>=30000)
 				    player->SetTitle(sCharTitlesStore.LookupEntry(GRAND_MARSHAL));
 				    else 
-					_creature->MonsterWhisper("You don't have enough Life Time Kills!!", player->GetGUID());
+					ChatHandler(player->GetSession()).PSendSysMessage("You don't have enough Life Time Kills!!", player->GetGUID());
 				break;
 				
 				case GOSSIP_ACTION_INFO_DEF+99:

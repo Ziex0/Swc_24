@@ -153,7 +153,7 @@ class premium_rate : public CreatureScript
 
 						pPlayer->GetSession()->SendAreaTriggerMessage("Successfully upgraded your account to |cffFF0000Premium|r RANK II for One month use. "
 							"Close the game and login again for changes to take effect! Thanks for the support!");
-						pPlayer->SaveToDB();
+						//layer->SaveToDB():
 						pPlayer->CLOSE_GOSSIP_MENU();           
 					} 
 			break;
@@ -178,7 +178,7 @@ class premium_rate : public CreatureScript
 
 						pPlayer->GetSession()->SendAreaTriggerMessage("Successfully upgraded your account to |cffFF0000Premium|r RANK II for Three months use. "
 							"Close the game and login again for changes to take effect! Thanks for the support!");
-						pPlayer->SaveToDB();
+						//layer->SaveToDB();
 						pPlayer->CLOSE_GOSSIP_MENU();           
 					} 
 			break;	
@@ -203,7 +203,7 @@ class premium_rate : public CreatureScript
 
 						pPlayer->GetSession()->SendAreaTriggerMessage("Successfully upgraded your account to |cffFF0000Premium|r RANK II for Nine months use. "
 							"Close the game and login again for changes to take effect! Thanks for the support!");
-						pPlayer->SaveToDB();
+						//layer->SaveToDB();
 						pPlayer->CLOSE_GOSSIP_MENU();           
 					} 
 			break;
@@ -228,7 +228,7 @@ class premium_rate : public CreatureScript
 
 						pPlayer->GetSession()->SendAreaTriggerMessage("Successfully upgraded your account to |cffFF0000Premium|r RANK II Permanent use. "
 							"Close the game and login again for changes to take effect! Thanks for the support!");
-						pPlayer->SaveToDB();
+						//layer->SaveToDB();
 						pPlayer->CLOSE_GOSSIP_MENU();           
 					} 
 			break;	
