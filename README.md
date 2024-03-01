@@ -1,64 +1,41 @@
-## THIS IS NOT BLIZZLIKE 50% INSIDE MODIFIED.
-ONLY WORK IN PRIVATE SERVER
+# ![logo](https://raw.githubusercontent.com/azerothcore/azerothcore.github.io/master/images/logo-github.png) AzerothCore
 
-WILL BE GOT PUBLIC AT WWW.THESATRIA.COM
+[![Gitter](https://badges.gitter.im/azerothcore/azerothcore.svg)](https://gitter.im/azerothcore/azerothcore?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=40032087)](https://www.bountysource.com/teams/azerothcore/bounties) [![Master Build Status](https://travis-ci.org/azerothcore/azerothcore-wotlk.svg)](https://travis-ci.org/azerothcore/azerothcore-wotlk) [![Issue Stats](http://www.issuestats.com/github/AzerothCore/azerothcore-wotlk/badge/issue)](http://www.issuestats.com/github/AzerothCore/azerothcore-wotlk) [![Issue Stats](http://www.issuestats.com/github/AzerothCore/azerothcore-wotlk/badge/pr)](http://www.issuestats.com/github/AzerothCore/azerothcore-wotlk)
+
+## Introduction
+
+AzerothCore is an open source game-server application for World of Warcraft, currently supporting the 3.3.5a game version.
+
+It is written in C++ and based on MaNGOS, TrinityCore and SunwellCore.
+
+## Why AzerothCore?
+
+Our main goal is to create a playable game server, offering a fully working game experience. In short, we focus on the **user experience (UX)**.
+
+We also believe in [software modularity](https://en.wikipedia.org/wiki/Modular_programming), because the more the software is modular, and the more it will be easy to be maintained, understood, developed, etc... So we organized the structure of AzerothCore as modular as possible, giving the possibility to [create new modules](https://github.com/azerothcore/azerothcore-wotlk/wiki/Create-a-Module) to add custom features (instead of patching the core).
+
+## Learning project
+
+AzerothCore is a learning project.
+If you want to learn how to use C++, SQL, git, etc... you came to the right place! We will gladly to help you: **programming is our passion**.
+
+If you want to contribute, in [our wiki](https://github.com/azerothcore/azerothcore-wotlk/wiki) you fill find a lot of resources that will guide you. Also you can poke us in [our gitter chat channel](https://gitter.im/azerothcore/azerothcore).
 
 
-= TrinityCore -- General information =
-!
-Copyright (C) TrinityCore (http://www.trinitycore.org)
+## Authors & Contributors
 
-  Trinity Core is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+This project is brought to you thanks to:
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+- The [AzerothCore developers and contributors](https://github.com/AzerothCore/azerothcore-wotlk/graphs/contributors)
+- The SunwellCore developers **xinef** and **pussywizard**
+- All the [TrinityCore developers and contributors](https://github.com/TrinityCore/TrinityCore/blob/3.3.5/THANKS)
+- All the [MaNGOS, ScriptDev2 and UDB developers and contributors](https://github.com/cmangos/mangos-wotlk/blob/master/AUTHORS.md)
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+## License
 
-  In addition, as a special exception, the Trinity Core project
-  gives permission to link the code of its release of Trinity Core with
-  the OpenSSL project's "OpenSSL" library (or with modified versions of
-  it that use the same license as the "OpenSSL" library), and distribute
-  the linked executables.  You must obey the GNU General Public License
-  in all respects for all of the code used other than "OpenSSL".  If you
-  modify this file, you may extend this exception to your version of the
-  file, but you are not obligated to do so.  If you do not wish to do
-  so, delete this exception statement from your version.
+- The new AzerothCore source components are released under the [GNU AGPL v3](https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-AGPL3)
+- The old sources based on MaNGOS/TrinityCore are released under the [GNU GPL v2](https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE-GPL2)
 
-TrinityCore is a MMORPG Framework based mostly on C++. It is completely 
-open source, and is community supported. It is derived
-from MaNGOS, the Massive Network Game Object Server, and is based on the
-code of that project with extensive changes over time to optimize, improve
-and cleanup the codebase at the same time as improving the ingame mechanics
-and functionality. If you wish to contribute ideas or code please visit 
-our site linked below or make pull requests to our github repo at 
-https://github.com/TrinityCore/TrinityCore
+## Links
 
-For further information on the TrinityCore project, please visit our
-project website at http://www.TrinityCore.org
-
-Documentation including installation instructions can be found inside
-the doc directory.
-
-SQL files to create the database can be found in the sql directory. Files
-to update your database from an older revision/version can be found in the
-sql/updates directory.
-
-TrinityCore Requirements
-Platform: Linux, Windows or Mac
-Processor with SSE2 support
-ACE ≥ 5.8.3
-MySQL ≥ 5.1.0
-CMake ≥ 2.8.0
-OpenSSL ≥ 1.0.0
-GCC ≥ 4.3 (Linux only)
-MS Visual Studio ≥ 11 (2012) (Windows only)
-
-FAK THIS THING MAKE ME SICK lol
+- [Website](https://azerothcore.github.io/)
